@@ -88,8 +88,8 @@ the pin/unpin seam and as a boot-time guard.
 - **`NotificationController`** (extended) — create the `quick_add` channel (low
   importance) and build the quick-add notification. Requested presentation
   (2026-06-08): title **"New Stela note"**, content **"Tap to create a new note"**,
-  **body tap does nothing**, two actions — **New note** (fresh editor, then pin it)
-  and **View notes** (note list). All `PendingIntent`s `FLAG_IMMUTABLE`. *The "pin
+  **body tap opens a fresh editor** (changed 2026-06-08 from no-op), two actions —
+  **New note** (fresh editor, then pin it) and **View notes** (note list). All `PendingIntent`s `FLAG_IMMUTABLE`. *The "pin
   the new note" step needs a defined flow (likely pin-on-save) and may be addressed
   after the core service lands.*
 - **Manifest** — `<service specialUse>` + `PROPERTY_SPECIAL_USE_FGS_SUBTYPE`

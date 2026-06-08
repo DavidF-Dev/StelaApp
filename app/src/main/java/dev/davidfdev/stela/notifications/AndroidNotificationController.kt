@@ -75,20 +75,23 @@ class AndroidNotificationController(private val context: Context) : Notification
         return PendingIntent.getBroadcast(context, notificationId(noteId), intent, PENDING_FLAGS)
     }
 
-    // The body tap is intentionally inert (no content intent); the two actions are
-    // the only way in. "New note" opens a fresh editor, "View notes" the list.
-    override fun buildQuickAddNotification(): android.app.Notification =
-        NotificationCompat.Builder(context, CHANNEL_QUICK_ADD)
+    // Body tap and the New note action both open a fresh editor; View notes opens
+    // the list.
+    override fun buildQuickAddNotification(): android.app.Notification {
+        val newNote = deepLinkActivityIntent("$DEEP_LINK_BASE/new", QUICK_ADD_NEW_REQUEST)
+        return NotificationCompat.Builder(context, CHANNEL_QUICK_ADD)
             .setSmallIcon(R.drawable.ic_stela_pin)
             .setContentTitle("New Stela note")
             .setContentText("Tap to create a new note")
+            .setContentIntent(newNote)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setSilent(true)
             .setShowWhen(false)
-            .addAction(0, "New note", deepLinkActivityIntent("$DEEP_LINK_BASE/new", QUICK_ADD_NEW_REQUEST))
+            .addAction(0, "New note", newNote)
             .addAction(0, "View notes", deepLinkActivityIntent("$DEEP_LINK_BASE/list", QUICK_ADD_VIEW_REQUEST))
             .build()
+    }
 
     private fun deepLinkActivityIntent(uri: String, requestCode: Int): PendingIntent {
         val intent = Intent(Intent.ACTION_VIEW, uri.toUri(), context, MainActivity::class.java)

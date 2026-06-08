@@ -190,10 +190,10 @@ Android forces a foreground service to display its own ongoing notification, so 
     brand is "Stela" — using "Stela" unless told otherwise).*
   - **Content:** "Tap to create a new note"  *(request read "Tap to create a new
     notification note").*
-  - **Body tap does nothing.** Two actions:
+  - **Body tap opens a fresh editor** *(changed 2026-06-08 from no-op).* Two actions:
     - **New note** — opens the editor on a fresh note and pins it. *(Pinning a
       not-yet-saved note needs a defined flow — likely pin-on-save; addressed
-      later.)*
+      later. Body tap currently opens the editor without pinning.)*
     - **View notes** — opens the note list.
 - If quick-add is **disabled** in settings but notes are still pinned, the service
   must keep a notification to stay alive → downgrade to a **minimal, silent,
