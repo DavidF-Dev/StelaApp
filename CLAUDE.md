@@ -12,8 +12,9 @@ Read it before making architectural decisions; this file is only a quick orienta
 | Concern      | Choice                                              |
 |--------------|-----------------------------------------------------|
 | Language     | Kotlin                                              |
-| UI           | Jetpack Compose (Material 3, dark mode)             |
+| UI           | Jetpack Compose (Material 3; Light/Dark/System theme) |
 | Storage      | Room (SQLite), offline                              |
+| Preferences  | Jetpack DataStore (theme, quick-add, lock-screen)   |
 | Background   | Foreground Service (`specialUse` type, API 34+)     |
 | Boot restore | `BroadcastReceiver` on `BOOT_COMPLETED`             |
 | Min SDK      | 26 (Android 8) · Target SDK: latest stable          |
@@ -22,10 +23,12 @@ Read it before making architectural decisions; this file is only a quick orienta
 ## Architecture (one-line each)
 
 - **`NoteRepository`** — single source of truth over Room; exposes notes as a `Flow` + CRUD. UI and service both read through it.
-- **`NotificationController`** — the *only* class that touches `NotificationManager`. Builds ongoing notifications (Edit/Remove actions). Pin/unpin/refresh/re-assert.
-- **`PinService`** — foreground service. Runs **iff** (≥1 pinned note) **OR** (quick-add enabled). Hosts the quick-add notification; re-asserts pins on start.
+- **`SettingsRepository`** — single source of truth for preferences over DataStore (theme, quick-add, lock-screen). UI, theme, controller, and service read through it.
+- **`NotificationController`** — the *only* class that touches `NotificationManager`. Builds ongoing pinned notifications (Edit/Remove actions) plus the quick-add and minimal "running" service notifications. Pin/unpin/refresh/re-assert.
+- **`NotePinner`** — the single seam for pin/unpin: persists the flag, posts/cancels the notification, and reconciles the service (start/stop/swap). UI and the Remove action both route through it.
+- **`PinService`** — foreground service. Runs **iff** (≥1 pinned note) **OR** (quick-add enabled). Shows the quick-add notification, or a minimal "running" line when quick-add is off but notes are pinned; re-asserts pins on start.
 - **`BootReceiver`** — on `BOOT_COMPLETED`, starts `PinService` to re-pin flagged notes.
-- **UI (Compose)** — NoteList · Editor · Settings. Talks to `NoteRepository`; pin/unpin via controller/service.
+- **UI (Compose)** — NoteList · Editor · Settings (theme, quick-add, lock-screen). Talks to the repositories; pin/unpin via `NotePinner`.
 
 ## Invariants — do not break
 
@@ -34,7 +37,7 @@ Read it before making architectural decisions; this file is only a quick orienta
 - **`NotificationController` is the sole `NotificationManager` toucher.** Route all notification changes through it.
 - **`PendingIntent`s use `FLAG_IMMUTABLE`** (API 31+).
 - **Notification ID is derived deterministically from `note.id`** so a note always maps to the same notification.
-- **Notification body tap does nothing** (by design); editing is via the explicit **Edit** action.
+- **Pinned-note body tap does nothing** (by design); editing is via the explicit **Edit** action. (The quick-add notification's body tap opens a new note.)
 - **v1 ships a single default silhouette icon** — no icon picker. The `iconId` column exists (defaulted) only to keep the v2 icon set migration-free.
 
 ## Persistence reality

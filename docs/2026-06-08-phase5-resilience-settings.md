@@ -130,10 +130,6 @@ foreground notification has three states:
   notification — reflect that honestly (prompt, or treat quick-add as effectively
   off until granted).
 
-**Decisions to resolve when we reach 5b:** exact denial-handling (auto-disable
-quick-add vs persistent prompt); whether state 2 uses a new channel or reuses
-`quick_add`; where onboarding lives (first-run screen vs lazy on first need).
-
 ---
 
 # Slice 5c — Resilience helpers (outline)
