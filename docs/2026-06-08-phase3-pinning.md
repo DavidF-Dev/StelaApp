@@ -52,10 +52,10 @@ full silhouette icon set, optional colored large icon.
   the **Editor** app bar.
 - **List order:** unchanged — sorted by modified time; pinned rows show a **pin
   indicator** only (no float-to-top). Pinning is **not** a content edit and **must
-  not bump `updatedAt`**. A **Phase 5 setting** ("pinned notes at top") will later
-  let the user opt into float-to-top; keep the list ordering in **one place** (a
-  DAO query) so it can switch between modified-only and `isPinned DESC, updatedAt
-  DESC` without restructuring. Default stays modified-only.
+  not bump `updatedAt`**. Keep the list ordering in **one place** so it can change
+  later without restructuring. *(Update: the "pinned notes at top" idea is dropped;
+  Phase 7's sort/filter — filter by Pinned — covers it, derived in the list
+  ViewModel.)* Default stays modified-only.
 - **Orchestration:** a thin **`NotePinner`** coordinator (repository + controller);
   the ViewModel and the action receiver both call it. Phase 4 inserts the service
   here, in one place.

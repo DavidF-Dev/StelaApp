@@ -149,7 +149,9 @@ data class Note(
    (and batch pin/unpin once pinning exists) — *Phase 6*.
    **Search** (fuzzy, over title + description), **sort** (creation / modified /
    title / icon), and **filter** (all / pinned / unpinned) refine the list —
-   *Phase 7*; sort/filter selections persist via DataStore (Phase 5).
+   *Phase 7*. The chosen sort + filter persist in the DataStore preferences store
+   (set from the list, not the Settings screen; search is transient). Filtering by
+   **Pinned** replaces the earlier "pinned notes at top" toggle.
 2. **Editor** — title, description, icon picker (silhouette set), pin toggle.
    Reachable from: app list, FAB, the quick-add notification, and a pinned note's
    **Edit** action. Save persists via repository (and refreshes the notification
@@ -158,9 +160,10 @@ data class Note(
    system share sheet — *Phase 6* (no new permission; Stela stays offline).
 3. **Settings** —
    - **Theme** — Light / Dark / Follow System, persisted via DataStore — *Phase 5*
-     (the first consumer of the preferences store; default dark until then).
-   - **Pinned notes at top** — toggle whether pinned notes sort above the rest —
-     *Phase 5* (default off; the list otherwise stays in modified-time order).
+     (the first consumer of the preferences store; default Follow System once
+     shipped, dark until then).
+   - **Hide on lock screen** — when on, pinned-note notifications are hidden on a
+     secure lock screen (notification visibility SECRET) — *Phase 5* (default off).
    - Toggle the persistent **quick-add** notification.
    - **Battery optimization** helper (request exemption).
    - **OEM autostart** helper (deep-link / guidance where detectable).
