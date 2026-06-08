@@ -26,13 +26,26 @@ compileSdk/targetSdk 36 · minSdk 26.
   (`exportSchema = true`; baseline at `app/schemas/.../1.json`).
 - ✅ **Task 4 — NoteRepository.** SSOT over the DAO; `notes` Flow + `getById` /
   `create` / `update` / `delete`. 5 JVM unit tests pass over a fake DAO.
-- ⏳ **Task 5 — Screens + nav** · **Task 6 — Verify.**
+- ✅ **Task 5 — Screens + nav.** MVVM (`AppContainer` + ViewModels), NoteList /
+  Editor / Settings, `StelaNavHost`. 4 ViewModel unit tests + 1 instrumented nav
+  smoke test pass. Editor delete confirmed via dialog; pin toggle deferred.
+- ✅ **Task 6 — Verify.** `assembleDebug` + `testDebugUnitTest` (9) +
+  `connectedDebugAndroidTest` (6) all green. Merged manifest confirmed: no
+  `INTERNET` (only the app-private `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`).
+
+**Phase 1 complete.** The deferred Task 2 "app launches" gate is satisfied by the
+nav smoke test driving the real `MainActivity`.
 
 Resolved during implementation:
 - `Note.DEFAULT_ICON_ID = "default"` — the single v1 silhouette key.
 - `NoteDao.upsert` returns the row id (equals `Note.id` for a fresh insert).
 - `NoteRepository` stamps timestamps (`create` sets both; `update` bumps only
   `updatedAt`); a `now: () -> Long` is injected to keep that unit-testable.
+- ViewModels get the repository via a manual factory reading `StelaApp.container`
+  off `APPLICATION_KEY`; the Editor reads `noteId` from `SavedStateHandle`.
+- **Espresso pinned to 3.7.0.** The version Compose `ui-test` pulls transitively
+  (3.5.0) and 3.6.1 both call a removed `InputManager.getInstance` on API 34+,
+  failing every Compose UI test on the API 36 emulator; 3.7.0 fixes it.
 - Build runs require `JAVA_HOME` to point at the Studio JBR; env vars are now
   persisted at the user level on the dev machine.
 
