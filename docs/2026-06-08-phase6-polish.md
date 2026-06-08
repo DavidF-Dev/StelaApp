@@ -9,9 +9,9 @@
 - **6a — Localisation foundation** *(done)* — externalize all UI + notification
   strings to resources; `locales_config.xml` + `android:localeConfig` for the
   Android 13+ per-app language override; system locale otherwise. No in-app picker.
-- **6b — Timestamps** — created/modified: relative on list rows, absolute in editor;
-  locale-aware formatting util (injectable clock, unit-tested).
-- **6d — Share** — Editor `ACTION_SEND` text/plain action (offline-safe).
+- **6b — Timestamps** *(done)* — created/modified: relative on list rows, absolute in
+  editor; locale-aware formatting util (injectable clock, unit-tested).
+- **6d — Share** *(done)* — Editor `ACTION_SEND` text/plain action (offline-safe).
 - **6e — About** — version, author (David F Dev), privacy promise, "how Stela works"
   honest-persistence note, static open-source licenses list.
 - **6c — Multi-select + batch** — NoteList selection mode (long-press → contextual

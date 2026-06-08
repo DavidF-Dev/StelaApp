@@ -47,6 +47,24 @@ processes. The honest promise: pinned notes **self-heal** (re-post if cleared),
 **survive reboot** (via `BootReceiver`), and **resist background kill** (foreground
 service). Onboarding guides battery-optimization exemption + OEM autostart.
 
+## Building & testing
+
+Android Studio's bundled JDK is used; `java` is not on PATH. From PowerShell at the
+repo root (set `$ProgressPreference = 'SilentlyContinue'` first to avoid slow downloads):
+
+    $env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
+    .\gradlew.bat assembleDebug              # build the debug APK
+    .\gradlew.bat testDebugUnitTest          # JVM unit tests
+    .\gradlew.bat connectedDebugAndroidTest  # instrumented tests (needs the emulator)
+
+- Emulator AVD is **Pixel_8** (API 36, `emulator-5554`). If it has shut down,
+  relaunch with `emulator.exe -avd Pixel_8` (under `%LOCALAPPDATA%\Android\Sdk\emulator`)
+  and wait until `getprop sys.boot_completed` returns `1`.
+- `connectedDebugAndroidTest` uninstalls the app afterward; `adb install -r` the debug
+  APK to drive it manually. Grant notifications with `adb shell pm grant
+  dev.davidfdev.stela android.permission.POST_NOTIFICATIONS`.
+- The Gradle distribution is cached locally (the in-wrapper download was slow).
+
 ## Conventions
 
 - Follow TDD where practical: Room/DAO instrumented tests, `NoteRepository` unit
