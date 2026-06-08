@@ -170,7 +170,9 @@ data class Note(
 
 - Small icon: the note's **silhouette** icon (monochrome; Android tints it).
 - Large icon (optional): a colored version for in-tray richness.
-- Title + collapsed description (BigTextStyle when expanded).
+- Title = the note title; **content line = "Tap to edit or remove"** (a hint
+  pointing at the actions). *Refinement requested 2026-06-08; supersedes showing
+  the note description in the collapsed line — addressed later if needed.*
 - Actions: **Edit** (opens editor) · **Remove** (unpins; note is *not* deleted).
 - Tapping the body does nothing (per spec). *Note: "tap = edit" would be
   friendlier; flagged as an option, not implemented.*
@@ -182,8 +184,17 @@ data class Note(
 Android forces a foreground service to display its own ongoing notification, so we
 **reuse** it rather than create a second permanent entry:
 
-- The foreground service's mandatory notification **is** the "New note" quick-add
-  (tapping it opens the editor on a fresh note).
+- The foreground service's mandatory notification **is** the quick-add entry.
+  Requested presentation (2026-06-08; addressed later if needed):
+  - **Title:** "New Stela note"  *(written "New Stella note" in the request; the
+    brand is "Stela" — using "Stela" unless told otherwise).*
+  - **Content:** "Tap to create a new note"  *(request read "Tap to create a new
+    notification note").*
+  - **Body tap does nothing.** Two actions:
+    - **New note** — opens the editor on a fresh note and pins it. *(Pinning a
+      not-yet-saved note needs a defined flow — likely pin-on-save; addressed
+      later.)*
+    - **View notes** — opens the note list.
 - If quick-add is **disabled** in settings but notes are still pinned, the service
   must keep a notification to stay alive → downgrade to a **minimal, silent,
   low-importance** "Stela is running" line on its own channel.

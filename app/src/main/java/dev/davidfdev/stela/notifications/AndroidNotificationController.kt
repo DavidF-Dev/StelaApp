@@ -20,13 +20,20 @@ class AndroidNotificationController(private val context: Context) : Notification
     private val manager = NotificationManagerCompat.from(context)
 
     init {
-        val channel = NotificationChannelCompat.Builder(CHANNEL_PINNED, NotificationManagerCompat.IMPORTANCE_DEFAULT)
+        val pinned = NotificationChannelCompat.Builder(CHANNEL_PINNED, NotificationManagerCompat.IMPORTANCE_DEFAULT)
             .setName("Pinned notes")
             .setShowBadge(false)
             .setVibrationEnabled(false)
             .setSound(null, null)
             .build()
-        manager.createNotificationChannel(channel)
+        val quickAdd = NotificationChannelCompat.Builder(CHANNEL_QUICK_ADD, NotificationManagerCompat.IMPORTANCE_LOW)
+            .setName("Quick add")
+            .setShowBadge(false)
+            .setVibrationEnabled(false)
+            .setSound(null, null)
+            .build()
+        manager.createNotificationChannel(pinned)
+        manager.createNotificationChannel(quickAdd)
     }
 
     override fun pin(note: Note) = post(note)
@@ -68,9 +75,36 @@ class AndroidNotificationController(private val context: Context) : Notification
         return PendingIntent.getBroadcast(context, notificationId(noteId), intent, PENDING_FLAGS)
     }
 
+    // The body tap is intentionally inert (no content intent); the two actions are
+    // the only way in. "New note" opens a fresh editor, "View notes" the list.
+    override fun buildQuickAddNotification(): android.app.Notification =
+        NotificationCompat.Builder(context, CHANNEL_QUICK_ADD)
+            .setSmallIcon(R.drawable.ic_stela_pin)
+            .setContentTitle("New Stela note")
+            .setContentText("Tap to create a new note")
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setSilent(true)
+            .setShowWhen(false)
+            .addAction(0, "New note", deepLinkActivityIntent("$DEEP_LINK_BASE/new", QUICK_ADD_NEW_REQUEST))
+            .addAction(0, "View notes", deepLinkActivityIntent("$DEEP_LINK_BASE/list", QUICK_ADD_VIEW_REQUEST))
+            .build()
+
+    private fun deepLinkActivityIntent(uri: String, requestCode: Int): PendingIntent {
+        val intent = Intent(Intent.ACTION_VIEW, uri.toUri(), context, MainActivity::class.java)
+        return PendingIntent.getActivity(context, requestCode, intent, PENDING_FLAGS)
+    }
+
     companion object {
         const val CHANNEL_PINNED = "pinned_notes"
+        const val CHANNEL_QUICK_ADD = "quick_add"
         const val DEEP_LINK_BASE = "stela://stela"
+
+        // Reserved id outside the note-id space (note ids are positive, from 1).
+        const val QUICK_ADD_NOTIFICATION_ID = -1
+
+        private const val QUICK_ADD_NEW_REQUEST = -2
+        private const val QUICK_ADD_VIEW_REQUEST = -3
         private const val PENDING_FLAGS =
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
     }

@@ -7,6 +7,8 @@ import dev.davidfdev.stela.data.StelaDatabase
 import dev.davidfdev.stela.notifications.AndroidNotificationController
 import dev.davidfdev.stela.notifications.NotificationController
 import dev.davidfdev.stela.pin.NotePinner
+import dev.davidfdev.stela.pin.PinServiceController
+import dev.davidfdev.stela.pin.ServiceController
 
 /// Process-wide singletons, built once by the Application. The UI and the pin
 /// service both read notes through this single [NoteRepository] instance and pin
@@ -20,7 +22,9 @@ class AppContainer(context: Context) {
 
     val notificationController: NotificationController = AndroidNotificationController(context)
 
-    val notePinner: NotePinner = NotePinner(noteRepository, notificationController)
+    private val serviceController: ServiceController = PinServiceController(context)
+
+    val notePinner: NotePinner = NotePinner(noteRepository, notificationController, serviceController)
 
     private companion object {
         const val DATABASE_NAME = "stela.db"

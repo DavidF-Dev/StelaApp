@@ -9,4 +9,8 @@ interface NotificationController {
     fun pin(note: Note)
     fun unpin(noteId: Long)
     fun refresh(note: Note)
+
+    /// Builds the quick-add notification that the foreground service shows as its
+    /// mandatory ongoing notification.
+    fun buildQuickAddNotification(): android.app.Notification
 }

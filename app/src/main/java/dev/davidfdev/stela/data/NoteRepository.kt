@@ -40,5 +40,7 @@ class NoteRepository(
     /// edit and must not reorder the list.
     suspend fun setPinned(noteId: Long, isPinned: Boolean) = dao.setPinned(noteId, isPinned)
 
+    suspend fun countPinned(): Int = dao.countPinned()
+
     suspend fun delete(note: Note) = dao.delete(note)
 }

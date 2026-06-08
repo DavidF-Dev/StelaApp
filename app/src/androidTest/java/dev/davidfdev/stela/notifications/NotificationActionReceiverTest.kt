@@ -48,7 +48,10 @@ class NotificationActionReceiverTest {
     fun removeAction_unpinsNoteAndCancelsNotification() = runBlocking {
         val repository = app.container.noteRepository
         createdNoteId = repository.create(title = "Pinned", description = "x")
-        app.container.notePinner.pin(repository.getById(createdNoteId)!!)
+        // Post the pinned notification directly (not via NotePinner) so this test
+        // does not start the foreground service from a background context.
+        repository.setPinned(createdNoteId, true)
+        app.container.notificationController.pin(repository.getById(createdNoteId)!!)
         val id = notificationId(createdNoteId)
         waitUntil { manager.activeNotifications.any { it.id == id } }
 

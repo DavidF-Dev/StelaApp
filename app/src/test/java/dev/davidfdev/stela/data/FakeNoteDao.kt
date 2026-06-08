@@ -36,6 +36,8 @@ class FakeNoteDao : NoteDao {
         rows.value = rows.value.map { if (it.id == id) it.copy(isPinned = isPinned) else it }
     }
 
+    override suspend fun countPinned(): Int = rows.value.count { it.isPinned }
+
     override suspend fun delete(note: Note) {
         rows.value = rows.value.filterNot { it.id == note.id }
     }

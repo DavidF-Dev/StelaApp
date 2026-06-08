@@ -26,14 +26,24 @@ object Routes {
 @Composable
 fun StelaNavHost(navController: NavHostController = rememberNavController()) {
     NavHost(navController = navController, startDestination = Routes.LIST) {
-        composable(Routes.LIST) {
+        composable(
+            route = Routes.LIST,
+            deepLinks = listOf(
+                navDeepLink { uriPattern = "${AndroidNotificationController.DEEP_LINK_BASE}/list" },
+            ),
+        ) {
             NoteListRoute(
                 onAddNote = { navController.navigate(Routes.EDITOR_NEW) },
                 onOpenNote = { id -> navController.navigate(Routes.editNote(id)) },
                 onOpenSettings = { navController.navigate(Routes.SETTINGS) },
             )
         }
-        composable(Routes.EDITOR_NEW) {
+        composable(
+            route = Routes.EDITOR_NEW,
+            deepLinks = listOf(
+                navDeepLink { uriPattern = "${AndroidNotificationController.DEEP_LINK_BASE}/new" },
+            ),
+        ) {
             EditorRoute(onDone = { navController.popBackStack() })
         }
         composable(

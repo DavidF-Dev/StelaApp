@@ -87,6 +87,16 @@ class NoteRepositoryTest {
     }
 
     @Test
+    fun countPinned_countsOnlyPinnedNotes() = runTest {
+        val a = repository.create(title = "A", description = "")
+        repository.create(title = "B", description = "")
+        assertEquals(0, repository.countPinned())
+
+        repository.setPinned(a, true)
+        assertEquals(1, repository.countPinned())
+    }
+
+    @Test
     fun setPinned_doesNotReorderList() = runTest {
         now = 1_000L
         val olderId = repository.create(title = "Older", description = "")

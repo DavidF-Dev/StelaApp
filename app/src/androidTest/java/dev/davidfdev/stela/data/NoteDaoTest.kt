@@ -97,6 +97,16 @@ class NoteDaoTest {
     }
 
     @Test
+    fun countPinned_reflectsPinnedRows() = runTest {
+        val id = dao.upsert(note(title = "A", updatedAt = 1_000L))
+        dao.upsert(note(title = "B", updatedAt = 2_000L))
+        assertEquals(0, dao.countPinned())
+
+        dao.setPinned(id, true)
+        assertEquals(1, dao.countPinned())
+    }
+
+    @Test
     fun delete_removesNote() = runTest {
         val id = dao.upsert(note(title = "Temp", updatedAt = 1_000L))
 
