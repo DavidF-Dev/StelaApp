@@ -114,15 +114,58 @@ theme, `MainActivity` hosting `StelaNavHost`.
 
 **Gate:** JVM unit tests pass.
 
-### 5. Empty screens + navigation wiring
-NoteList (FAB, empty state), Editor (title/description fields, save→repository),
-Settings (placeholder toggles, no behavior). Wire nav routes. Repository provided
-via a manual factory off `StelaApp`.
+### 5. Screens + navigation wiring
+See **UI structure** below for the agreed design.
 **Gate:** navigate list ↔ editor ↔ settings; creating a note persists and shows
-in the list.
+in the list (instrumented smoke test); ViewModel unit tests pass.
 
-### 6. Commit & verify clean build
-`./gradlew assembleDebug testDebugUnitTest` green; one commit per task.
+### 6. Verify clean build
+`./gradlew assembleDebug testDebugUnitTest connectedDebugAndroidTest` green.
+
+## UI structure (Task 5)
+
+**Pattern — MVVM + manual DI.** `StelaApp` builds one `AppContainer` holding the
+`StelaDatabase` and `NoteRepository`; UI and the future `PinService` both read the
+repository from it. One `ViewModel` per stateful screen exposes an immutable
+`UiState` via `StateFlow`; screens are split into a stateful route-level composable
+(hooks ViewModel + nav) and a stateless composable (state + callbacks) for previews
+and isolated tests.
+
+**Navigation.** Single `NavHost` in `MainActivity`, plain string routes:
+`list` (start) · `editor` (new) · `editor/{noteId}` (edit) · `settings`.
+Type-safe nav (kotlinx-serialization) is deferred to v2, when JSON export adds
+serialization anyway.
+
+**Screens.**
+- **NoteList** — `Scaffold` + `TopAppBar` (title, settings action) + FAB; empty
+  state, else `LazyColumn` of rows (title, description preview). Row tap opens the
+  editor. *No pin toggle in Phase 1* — pinning has no behavior until Phase 3.
+- **Editor** — `TopAppBar` (back, Save, and Delete when editing an existing note,
+  confirmed via dialog) + title and description fields. New vs edit driven by a
+  nullable `noteId`.
+- **Settings** — static placeholder (quick-add toggle shown disabled). No ViewModel.
+
+**State collection.** `collectAsStateWithLifecycle()` — adds the
+`androidx.lifecycle:lifecycle-runtime-compose` dependency.
+
+**Decisions (confirmed):** ViewModel + StateFlow · pin toggle deferred to Phase 3 ·
+delete lives as an Editor app-bar action.
+
+**Files.**
+```
+ui/StelaNavHost.kt                         NavHost + route constants
+ui/notelist/NoteListViewModel.kt           UiState(notes) from repository.notes
+ui/notelist/NoteListScreen.kt              stateful + stateless + NoteRow
+ui/editor/EditorViewModel.kt               load/new, save, delete
+ui/editor/EditorScreen.kt                  stateful + stateless
+ui/settings/SettingsScreen.kt              placeholder
+di/AppContainer.kt                         db + repository
+```
+
+**Tests.** JVM: `NoteListViewModelTest`, `EditorViewModelTest` over
+`NoteRepository` + `FakeNoteDao`. Instrumented: one nav smoke test through
+`MainActivity` (FAB → type → Save → row appears) — also satisfies Task 2's
+deferred "app launches" gate.
 
 ## Explicitly NOT in Phase 1
 NotificationController, PinService, BootReceiver, channels, runtime permissions,
