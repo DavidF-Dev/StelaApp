@@ -14,8 +14,7 @@ interface ServiceController {
 
 class PinServiceController(private val context: Context) : ServiceController {
     override fun start() {
-        // Without notification permission the foreground notification can't show, so
-        // starting is pointless; the UI requests permission and reconciles on grant.
+        // No permission means the foreground notification can't show, so starting is pointless.
         if (!canPostNotifications(context)) return
         ContextCompat.startForegroundService(context, Intent(context, PinService::class.java))
     }

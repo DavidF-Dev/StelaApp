@@ -24,19 +24,19 @@ class AndroidNotificationController(private val context: Context) : Notification
 
     init {
         val pinned = NotificationChannelCompat.Builder(CHANNEL_PINNED, NotificationManagerCompat.IMPORTANCE_DEFAULT)
-            .setName("Pinned notes")
+            .setName(context.getString(R.string.channel_pinned_name))
             .setShowBadge(false)
             .setVibrationEnabled(false)
             .setSound(null, null)
             .build()
         val quickAdd = NotificationChannelCompat.Builder(CHANNEL_QUICK_ADD, NotificationManagerCompat.IMPORTANCE_LOW)
-            .setName("Quick add")
+            .setName(context.getString(R.string.channel_quick_add_name))
             .setShowBadge(false)
             .setVibrationEnabled(false)
             .setSound(null, null)
             .build()
         val serviceStatus = NotificationChannelCompat.Builder(CHANNEL_SERVICE_STATUS, NotificationManagerCompat.IMPORTANCE_MIN)
-            .setName("Running in background")
+            .setName(context.getString(R.string.channel_service_status_name))
             .setShowBadge(false)
             .setVibrationEnabled(false)
             .setSound(null, null)
@@ -69,8 +69,8 @@ class AndroidNotificationController(private val context: Context) : Notification
             .setVisibility(visibility)
             // Self-heal: if the user swipes the ongoing notification away, re-post it.
             .setDeleteIntent(reassertIntent(note.id))
-            .addAction(0, "Edit", editIntent(note.id))
-            .addAction(0, "Remove", removeIntent(note.id))
+            .addAction(0, context.getString(R.string.notification_action_edit), editIntent(note.id))
+            .addAction(0, context.getString(R.string.notification_action_remove), removeIntent(note.id))
             .build()
         manager.notify(notificationId(note.id), notification)
     }
@@ -95,29 +95,28 @@ class AndroidNotificationController(private val context: Context) : Notification
         return PendingIntent.getBroadcast(context, notificationId(noteId), intent, PENDING_FLAGS)
     }
 
-    // Body tap and the New note action both open a fresh editor; View notes opens
-    // the list.
+    // Body tap and the New note action open a fresh editor; View notes opens the list.
     override fun buildQuickAddNotification(): android.app.Notification {
         val newNote = deepLinkActivityIntent("$DEEP_LINK_BASE/new", QUICK_ADD_NEW_REQUEST)
         return NotificationCompat.Builder(context, CHANNEL_QUICK_ADD)
             .setSmallIcon(R.drawable.ic_stela_pin)
-            .setContentTitle("New Stela note")
-            .setContentText("Tap to create a new note")
+            .setContentTitle(context.getString(R.string.quick_add_title))
+            .setContentText(context.getString(R.string.quick_add_text))
             .setContentIntent(newNote)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setSilent(true)
             .setShowWhen(false)
-            .addAction(0, "New note", newNote)
-            .addAction(0, "View notes", deepLinkActivityIntent("$DEEP_LINK_BASE/list", QUICK_ADD_VIEW_REQUEST))
+            .addAction(0, context.getString(R.string.notification_action_new_note), newNote)
+            .addAction(0, context.getString(R.string.notification_action_view_notes), deepLinkActivityIntent("$DEEP_LINK_BASE/list", QUICK_ADD_VIEW_REQUEST))
             .build()
     }
 
     override fun buildServiceRunningNotification(): android.app.Notification =
         NotificationCompat.Builder(context, CHANNEL_SERVICE_STATUS)
             .setSmallIcon(R.drawable.ic_stela_pin)
-            .setContentTitle("Stela is running")
-            .setContentText("Keeping your pinned notes posted.")
+            .setContentTitle(context.getString(R.string.service_running_title))
+            .setContentText(context.getString(R.string.service_running_text))
             .setContentIntent(deepLinkActivityIntent("$DEEP_LINK_BASE/list", SERVICE_RUNNING_REQUEST))
             .setOngoing(true)
             .setOnlyAlertOnce(true)

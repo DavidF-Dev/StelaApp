@@ -24,9 +24,9 @@ class StelaApp : Application() {
         observeQuickAddPreference()
     }
 
-    // Start/stop/swap the service whenever the quick-add preference changes (and
-    // once on launch). Starting is a no-op without notification permission; the UI
-    // requests it and this re-evaluates on grant.
+    /// Starts/stops/swaps the service whenever the quick-add preference changes (and
+    /// once on launch). Starting is a no-op without notification permission; the UI
+    /// requests it and this re-evaluates on grant.
     private fun observeQuickAddPreference() {
         scope.launch {
             container.settingsRepository.settings
@@ -36,9 +36,9 @@ class StelaApp : Application() {
         }
     }
 
-    // Keep the controller's visibility in sync with the preference, and re-assert
-    // pinned notifications when it changes so already-posted ones update. The first
-    // emission only seeds the value (no re-post on every launch).
+    /// Keeps the controller's visibility in sync with the preference, and re-asserts
+    /// pinned notifications when it changes so already-posted ones update. The first
+    /// emission only seeds the value (no re-post on every launch).
     private fun observeLockScreenPreference() {
         scope.launch {
             container.settingsRepository.settings

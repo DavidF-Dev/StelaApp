@@ -30,9 +30,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.davidfdev.stela.R
 import dev.davidfdev.stela.ui.openAppNotificationSettings
 import dev.davidfdev.stela.ui.rememberNotificationPermissionGate
 import kotlinx.coroutines.launch
@@ -46,12 +48,14 @@ fun EditorRoute(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val blockedMessage = stringResource(R.string.snackbar_pinning_needs_notifications)
+    val settingsAction = stringResource(R.string.action_settings)
     val gate = rememberNotificationPermissionGate(
         onDenied = {
             scope.launch {
                 val result = snackbarHostState.showSnackbar(
-                    message = "Notifications are off — pinning needs them.",
-                    actionLabel = "Settings",
+                    message = blockedMessage,
+                    actionLabel = settingsAction,
                 )
                 if (result == SnackbarResult.ActionPerformed) openAppNotificationSettings(context)
             }
@@ -87,27 +91,27 @@ fun EditorScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (state.isEditing) "Edit note" else "New note") },
+                title = { Text(stringResource(if (state.isEditing) R.string.editor_title_edit else R.string.editor_title_new)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
                 actions = {
                     if (state.isEditing) {
                         IconButton(onClick = onTogglePin) {
                             if (state.isPinned) {
-                                Icon(Icons.Filled.PushPin, contentDescription = "Unpin")
+                                Icon(Icons.Filled.PushPin, contentDescription = stringResource(R.string.action_unpin))
                             } else {
-                                Icon(Icons.Outlined.PushPin, contentDescription = "Pin")
+                                Icon(Icons.Outlined.PushPin, contentDescription = stringResource(R.string.action_pin))
                             }
                         }
                         IconButton(onClick = { showDeleteDialog = true }) {
-                            Icon(Icons.Filled.Delete, contentDescription = "Delete")
+                            Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete))
                         }
                     }
                     TextButton(onClick = onSave, enabled = state.canSave) {
-                        Text("Save")
+                        Text(stringResource(R.string.editor_save))
                     }
                 },
             )
@@ -123,14 +127,14 @@ fun EditorScreen(
             OutlinedTextField(
                 value = state.title,
                 onValueChange = onTitleChange,
-                label = { Text("Title") },
+                label = { Text(stringResource(R.string.editor_label_title)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
             OutlinedTextField(
                 value = state.description,
                 onValueChange = onDescriptionChange,
-                label = { Text("Description") },
+                label = { Text(stringResource(R.string.editor_label_description)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 12.dp)
@@ -142,16 +146,16 @@ fun EditorScreen(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Delete note?") },
-            text = { Text("This note will be permanently deleted.") },
+            title = { Text(stringResource(R.string.editor_delete_dialog_title)) },
+            text = { Text(stringResource(R.string.editor_delete_dialog_message)) },
             confirmButton = {
                 TextButton(onClick = {
                     showDeleteDialog = false
                     onDelete()
-                }) { Text("Delete") }
+                }) { Text(stringResource(R.string.editor_delete_dialog_confirm)) }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) { Text("Cancel") }
+                TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.editor_delete_dialog_cancel)) }
             },
         )
     }

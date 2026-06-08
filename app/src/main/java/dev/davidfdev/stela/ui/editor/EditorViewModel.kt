@@ -37,8 +37,7 @@ class EditorViewModel(
     private val _uiState = MutableStateFlow(EditorUiState(isEditing = noteId != null))
     val uiState: StateFlow<EditorUiState> = _uiState.asStateFlow()
 
-    // The note as last loaded, retained so a save preserves fields the editor does
-    // not expose (createdAt, iconId, isPinned).
+    // Retained so a save preserves fields the editor doesn't expose (createdAt, iconId, isPinned).
     private var loaded: Note? = null
 
     init {

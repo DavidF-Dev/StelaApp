@@ -15,8 +15,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /// Foreground service that keeps the process alive while there is something to keep
-/// alive. It hosts the quick-add notification and re-asserts pinned notes on start
-/// (covering reboot and process restart).
+/// alive. It hosts the foreground notification (quick-add, or a minimal "running"
+/// line) and re-asserts pinned notes on start (covering reboot and process restart).
 class PinService : Service() {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -25,8 +25,7 @@ class PinService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val container = (applicationContext as StelaApp).container
-        // Enter foreground immediately to satisfy the start window; default to the
-        // quick-add notification and swap to the minimal line below if disabled.
+        // Enter foreground at once to meet the start deadline; swapped below if quick-add is off.
         startInForeground(container.notificationController.buildQuickAddNotification())
 
         scope.launch {

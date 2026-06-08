@@ -1,5 +1,6 @@
 package dev.davidfdev.stela.ui.settings
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,11 +29,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.davidfdev.stela.R
 import dev.davidfdev.stela.resilience.DeviceResilience
 import dev.davidfdev.stela.settings.Settings
 import dev.davidfdev.stela.settings.ThemeMode
@@ -49,12 +52,14 @@ fun SettingsRoute(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val quickAddBlockedMessage = stringResource(R.string.snackbar_quick_add_needs_notifications)
+    val settingsAction = stringResource(R.string.action_settings)
     val gate = rememberNotificationPermissionGate(
         onDenied = {
             scope.launch {
                 val result = snackbarHostState.showSnackbar(
-                    message = "Notifications are off — quick-add needs them.",
-                    actionLabel = "Settings",
+                    message = quickAddBlockedMessage,
+                    actionLabel = settingsAction,
                 )
                 if (result == SnackbarResult.ActionPerformed) openAppNotificationSettings(context)
             }
@@ -105,10 +110,10 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Settings") },
+                title = { Text(stringResource(R.string.settings_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
             )
@@ -116,49 +121,47 @@ fun SettingsScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
-            SectionHeader("Theme")
+            SectionHeader(stringResource(R.string.settings_section_theme))
             ThemeMode.entries.forEach { mode ->
                 ThemeOptionRow(
-                    label = themeModeLabel(mode),
+                    label = stringResource(themeModeLabelRes(mode)),
                     selected = state.themeMode == mode,
                     onSelect = { onThemeModeChange(mode) },
                 )
             }
 
-            SectionHeader("Notifications")
+            SectionHeader(stringResource(R.string.settings_section_notifications))
             ListItem(
-                headlineContent = { Text("Quick-add notification") },
-                supportingContent = { Text("A persistent entry to add a note from the tray.") },
+                headlineContent = { Text(stringResource(R.string.settings_quick_add_title)) },
+                supportingContent = { Text(stringResource(R.string.settings_quick_add_summary)) },
                 trailingContent = {
                     Switch(checked = state.quickAddEnabled, onCheckedChange = onQuickAddEnabledChange)
                 },
             )
             ListItem(
-                headlineContent = { Text("Hide on lock screen") },
-                supportingContent = { Text("Hide pinned notes on a secure lock screen.") },
+                headlineContent = { Text(stringResource(R.string.settings_hide_lock_title)) },
+                supportingContent = { Text(stringResource(R.string.settings_hide_lock_summary)) },
                 trailingContent = {
                     Switch(checked = state.hideOnLockScreen, onCheckedChange = onHideOnLockScreenChange)
                 },
             )
 
-            SectionHeader("Keep notes alive")
+            SectionHeader(stringResource(R.string.settings_section_keep_alive))
             ListItem(
-                headlineContent = { Text("Battery optimization") },
+                headlineContent = { Text(stringResource(R.string.settings_battery_title)) },
                 supportingContent = {
                     Text(
-                        if (batteryExempt) {
-                            "Exempt — Stela can run freely."
-                        } else {
-                            "Not exempt — Stela may be killed in the background."
-                        },
+                        stringResource(
+                            if (batteryExempt) R.string.settings_battery_exempt else R.string.settings_battery_not_exempt,
+                        ),
                     )
                 },
                 modifier = Modifier.clickable(onClick = onOpenBatterySettings),
             )
             if (autostartAvailable) {
                 ListItem(
-                    headlineContent = { Text("Auto-start") },
-                    supportingContent = { Text("Allow Stela to start automatically (device-specific).") },
+                    headlineContent = { Text(stringResource(R.string.settings_autostart_title)) },
+                    supportingContent = { Text(stringResource(R.string.settings_autostart_summary)) },
                     modifier = Modifier.clickable(onClick = onOpenAutostart),
                 )
             }
@@ -187,8 +190,9 @@ private fun ThemeOptionRow(label: String, selected: Boolean, onSelect: () -> Uni
     )
 }
 
-private fun themeModeLabel(mode: ThemeMode): String = when (mode) {
-    ThemeMode.LIGHT -> "Light"
-    ThemeMode.DARK -> "Dark"
-    ThemeMode.SYSTEM -> "Follow System"
+@StringRes
+private fun themeModeLabelRes(mode: ThemeMode): Int = when (mode) {
+    ThemeMode.LIGHT -> R.string.theme_light
+    ThemeMode.DARK -> R.string.theme_dark
+    ThemeMode.SYSTEM -> R.string.theme_system
 }

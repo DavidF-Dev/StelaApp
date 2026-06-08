@@ -37,12 +37,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.davidfdev.stela.R
 import dev.davidfdev.stela.data.Note
 import dev.davidfdev.stela.ui.arePinnedNotificationsBlocked
 import dev.davidfdev.stela.ui.openAppNotificationSettings
@@ -60,12 +62,14 @@ fun NoteListRoute(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val blockedMessage = stringResource(R.string.snackbar_pinning_needs_notifications)
+    val settingsAction = stringResource(R.string.action_settings)
     val gate = rememberNotificationPermissionGate(
         onDenied = {
             scope.launch {
                 val result = snackbarHostState.showSnackbar(
-                    message = "Notifications are off — pinning needs them.",
-                    actionLabel = "Settings",
+                    message = blockedMessage,
+                    actionLabel = settingsAction,
                 )
                 if (result == SnackbarResult.ActionPerformed) openAppNotificationSettings(context)
             }
@@ -107,10 +111,10 @@ fun NoteListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Stela") },
+                title = { Text(stringResource(R.string.app_name)) },
                 actions = {
                     IconButton(onClick = onOpenSettings) {
-                        Icon(Icons.Filled.Settings, contentDescription = "Settings")
+                        Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.action_settings))
                     }
                 },
             )
@@ -118,7 +122,7 @@ fun NoteListScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             FloatingActionButton(onClick = onAddNote) {
-                Icon(Icons.Filled.Add, contentDescription = "New note")
+                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.action_new_note))
             }
         },
     ) { padding ->
@@ -160,12 +164,12 @@ private fun NotificationsBlockedBanner(onOpenSettings: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "Notifications are off — pinned notes won't show.",
+                text = stringResource(R.string.notelist_notifications_blocked),
                 color = MaterialTheme.colorScheme.onErrorContainer,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.weight(1f),
             )
-            TextButton(onClick = onOpenSettings) { Text("Open settings") }
+            TextButton(onClick = onOpenSettings) { Text(stringResource(R.string.action_open_settings)) }
         }
     }
 }
@@ -184,9 +188,9 @@ private fun NoteRow(note: Note, onClick: () -> Unit, onTogglePin: () -> Unit) {
         trailingContent = {
             IconButton(onClick = onTogglePin) {
                 if (note.isPinned) {
-                    Icon(Icons.Filled.PushPin, contentDescription = "Unpin")
+                    Icon(Icons.Filled.PushPin, contentDescription = stringResource(R.string.action_unpin))
                 } else {
-                    Icon(Icons.Outlined.PushPin, contentDescription = "Pin")
+                    Icon(Icons.Outlined.PushPin, contentDescription = stringResource(R.string.action_pin))
                 }
             }
         },
@@ -198,7 +202,7 @@ private fun NoteRow(note: Note, onClick: () -> Unit, onTogglePin: () -> Unit) {
 private fun EmptyState(modifier: Modifier = Modifier) {
     Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Text(
-            text = "No notes yet.\nTap + to create one.",
+            text = stringResource(R.string.notelist_empty),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

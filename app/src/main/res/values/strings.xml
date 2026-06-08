@@ -1,3 +1,64 @@
 <resources>
     <string name="app_name">Stela</string>
+
+    <!-- Common actions / content descriptions -->
+    <string name="action_settings">Settings</string>
+    <string name="action_open_settings">Open settings</string>
+    <string name="action_back">Back</string>
+    <string name="action_new_note">New note</string>
+    <string name="action_pin">Pin</string>
+    <string name="action_unpin">Unpin</string>
+    <string name="action_delete">Delete</string>
+
+    <!-- Note list -->
+    <string name="notelist_empty">No notes yet.\nTap + to create one.</string>
+    <string name="notelist_notifications_blocked">Notifications are off — pinned notes won\'t show.</string>
+    <string name="snackbar_pinning_needs_notifications">Notifications are off — pinning needs them.</string>
+
+    <!-- Editor -->
+    <string name="editor_title_new">New note</string>
+    <string name="editor_title_edit">Edit note</string>
+    <string name="editor_save">Save</string>
+    <string name="editor_label_title">Title</string>
+    <string name="editor_label_description">Description</string>
+    <string name="editor_delete_dialog_title">Delete note?</string>
+    <string name="editor_delete_dialog_message">This note will be permanently deleted.</string>
+    <string name="editor_delete_dialog_confirm">Delete</string>
+    <string name="editor_delete_dialog_cancel">Cancel</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_section_theme">Theme</string>
+    <string name="settings_section_notifications">Notifications</string>
+    <string name="settings_section_keep_alive">Keep notes alive</string>
+    <string name="settings_quick_add_title">Quick-add notification</string>
+    <string name="settings_quick_add_summary">A persistent entry to add a note from the tray.</string>
+    <string name="settings_hide_lock_title">Hide on lock screen</string>
+    <string name="settings_hide_lock_summary">Hide pinned notes on a secure lock screen.</string>
+    <string name="settings_battery_title">Battery optimization</string>
+    <string name="settings_battery_exempt">Exempt — Stela can run freely.</string>
+    <string name="settings_battery_not_exempt">Not exempt — Stela may be killed in the background.</string>
+    <string name="settings_autostart_title">Auto-start</string>
+    <string name="settings_autostart_summary">Allow Stela to start automatically (device-specific).</string>
+    <string name="snackbar_quick_add_needs_notifications">Notifications are off — quick-add needs them.</string>
+
+    <!-- Theme options -->
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_system">Follow System</string>
+
+    <!-- Notification channels -->
+    <string name="channel_pinned_name">Pinned notes</string>
+    <string name="channel_quick_add_name">Quick add</string>
+    <string name="channel_service_status_name">Running in background</string>
+
+    <!-- Notification content -->
+    <string name="notification_action_edit">Edit</string>
+    <string name="notification_action_remove">Remove</string>
+    <string name="notification_action_new_note">New note</string>
+    <string name="notification_action_view_notes">View notes</string>
+    <string name="quick_add_title">New Stela note</string>
+    <string name="quick_add_text">Tap to create a new note</string>
+    <string name="service_running_title">Stela is running</string>
+    <string name="service_running_text">Keeping your pinned notes posted.</string>
 </resources>

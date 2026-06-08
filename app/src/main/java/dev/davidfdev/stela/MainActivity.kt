@@ -68,8 +68,8 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // The launch intent's deep link is handled by NavHost automatically; a singleTop
-    // re-delivery (e.g. tapping Edit while the app is open) arrives here instead.
+    /// The launch intent's deep link is handled by NavHost automatically; a singleTop
+    /// re-delivery (e.g. tapping Edit while the app is open) arrives here instead.
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)

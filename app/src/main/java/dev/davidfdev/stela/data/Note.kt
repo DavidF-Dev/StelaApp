@@ -16,8 +16,7 @@ data class Note(
     val updatedAt: Long,
 ) {
     companion object {
-        // v1 ships a single silhouette; the column is defaulted so the v2 icon
-        // set can be added without a schema migration.
+        // Defaulted so a future icon set can be added without a schema migration.
         const val DEFAULT_ICON_ID = "default"
     }
 }
