@@ -24,11 +24,15 @@ compileSdk/targetSdk 36 · minSdk 26.
 - ✅ **Task 3 — Room layer.** `Note` / `NoteDao` / `StelaDatabase`; 5 instrumented
   DAO tests pass on the API 36 emulator. Schema export enabled
   (`exportSchema = true`; baseline at `app/schemas/.../1.json`).
-- ⏳ **Task 4 — NoteRepository** · **Task 5 — Screens + nav** · **Task 6 — Verify.**
+- ✅ **Task 4 — NoteRepository.** SSOT over the DAO; `notes` Flow + `getById` /
+  `create` / `update` / `delete`. 5 JVM unit tests pass over a fake DAO.
+- ⏳ **Task 5 — Screens + nav** · **Task 6 — Verify.**
 
 Resolved during implementation:
 - `Note.DEFAULT_ICON_ID = "default"` — the single v1 silhouette key.
 - `NoteDao.upsert` returns the row id (equals `Note.id` for a fresh insert).
+- `NoteRepository` stamps timestamps (`create` sets both; `update` bumps only
+  `updatedAt`); a `now: () -> Long` is injected to keep that unit-testable.
 - Build runs require `JAVA_HOME` to point at the Studio JBR; env vars are now
   persisted at the user level on the dev machine.
 
