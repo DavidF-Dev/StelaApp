@@ -1,0 +1,8 @@
+<resources>
+    <!--
+      Window theme applied before Compose draws. Stela is dark-only, so the base
+      is a dark Material window with no action bar; in-app colors come from the
+      Compose theme.
+    -->
+    <style name="Theme.Stela" parent="android:Theme.Material.NoActionBar" />
+</resources>

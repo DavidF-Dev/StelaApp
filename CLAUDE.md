@@ -51,6 +51,11 @@ service). Onboarding guides battery-optimization exemption + OEM autostart.
 - Keep the schema flat (forward-compatible with a future JSON export/import).
 - Build phases are sequenced in §12 of the design doc — implement in order.
 
+## Git
+
+- Do not run git actions (commit, push, branch, reset, etc.) unless explicitly
+  directed to. Staging, history, and remotes are managed by the user.
+
 ## Comments
 
 - Write conservatively. Default to no comment; add one only when the WHY is non-obvious (a hidden constraint, a subtle invariant, a workaround for a specific bug).
