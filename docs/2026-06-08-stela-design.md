@@ -231,8 +231,10 @@ One service, one baseline notification, no redundancy.
   `<property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" .../>`
   with a written justification (drafted now, ready for eventual Play review).
 - **Permissions declared:** `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_SPECIAL_USE`,
-  `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`,
-  `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`. **No `INTERNET` permission.**
+  `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`. **No `INTERNET` permission.**
+  *`REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` is intentionally NOT declared* — the
+  battery helper (Phase 5c) opens the battery-optimization settings screen rather
+  than the direct request dialog, avoiding Google Play's allowlist restriction.
 - **Min SDK 26** (notification channels baseline; ~99% device reach).
   **Target SDK:** latest stable (Play currency requirement).
 - **Service lifecycle invariant:** the service runs **iff** (pinned notes ≥ 1) OR

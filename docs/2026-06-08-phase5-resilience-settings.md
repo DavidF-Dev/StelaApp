@@ -132,26 +132,54 @@ foreground notification has three states:
 
 ---
 
-# Slice 5c — Resilience helpers (outline)
+# Slice 5c — Resilience helpers
 
-OEM-specific and manual-test-heavy. Best-effort by nature (§9).
+The "fight the OS" set (§§7–9). OEM-specific and **largely emulator-untestable** —
+the plan flags what is automatable vs real-device-only.
 
-- **Battery-optimization helper** — declare `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`;
-  a Settings entry shows the current state (`PowerManager.isIgnoringBatteryOptimizations`)
-  and launches `ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`.
-- **OEM-autostart helper** — a guidance screen that best-effort deep-links into known
-  OEM autostart settings (Xiaomi/Oppo/Vivo/Huawei/Samsung) by component, with a
-  graceful fallback when none match.
-- **Re-assert-on-clear** — set a `deleteIntent` on pinned notifications; a receiver
-  re-posts the pin when swiped (true self-heal), guarded against fighting a note the
-  user has actually unpinned.
-- **Channel-disabled detection** — detect `!areNotificationsEnabled()` or channel
-  importance NONE and surface a prompt (banner on the list / at pin time) linking to
-  notification settings, so pinning never fails silently (§7).
+## Confirmed decisions
+- **Battery exemption via the settings screen** (`ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS`),
+  not the direct dialog. So **`REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` is NOT declared**
+  (Play-safe; deviation from design §8, which is updated to match).
+- **Re-assert-on-clear fires immediately** on swipe (deleteIntent → re-post).
+- **Helpers live in the Settings screen only** — no first-run onboarding flow this slice.
 
-**Decisions to resolve at 5c:** which OEM autostart targets to attempt; how
-aggressively re-assert-on-clear fires (immediate vs debounced); where the
-channel-disabled prompt surfaces.
+## Units
+- **`DeviceResilience`** (util) — `isIgnoringBatteryOptimizations(context)`, an
+  intent to open battery-optimization settings, and a best-effort OEM-autostart
+  intent from `Build.MANUFACTURER` (Xiaomi/Oppo/Realme/Vivo/Huawei/OnePlus) with a
+  "resolves?" check. Keeps the OEM mess out of the UI; the pure manufacturer→target
+  mapping is unit-tested.
+- **Settings "Keep notes alive" section** — a **Battery optimization** row (shows
+  exempt/not-exempt, opens settings) and an **OEM autostart** row (shown when a known
+  manufacturer is detected; opens it, else guidance). State re-reads on resume.
+- **Re-assert-on-clear** — `NotificationController` adds a `deleteIntent` to each
+  pinned notification; `NotificationActionReceiver` gains a `REASSERT` action that
+  re-posts the note **only if it is still pinned** (so Remove/unpin, which cancel
+  rather than dismiss, never trigger it).
+- **Channel-disabled banner** — a NoteList banner shown when
+  `!areNotificationsEnabled()` or the `pinned_notes` channel importance is NONE,
+  linking to notification settings. Re-checks on resume.
+
+## Tasks
+1. **`DeviceResilience` util (TDD where pure)** — battery state + intents; OEM
+   manufacturer→autostart-target mapping unit-tested. **Gate:** unit tests + build.
+2. **Settings "Keep notes alive" section** — battery + autostart rows, state on
+   resume. **Gate:** build; manual nav (battery state shows; button opens settings).
+3. **Re-assert-on-clear** — deleteIntent + `REASSERT` receiver action (re-post if
+   still pinned). **Gate:** instrumented — fire the delete intent → re-posted; fire
+   for an unpinned note → not re-posted.
+4. **Channel-disabled banner** — list banner + resume re-check. **Gate:**
+   instrumented/manual — disable notifications → banner appears.
+5. **Verify** — build + unit + instrumented green; no `INTERNET`; no
+   `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`. Manual: battery/OEM rows on a real device
+   (emulator can't exercise OEM autostart).
+
+## Testing reality
+- **Automatable:** `DeviceResilience` mapping (JVM); re-assert-on-clear (instrumented);
+  channel-disabled banner (instrumented — toggle notifications); battery-state read.
+- **Real-device only (flagged):** OEM-autostart deep links (generic emulator always
+  falls through to guidance); actual battery-kill resistance.
 
 ---
 
