@@ -12,6 +12,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -49,5 +50,17 @@ class SettingsViewModelTest {
         advanceUntilIdle()
 
         assertTrue(viewModel.uiState.value.hideOnLockScreen)
+    }
+
+    @Test
+    fun setQuickAddEnabled_updatesState() = runTest(dispatcher) {
+        val viewModel = SettingsViewModel(FakeSettingsRepository())
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        advanceUntilIdle()
+
+        viewModel.setQuickAddEnabled(false)
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.quickAddEnabled)
     }
 }

@@ -17,4 +17,8 @@ interface NotificationController {
     /// Builds the quick-add notification that the foreground service shows as its
     /// mandatory ongoing notification.
     fun buildQuickAddNotification(): android.app.Notification
+
+    /// Builds the minimal "running" notification the service shows when quick-add is
+    /// disabled but it must stay alive to keep pinned notes posted.
+    fun buildServiceRunningNotification(): android.app.Notification
 }

@@ -15,8 +15,11 @@ class FakeNotificationController : NotificationController {
     override fun unpin(noteId: Long) { unpinned += noteId }
     override fun refresh(note: Note) { refreshed += note }
 
-    // The quick-add notification is built only inside the running service; JVM
-    // tests never call this.
+    // The service notifications are built only inside the running service; JVM
+    // tests never call these.
     override fun buildQuickAddNotification(): android.app.Notification =
+        throw UnsupportedOperationException("not used in JVM tests")
+
+    override fun buildServiceRunningNotification(): android.app.Notification =
         throw UnsupportedOperationException("not used in JVM tests")
 }

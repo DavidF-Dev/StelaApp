@@ -6,6 +6,7 @@ import dev.davidfdev.stela.data.NoteRepository
 import dev.davidfdev.stela.notifications.FakeNotificationController
 import dev.davidfdev.stela.pin.FakeServiceController
 import dev.davidfdev.stela.pin.NotePinner
+import dev.davidfdev.stela.settings.FakeSettingsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -37,7 +38,7 @@ class EditorViewModelTest {
         val dao = FakeNoteDao()
         val repository = NoteRepository(dao) { 1_000L }
         val controller = FakeNotificationController()
-        val pinner = NotePinner(repository, controller, FakeServiceController())
+        val pinner = NotePinner(repository, controller, FakeServiceController(), FakeSettingsRepository())
 
         fun viewModel(noteId: Long? = null): EditorViewModel {
             val handle = if (noteId == null) SavedStateHandle() else SavedStateHandle(mapOf("noteId" to noteId))

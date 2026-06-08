@@ -34,7 +34,8 @@ class AppContainer(context: Context) {
 
     private val serviceController: ServiceController = PinServiceController(context)
 
-    val notePinner: NotePinner = NotePinner(noteRepository, notificationController, serviceController)
+    val notePinner: NotePinner =
+        NotePinner(noteRepository, notificationController, serviceController, settingsRepository)
 
     private companion object {
         const val DATABASE_NAME = "stela.db"

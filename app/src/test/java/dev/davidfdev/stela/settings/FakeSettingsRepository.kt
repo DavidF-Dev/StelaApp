@@ -16,4 +16,8 @@ class FakeSettingsRepository(initial: Settings = Settings()) : SettingsRepositor
     override suspend fun setHideOnLockScreen(value: Boolean) {
         state.update { it.copy(hideOnLockScreen = value) }
     }
+
+    override suspend fun setQuickAddEnabled(value: Boolean) {
+        state.update { it.copy(quickAddEnabled = value) }
+    }
 }

@@ -27,6 +27,10 @@ class SettingsViewModel(private val repository: SettingsRepository) : ViewModel(
         viewModelScope.launch { repository.setHideOnLockScreen(value) }
     }
 
+    fun setQuickAddEnabled(value: Boolean) {
+        viewModelScope.launch { repository.setQuickAddEnabled(value) }
+    }
+
     companion object {
         private const val STOP_TIMEOUT_MILLIS = 5_000L
 

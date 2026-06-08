@@ -3,6 +3,7 @@ package dev.davidfdev.stela.pin
 import dev.davidfdev.stela.data.Note
 import dev.davidfdev.stela.data.NoteRepository
 import dev.davidfdev.stela.notifications.NotificationController
+import dev.davidfdev.stela.settings.SettingsRepository
 import kotlinx.coroutines.flow.first
 
 /// Coordinates a pin state change: persist the flag, post or cancel the
@@ -12,6 +13,7 @@ class NotePinner(
     private val repository: NoteRepository,
     private val controller: NotificationController,
     private val serviceController: ServiceController,
+    private val settingsRepository: SettingsRepository,
 ) {
     suspend fun pin(note: Note) {
         repository.setPinned(note.id, true)
@@ -37,10 +39,11 @@ class NotePinner(
         repository.notes.first().filter { it.isPinned }.forEach { controller.pin(it) }
     }
 
-    // Quick-add has no independent toggle until Phase 5, so the service runs purely
-    // on whether any note is pinned.
-    private suspend fun reconcileService() {
-        if (ServiceLifecycle.shouldRun(repository.countPinned(), quickAddEnabled = false)) {
+    /// Starts or stops the service per the lifecycle rule. Public so a settings
+    /// change or a just-granted permission can re-evaluate it.
+    suspend fun reconcileService() {
+        val quickAddEnabled = settingsRepository.settings.first().quickAddEnabled
+        if (ServiceLifecycle.shouldRun(repository.countPinned(), quickAddEnabled)) {
             serviceController.start()
         } else {
             serviceController.stop()

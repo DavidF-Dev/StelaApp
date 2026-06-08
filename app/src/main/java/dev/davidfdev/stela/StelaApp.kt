@@ -21,6 +21,19 @@ class StelaApp : Application() {
         super.onCreate()
         container = AppContainer(this)
         observeLockScreenPreference()
+        observeQuickAddPreference()
+    }
+
+    // Start/stop/swap the service whenever the quick-add preference changes (and
+    // once on launch). Starting is a no-op without notification permission; the UI
+    // requests it and this re-evaluates on grant.
+    private fun observeQuickAddPreference() {
+        scope.launch {
+            container.settingsRepository.settings
+                .map { it.quickAddEnabled }
+                .distinctUntilChanged()
+                .collect { container.notePinner.reconcileService() }
+        }
     }
 
     // Keep the controller's visibility in sync with the preference, and re-assert

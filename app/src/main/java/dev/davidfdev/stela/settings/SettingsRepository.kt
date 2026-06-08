@@ -14,6 +14,7 @@ interface SettingsRepository {
     val settings: Flow<Settings>
     suspend fun setThemeMode(mode: ThemeMode)
     suspend fun setHideOnLockScreen(value: Boolean)
+    suspend fun setQuickAddEnabled(value: Boolean)
 }
 
 class DataStoreSettingsRepository(
@@ -28,6 +29,10 @@ class DataStoreSettingsRepository(
 
     override suspend fun setHideOnLockScreen(value: Boolean) {
         dataStore.edit { it[SettingsKeys.HIDE_ON_LOCK_SCREEN] = value }
+    }
+
+    override suspend fun setQuickAddEnabled(value: Boolean) {
+        dataStore.edit { it[SettingsKeys.QUICK_ADD_ENABLED] = value }
     }
 }
 

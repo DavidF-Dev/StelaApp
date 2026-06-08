@@ -93,7 +93,22 @@ notification visibility. Manual: theme switch, lock-screen hide.
 
 ---
 
-# Slice 5b — Quick-add toggle & three-state service (outline)
+# Slice 5b — Quick-add toggle & three-state service
+
+**Status (2026-06-08) — complete.** Tests: 31 JVM unit + 15 instrumented, all green;
+no `INTERNET`. Three states verified live on the emulator: quick-add on → `quick_add`
+shown; off + pinned → minimal `service_status` "Stela is running" line + `pinned_notes`;
+off + nothing pinned → service stopped, no notifications.
+
+**Decisions (resolved):**
+- **State-2 notification:** its own `service_status` channel, `IMPORTANCE_MIN`
+  ("Stela is running", body tap opens the list) — not a reuse of `quick_add`.
+- **Onboarding:** lazy/contextual — `MainActivity` requests `POST_NOTIFICATIONS` on
+  launch when quick-add is on and not yet granted; not a dedicated first-run screen.
+- **Denial handling:** no auto-disable. `PinServiceController.start()` is a no-op
+  without permission; the Settings quick-add toggle uses the shared permission gate
+  with an "Open settings" Snackbar. Quick-add stays "on" as a preference but stays
+  dormant until permission is granted, then a reconcile starts the service.
 
 **Scope (§6):** quick-add becomes a real setting (default **on**). The service's
 foreground notification has three states:

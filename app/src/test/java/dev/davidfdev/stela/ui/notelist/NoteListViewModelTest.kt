@@ -5,6 +5,7 @@ import dev.davidfdev.stela.data.NoteRepository
 import dev.davidfdev.stela.notifications.FakeNotificationController
 import dev.davidfdev.stela.pin.FakeServiceController
 import dev.davidfdev.stela.pin.NotePinner
+import dev.davidfdev.stela.settings.FakeSettingsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
@@ -34,7 +35,10 @@ class NoteListViewModelTest {
     private fun viewModel(
         repository: NoteRepository,
         controller: FakeNotificationController = FakeNotificationController(),
-    ) = NoteListViewModel(repository, NotePinner(repository, controller, FakeServiceController()))
+    ) = NoteListViewModel(
+        repository,
+        NotePinner(repository, controller, FakeServiceController(), FakeSettingsRepository()),
+    )
 
     @Test
     fun uiState_reflectsRepositoryNotesMostRecentFirst() = runTest(dispatcher) {

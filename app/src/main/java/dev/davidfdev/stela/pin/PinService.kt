@@ -25,16 +25,21 @@ class PinService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val container = (applicationContext as StelaApp).container
+        // Enter foreground immediately to satisfy the start window; default to the
+        // quick-add notification and swap to the minimal line below if disabled.
         startInForeground(container.notificationController.buildQuickAddNotification())
 
         scope.launch {
+            val quickAddEnabled = container.settingsRepository.settings.first().quickAddEnabled
+            if (!quickAddEnabled) {
+                startInForeground(container.notificationController.buildServiceRunningNotification())
+            }
+
             container.noteRepository.notes.first()
                 .filter { it.isPinned }
                 .forEach { container.notificationController.pin(it) }
 
-            // Quick-add has no independent toggle yet (Phase 5), so the service only
-            // needs to run while a note is pinned; if none, there is nothing to host.
-            if (!ServiceLifecycle.shouldRun(container.noteRepository.countPinned(), quickAddEnabled = false)) {
+            if (!ServiceLifecycle.shouldRun(container.noteRepository.countPinned(), quickAddEnabled)) {
                 stopForeground(STOP_FOREGROUND_REMOVE)
                 stopSelf()
             }

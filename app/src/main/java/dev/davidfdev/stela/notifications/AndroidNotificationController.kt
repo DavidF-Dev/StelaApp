@@ -35,8 +35,15 @@ class AndroidNotificationController(private val context: Context) : Notification
             .setVibrationEnabled(false)
             .setSound(null, null)
             .build()
+        val serviceStatus = NotificationChannelCompat.Builder(CHANNEL_SERVICE_STATUS, NotificationManagerCompat.IMPORTANCE_MIN)
+            .setName("Running in background")
+            .setShowBadge(false)
+            .setVibrationEnabled(false)
+            .setSound(null, null)
+            .build()
         manager.createNotificationChannel(pinned)
         manager.createNotificationChannel(quickAdd)
+        manager.createNotificationChannel(serviceStatus)
     }
 
     override fun pin(note: Note) = post(note)
@@ -99,6 +106,18 @@ class AndroidNotificationController(private val context: Context) : Notification
             .build()
     }
 
+    override fun buildServiceRunningNotification(): android.app.Notification =
+        NotificationCompat.Builder(context, CHANNEL_SERVICE_STATUS)
+            .setSmallIcon(R.drawable.ic_stela_pin)
+            .setContentTitle("Stela is running")
+            .setContentText("Keeping your pinned notes posted.")
+            .setContentIntent(deepLinkActivityIntent("$DEEP_LINK_BASE/list", SERVICE_RUNNING_REQUEST))
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setSilent(true)
+            .setShowWhen(false)
+            .build()
+
     private fun deepLinkActivityIntent(uri: String, requestCode: Int): PendingIntent {
         val intent = Intent(Intent.ACTION_VIEW, uri.toUri(), context, MainActivity::class.java)
         return PendingIntent.getActivity(context, requestCode, intent, PENDING_FLAGS)
@@ -107,6 +126,7 @@ class AndroidNotificationController(private val context: Context) : Notification
     companion object {
         const val CHANNEL_PINNED = "pinned_notes"
         const val CHANNEL_QUICK_ADD = "quick_add"
+        const val CHANNEL_SERVICE_STATUS = "service_status"
         const val DEEP_LINK_BASE = "stela://stela"
 
         // Reserved id outside the note-id space (note ids are positive, from 1).
@@ -114,6 +134,7 @@ class AndroidNotificationController(private val context: Context) : Notification
 
         private const val QUICK_ADD_NEW_REQUEST = -2
         private const val QUICK_ADD_VIEW_REQUEST = -3
+        private const val SERVICE_RUNNING_REQUEST = -4
         private const val PENDING_FLAGS =
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
     }
