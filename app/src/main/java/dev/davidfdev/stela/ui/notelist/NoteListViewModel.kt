@@ -9,27 +9,43 @@ import dev.davidfdev.stela.StelaApp
 import dev.davidfdev.stela.data.Note
 import dev.davidfdev.stela.data.NoteRepository
 import dev.davidfdev.stela.pin.NotePinner
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-data class NoteListUiState(val notes: List<Note> = emptyList())
+data class NoteListUiState(
+    val notes: List<Note> = emptyList(),
+    val selectedIds: Set<Long> = emptySet(),
+) {
+    val inSelectionMode: Boolean get() = selectedIds.isNotEmpty()
+    val selectedCount: Int get() = selectedIds.size
+
+    /// True when the batch toggle should pin (at least one selected note is unpinned);
+    /// false when every selected note is already pinned and the toggle should unpin.
+    val batchActionPins: Boolean get() = notes.any { it.id in selectedIds && !it.isPinned }
+}
 
 class NoteListViewModel(
     repository: NoteRepository,
     private val pinner: NotePinner,
 ) : ViewModel() {
 
+    private val selectedIds = MutableStateFlow<Set<Long>>(emptySet())
+
     val uiState: StateFlow<NoteListUiState> =
-        repository.notes
-            .map { NoteListUiState(it) }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
-                initialValue = NoteListUiState(),
-            )
+        combine(repository.notes, selectedIds) { notes, selected ->
+            // Drop ids whose note no longer exists so selection can't outlive a delete.
+            val present = selected.filterTo(mutableSetOf()) { id -> notes.any { it.id == id } }
+            NoteListUiState(notes = notes, selectedIds = present)
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
+            initialValue = NoteListUiState(),
+        )
 
     fun pin(note: Note) {
         viewModelScope.launch { pinner.pin(note) }
@@ -37,6 +53,38 @@ class NoteListViewModel(
 
     fun unpin(note: Note) {
         viewModelScope.launch { pinner.unpin(note.id) }
+    }
+
+    fun toggleSelection(id: Long) {
+        selectedIds.update { if (id in it) it - id else it + id }
+    }
+
+    fun clearSelection() {
+        selectedIds.value = emptySet()
+    }
+
+    /// Pins every selected-unpinned note, or unpins all when every selected note is
+    /// already pinned, then exits selection mode.
+    fun batchTogglePin() {
+        val state = uiState.value
+        val selected = state.notes.filter { it.id in state.selectedIds }
+        viewModelScope.launch {
+            if (selected.any { !it.isPinned }) {
+                pinner.pinAll(selected.filter { !it.isPinned })
+            } else {
+                pinner.unpinAll(selected.map { it.id })
+            }
+            clearSelection()
+        }
+    }
+
+    fun batchDelete() {
+        val state = uiState.value
+        val selected = state.notes.filter { it.id in state.selectedIds }
+        viewModelScope.launch {
+            pinner.deleteAll(selected)
+            clearSelection()
+        }
     }
 
     companion object {

@@ -27,6 +27,44 @@ class NotePinner(
         reconcileService()
     }
 
+    /// Pins every note, posting each notification, then reconciles the service once
+    /// for the whole batch.
+    suspend fun pinAll(notes: List<Note>) {
+        notes.forEach { note ->
+            repository.setPinned(note.id, true)
+            controller.pin(note.copy(isPinned = true))
+        }
+        reconcileService()
+    }
+
+    /// Unpins every id, cancelling each notification, then reconciles the service once.
+    suspend fun unpinAll(noteIds: List<Long>) {
+        noteIds.forEach { id ->
+            repository.setPinned(id, false)
+            controller.unpin(id)
+        }
+        reconcileService()
+    }
+
+    /// Deletes a note, first cancelling its notification if it was pinned, then
+    /// reconciles the service. The seam through which all deletes flow so a pinned
+    /// note never leaves an orphaned notification behind.
+    suspend fun delete(note: Note) {
+        if (note.isPinned) controller.unpin(note.id)
+        repository.delete(note)
+        reconcileService()
+    }
+
+    /// Deletes every note, cancelling the notifications of pinned ones, then
+    /// reconciles the service once for the whole batch.
+    suspend fun deleteAll(notes: List<Note>) {
+        notes.forEach { note ->
+            if (note.isPinned) controller.unpin(note.id)
+            repository.delete(note)
+        }
+        reconcileService()
+    }
+
     /// Re-posts a pinned note's notification so it reflects edited content. A no-op
     /// when the note is not pinned.
     fun refresh(note: Note) {

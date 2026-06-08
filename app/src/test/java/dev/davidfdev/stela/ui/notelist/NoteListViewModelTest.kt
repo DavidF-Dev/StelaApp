@@ -16,6 +16,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -67,5 +68,126 @@ class NoteListViewModelTest {
 
         assertTrue(repository.getById(id)!!.isPinned)
         assertEquals(listOf(id), controller.pinned.map { it.id })
+    }
+
+    @Test
+    fun toggleSelection_entersThenExitsSelectionMode() = runTest(dispatcher) {
+        val repository = NoteRepository(FakeNoteDao()) { 1_000L }
+        val id = repository.create(title = "A", description = "")
+        val viewModel = viewModel(repository)
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        advanceUntilIdle()
+
+        viewModel.toggleSelection(id)
+        advanceUntilIdle()
+        assertTrue(viewModel.uiState.value.inSelectionMode)
+        assertEquals(setOf(id), viewModel.uiState.value.selectedIds)
+
+        viewModel.toggleSelection(id)
+        advanceUntilIdle()
+        assertFalse(viewModel.uiState.value.inSelectionMode)
+    }
+
+    @Test
+    fun uiState_prunesSelectionForDeletedNotes() = runTest(dispatcher) {
+        val repository = NoteRepository(FakeNoteDao()) { 1_000L }
+        val a = repository.create(title = "A", description = "")
+        val b = repository.create(title = "B", description = "")
+        val viewModel = viewModel(repository)
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        advanceUntilIdle()
+
+        viewModel.toggleSelection(a)
+        viewModel.toggleSelection(b)
+        advanceUntilIdle()
+        assertEquals(setOf(a, b), viewModel.uiState.value.selectedIds)
+
+        repository.delete(repository.getById(a)!!)
+        advanceUntilIdle()
+
+        assertEquals(setOf(b), viewModel.uiState.value.selectedIds)
+    }
+
+    @Test
+    fun batchActionPins_trueWhenAnySelectedUnpinned_falseWhenAllPinned() = runTest(dispatcher) {
+        val repository = NoteRepository(FakeNoteDao()) { 1_000L }
+        val a = repository.create(title = "A", description = "")
+        val b = repository.create(title = "B", description = "")
+        repository.setPinned(a, true)
+        val viewModel = viewModel(repository)
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        advanceUntilIdle()
+
+        viewModel.toggleSelection(a)
+        viewModel.toggleSelection(b)
+        advanceUntilIdle()
+        // b is unpinned, so the toggle would pin.
+        assertTrue(viewModel.uiState.value.batchActionPins)
+
+        viewModel.toggleSelection(b)
+        advanceUntilIdle()
+        // Only the already-pinned a remains selected, so the toggle would unpin.
+        assertFalse(viewModel.uiState.value.batchActionPins)
+    }
+
+    @Test
+    fun batchTogglePin_pinsAll_whenAnySelectedUnpinned_thenClears() = runTest(dispatcher) {
+        val repository = NoteRepository(FakeNoteDao()) { 1_000L }
+        val a = repository.create(title = "A", description = "")
+        val b = repository.create(title = "B", description = "")
+        val viewModel = viewModel(repository)
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        advanceUntilIdle()
+
+        viewModel.toggleSelection(a)
+        viewModel.toggleSelection(b)
+        advanceUntilIdle()
+        viewModel.batchTogglePin()
+        advanceUntilIdle()
+
+        assertTrue(repository.getById(a)!!.isPinned)
+        assertTrue(repository.getById(b)!!.isPinned)
+        assertFalse(viewModel.uiState.value.inSelectionMode)
+    }
+
+    @Test
+    fun batchTogglePin_unpinsAll_whenEverySelectedPinned() = runTest(dispatcher) {
+        val repository = NoteRepository(FakeNoteDao()) { 1_000L }
+        val a = repository.create(title = "A", description = "")
+        val b = repository.create(title = "B", description = "")
+        repository.setPinned(a, true)
+        repository.setPinned(b, true)
+        val viewModel = viewModel(repository)
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        advanceUntilIdle()
+
+        viewModel.toggleSelection(a)
+        viewModel.toggleSelection(b)
+        advanceUntilIdle()
+        viewModel.batchTogglePin()
+        advanceUntilIdle()
+
+        assertFalse(repository.getById(a)!!.isPinned)
+        assertFalse(repository.getById(b)!!.isPinned)
+    }
+
+    @Test
+    fun batchDelete_removesSelected_andClearsSelection() = runTest(dispatcher) {
+        val repository = NoteRepository(FakeNoteDao()) { 1_000L }
+        val a = repository.create(title = "A", description = "")
+        val b = repository.create(title = "B", description = "")
+        repository.create(title = "C", description = "")
+        val viewModel = viewModel(repository)
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        advanceUntilIdle()
+
+        viewModel.toggleSelection(a)
+        viewModel.toggleSelection(b)
+        advanceUntilIdle()
+        viewModel.batchDelete()
+        advanceUntilIdle()
+
+        assertEquals(listOf("C"), viewModel.uiState.value.notes.map { it.title })
+        assertFalse(viewModel.uiState.value.inSelectionMode)
     }
 }

@@ -14,9 +14,9 @@
 - **6d — Share** *(done)* — Editor `ACTION_SEND` text/plain action (offline-safe).
 - **6e — About** — version, author (David F Dev), privacy promise, "how Stela works"
   honest-persistence note, static open-source licenses list.
-- **6c — Multi-select + batch** — NoteList selection mode (long-press → contextual
-  bar), batch delete + batch pin/unpin, confirm dialog with `<plurals>`. Largest
-  piece; overlaps the Phase 7 list pipeline, so last of the feature slices.
+- **6c — Multi-select + batch** *(done)* — NoteList selection mode (long-press →
+  contextual bar), batch delete + batch pin/unpin, confirm dialog with `<plurals>`.
+  Largest piece; overlaps the Phase 7 list pipeline, so last of the feature slices.
 - **6f — Visual polish** — adaptive launcher icon, refined notification silhouette
   (+ optional colored large icon), brand color scheme.
 - **6g — API 33/34 + OEM matrix** — behavior verification across API levels and
@@ -27,7 +27,8 @@ Also: the **`LICENSE` file** (GPL-3.0; repo housekeeping) and the deferred
 pin-on-create) slot in where they fit.
 
 ## Decisions to settle when planning a slice
-- Multi-select: include batch pin/unpin now (pinning exists) or delete-only?
+- ~~Multi-select: include batch pin/unpin now (pinning exists) or delete-only?~~
+  **Resolved (6c):** include batch pin/unpin via a single smart toggle.
 - Visual: dynamic-color (Material You) toggle and/or custom brand palette, or keep
   Material defaults?
 - About: include a "view source" link (opens a browser; no `INTERNET` for Stela)?
@@ -122,3 +123,71 @@ non-blank** (including a new, unsaved note) and shares the **current on-screen t
 content). 3. Verify (build; manual: tap Share → system sheet with title + text).
 
 **Testing**: manual (Intent launch isn't JVM-testable; espresso-intents declined).
+
+---
+
+## Slice 6c — Multi-select + batch
+
+**Status (2026-06-09) — complete.** Tests: 51 JVM unit + 20 instrumented, all green; no
+`INTERNET`. NoteList selection mode: long-press a row to enter, then batch pin/unpin
+(one smart toggle) and batch delete, with a `<plurals>` delete confirm. The pin seam
+grew `pinAll`/`unpinAll`/`delete`/`deleteAll` (each reconciling the service once), and
+the editor's delete was retrofitted onto `NotePinner.delete`, closing the
+orphaned-notification gap. Selection lives in the ViewModel (combined with the repo flow,
+stale ids pruned). New instrumented `SelectionFlowTest` grants POST_NOTIFICATIONS in
+`@BeforeClass` so first-run onboarding's permission dialog can't pause the Activity.
+
+**Confirmed decisions:**
+- **Full scope** — batch delete *and* batch pin/unpin (pinning already exists).
+- **Single smart toggle** for pin/unpin: if any selected note is unpinned the action is
+  **Pin** (pins every selected-unpinned; already-pinned stay) and runs through the
+  notification-permission gate; if every selected note is already pinned the action is
+  **Unpin**. The bar icon/label reflects which it will do.
+- **Delete routes through `NotePinner`** — a new pin-seam delete unpins a pinned note's
+  notification and reconciles the service; the editor's delete is retrofitted onto it,
+  closing an orphaned-notification gap.
+- A completed batch action (pin/unpin/delete) **exits selection mode**.
+- **No "select all"** in this slice — deferred (see below).
+
+**Selection model (ViewModel-owned)**
+- `NoteListUiState` gains `selectedIds: Set<Long>`; `inSelectionMode` is derived
+  (`selectedIds` non-empty). Selecting the first note enters the mode; deselecting the
+  last note, the close action, or a completed batch action exits it.
+- `uiState` combines the repo notes flow with a selection `StateFlow` and **prunes ids
+  whose note no longer exists**, so selection can never reference a deleted note.
+- VM methods: `toggleSelection(id)`, `clearSelection()`, `batchDelete()`,
+  `batchTogglePin()` (computes Pin-vs-Unpin from the current selection).
+
+**Pin seam (`NotePinner`)** — batch ops reconcile the service **once** at the end:
+- `pinAll(notes)` / `unpinAll(ids)` — loop persist + notification, then one reconcile.
+- `delete(note)` — unpin-if-pinned, delete, reconcile (single).
+- `deleteAll(notes)` — looped delete, reconcile once.
+- `EditorViewModel.delete()` switches to `pinner.delete(...)`.
+
+**UI (`NoteListScreen`)**
+- Long-press enters selection; tap toggles while selecting (else opens the note).
+- `TopAppBar` swaps to a contextual bar: close (exit) · selected count · `[pin/unpin]`
+  `[delete]`. Selected rows get a tonal highlight; the per-row pin icon is hidden in
+  selection mode. The Add FAB is hidden, and system back exits selection (not the
+  screen).
+- Delete opens a `<plurals>` confirm dialog; pin/unpin apply with no confirm.
+
+**Strings**: contextual-bar close cd, `notelist_selected_count` (plural),
+`notelist_delete_confirm` (plural) + dialog title/confirm/cancel; reuse `action_pin`,
+`action_unpin`, `action_delete`.
+
+**Tasks**
+1. `NotePinner` batch + delete seam (TDD; reconcile-once) + editor retrofit.
+2. ViewModel selection state + batch actions (TDD: toggle, stale-id pruning,
+   smart-toggle choice, batch delete).
+3. NoteList selection UI (contextual bar, row highlight, FAB/back handling, confirm
+   dialog) + strings/plurals.
+4. Verify (build + tests; manual: long-press → batch pin/unpin/delete).
+
+**Testing**: JVM for the ViewModel and pinner (assert reconcile-once via the fakes);
+instrumented for long-press → contextual bar → delete; manual for the permission-gated
+batch pin.
+
+**Deferred — "Select all":** a select-all toggle in the contextual bar (overflow or a
+title affordance) is out of scope here to keep the slice bounded; add it in a later
+polish pass (or fold into this slice if it proves trivial).

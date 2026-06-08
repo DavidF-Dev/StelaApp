@@ -9,13 +9,29 @@
     <string name="action_pin">Pin</string>
     <string name="action_unpin">Unpin</string>
     <string name="action_delete">Delete</string>
+    <string name="action_cancel">Cancel</string>
     <string name="action_share">Share</string>
+    <string name="action_close_selection">Close selection</string>
     <string name="share_chooser_title">Share note</string>
 
     <!-- Note list -->
     <string name="notelist_empty">No notes yet.\nTap + to create one.</string>
     <string name="notelist_notifications_blocked">Notifications are off — pinned notes won\'t show.</string>
     <string name="snackbar_pinning_needs_notifications">Notifications are off — pinning needs them.</string>
+
+    <!-- Note list — multi-select -->
+    <plurals name="notelist_selected_count">
+        <item quantity="one">%d selected</item>
+        <item quantity="other">%d selected</item>
+    </plurals>
+    <plurals name="notelist_delete_dialog_title">
+        <item quantity="one">Delete note?</item>
+        <item quantity="other">Delete %d notes?</item>
+    </plurals>
+    <plurals name="notelist_delete_dialog_message">
+        <item quantity="one">This note will be permanently deleted.</item>
+        <item quantity="other">These %d notes will be permanently deleted.</item>
+    </plurals>
 
     <!-- Editor -->
     <string name="editor_title_new">New note</string>

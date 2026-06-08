@@ -72,6 +72,84 @@ class NotePinnerTest {
     }
 
     @Test
+    fun pinAll_pinsEvery_postsEach_andReconcilesOnce() = runTest {
+        val f = Fixture()
+        val a = f.repository.create(title = "A", description = "")
+        val b = f.repository.create(title = "B", description = "")
+
+        f.pinner.pinAll(listOf(f.repository.getById(a)!!, f.repository.getById(b)!!))
+
+        assertTrue(f.repository.getById(a)!!.isPinned)
+        assertTrue(f.repository.getById(b)!!.isPinned)
+        assertEquals(listOf(a, b), f.controller.pinned.map { it.id })
+        // One reconcile for the whole batch, not one per note.
+        assertEquals(1, f.service.startCount)
+    }
+
+    @Test
+    fun unpinAll_unpinsEvery_andReconcilesOnce() = runTest {
+        val f = Fixture(quickAddEnabled = false)
+        val a = f.repository.create(title = "A", description = "")
+        val b = f.repository.create(title = "B", description = "")
+        f.pinner.pinAll(listOf(f.repository.getById(a)!!, f.repository.getById(b)!!))
+        val stopsBefore = f.service.stopCount
+
+        f.pinner.unpinAll(listOf(a, b))
+
+        assertFalse(f.repository.getById(a)!!.isPinned)
+        assertFalse(f.repository.getById(b)!!.isPinned)
+        assertEquals(stopsBefore + 1, f.service.stopCount)
+    }
+
+    @Test
+    fun delete_pinnedNote_cancelsNotification_andStopsService() = runTest {
+        val f = Fixture(quickAddEnabled = false)
+        val id = f.repository.create(title = "A", description = "")
+        f.pinner.pin(f.repository.getById(id)!!)
+
+        f.pinner.delete(f.repository.getById(id)!!)
+
+        assertEquals(null, f.repository.getById(id))
+        assertEquals(listOf(id), f.controller.unpinned)
+        assertEquals(1, f.service.stopCount)
+    }
+
+    @Test
+    fun delete_unpinnedNote_leavesNotificationsUntouched() = runTest {
+        val f = Fixture(quickAddEnabled = false)
+        val id = f.repository.create(title = "A", description = "")
+
+        f.pinner.delete(f.repository.getById(id)!!)
+
+        assertEquals(null, f.repository.getById(id))
+        assertTrue(f.controller.unpinned.isEmpty())
+    }
+
+    @Test
+    fun deleteAll_cancelsPinnedOnly_andReconcilesOnce() = runTest {
+        val f = Fixture(quickAddEnabled = false)
+        val a = f.repository.create(title = "A", description = "")
+        val b = f.repository.create(title = "B", description = "")
+        val c = f.repository.create(title = "C", description = "")
+        f.pinner.pinAll(listOf(f.repository.getById(a)!!, f.repository.getById(b)!!))
+        val stopsBefore = f.service.stopCount
+
+        f.pinner.deleteAll(
+            listOf(
+                f.repository.getById(a)!!,
+                f.repository.getById(b)!!,
+                f.repository.getById(c)!!,
+            ),
+        )
+
+        assertEquals(null, f.repository.getById(a))
+        assertEquals(null, f.repository.getById(b))
+        assertEquals(null, f.repository.getById(c))
+        assertEquals(listOf(a, b), f.controller.unpinned)
+        assertEquals(stopsBefore + 1, f.service.stopCount)
+    }
+
+    @Test
     fun refresh_reposts_onlyWhenPinned() = runTest {
         val f = Fixture()
         val id = f.repository.create(title = "A", description = "")

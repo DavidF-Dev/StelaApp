@@ -105,7 +105,7 @@ class EditorViewModel(
             return
         }
         viewModelScope.launch {
-            repository.delete(existing)
+            pinner.delete(existing)
             onComplete()
         }
     }
