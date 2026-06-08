@@ -21,6 +21,9 @@ message posted to remain. Tagline: *Notes as Notifications*.
 requirements from the start (notification permission, foreground-service typing,
 target SDK currency).
 
+**License:** GPL-3.0 (copyleft; keeps derivatives open, F-Droid-friendly).
+Copyright © David F Dev. Add a `LICENSE` file at the repo root.
+
 ### Goals
 
 - Create, edit, and delete notes offline.
@@ -167,6 +170,9 @@ data class Note(
    - Toggle the persistent **quick-add** notification.
    - **Battery optimization** helper (request exemption).
    - **OEM autostart** helper (deep-link / guidance where detectable).
+   - **About** — version, author (**David F Dev**), the privacy promise ("nothing
+     leaves your device"), a short "how Stela works" honest-persistence note, and an
+     open-source licenses list (static) — *Phase 6*.
    - (v2 placeholder) Export / import.
 
 ### Pinned-note notification anatomy
@@ -307,7 +313,10 @@ One service, one baseline notification, no redundancy.
 6. **Polish** — silhouette icon set, full theming, **created/modified timestamps**
    (relative on the list, absolute in the editor), **multi-select + batch delete**
    (extends to batch pin/unpin), **share note** (title + description as plain text
-   via the system share sheet), API 33/34 behavior, manual OEM matrix.
+   via the system share sheet), an **About screen** (version, author, privacy note,
+   open-source licenses), **string externalisation for localisation** (move all UI
+   and notification strings to resources, with `<plurals>` and locale-aware dates —
+   the i18n enabler, done early in the phase), API 33/34 behavior, manual OEM matrix.
 7. **List querying** — **search** (fuzzy, over title + description), **sort**
    (creation / modified / title / icon), **filter** (all / pinned / unpinned),
    all derived in one in-memory pipeline over the notes flow in the list
@@ -315,9 +324,12 @@ One service, one baseline notification, no redundancy.
    (Sort-by-icon stays inert until the v2 icon set makes icons distinguishable.)
 
 **Scope additions (2026-06-08):** theme selection (→ Phase 5), timestamp display
-and multi-select / batch actions (→ Phase 6), plain-text **share** (→ Phase 6), and
-**list querying** — search / sort / filter (→ Phase 7) — were added after Phase 1.
-All are deferred to their natural phases rather than implemented eagerly. Notes:
+and multi-select / batch actions (→ Phase 6), plain-text **share** (→ Phase 6),
+**About screen** (→ Phase 6), **localisation** via string externalisation (→ early
+Phase 6), and **list querying** — search / sort / filter (→ Phase 7) — were added
+after Phase 1. The repo is licensed **GPL-3.0** (a `LICENSE` file is still to be
+added). All features are deferred to their natural phases rather than implemented
+eagerly. Notes:
 search, sort, and filter share **one in-memory derivation** over the notes flow
 (fine at personal scale; move to SQL `WHERE`/`ORDER BY` and Room FTS only if a
 library ever grows to thousands of notes); persisted sort/filter selections depend
