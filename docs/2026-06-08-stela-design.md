@@ -147,10 +147,15 @@ data class Note(
    Each row shows the note's **modified time** (relative) — *Phase 6*.
    Long-press enters **multi-select** with a contextual bar for **batch delete**
    (and batch pin/unpin once pinning exists) — *Phase 6*.
+   **Search** (fuzzy, over title + description), **sort** (creation / modified /
+   title / icon), and **filter** (all / pinned / unpinned) refine the list —
+   *Phase 7*; sort/filter selections persist via DataStore (Phase 5).
 2. **Editor** — title, description, icon picker (silhouette set), pin toggle.
    Reachable from: app list, FAB, the quick-add notification, and a pinned note's
    **Edit** action. Save persists via repository (and refreshes the notification
    if pinned). Shows **created and modified** timestamps (absolute) — *Phase 6*.
+   A **Share** action sends the note's title + description as plain text via the
+   system share sheet — *Phase 6* (no new permission; Stela stays offline).
 3. **Settings** —
    - **Theme** — Light / Dark / Follow System, persisted via DataStore — *Phase 5*
      (the first consumer of the preferences store; default dark until then).
@@ -285,12 +290,24 @@ One service, one baseline notification, no redundancy.
    (Light / Dark / Follow System).
 6. **Polish** — silhouette icon set, full theming, **created/modified timestamps**
    (relative on the list, absolute in the editor), **multi-select + batch delete**
-   (extends to batch pin/unpin), API 33/34 behavior, manual OEM matrix.
+   (extends to batch pin/unpin), **share note** (title + description as plain text
+   via the system share sheet), API 33/34 behavior, manual OEM matrix.
+7. **List querying** — **search** (fuzzy, over title + description), **sort**
+   (creation / modified / title / icon), **filter** (all / pinned / unpinned),
+   all derived in one in-memory pipeline over the notes flow in the list
+   ViewModel. Sort/filter selections persist via the Phase 5 preferences store.
+   (Sort-by-icon stays inert until the v2 icon set makes icons distinguishable.)
 
 **Scope additions (2026-06-08):** theme selection (→ Phase 5), timestamp display
-and multi-select / batch actions (→ Phase 6) were added after Phase 1. All are
-deferred to their natural phases rather than implemented eagerly — settings need
-the preferences store, and the rest is UX polish.
+and multi-select / batch actions (→ Phase 6), plain-text **share** (→ Phase 6), and
+**list querying** — search / sort / filter (→ Phase 7) — were added after Phase 1.
+All are deferred to their natural phases rather than implemented eagerly. Notes:
+search, sort, and filter share **one in-memory derivation** over the notes flow
+(fine at personal scale; move to SQL `WHERE`/`ORDER BY` and Room FTS only if a
+library ever grows to thousands of notes); persisted sort/filter selections depend
+on the Phase 5 preferences store; **sort-by-icon** stays inert until the v2 icon set
+makes icons distinguishable; **share** keeps the app offline — Stela only hands
+plain text to the OS share sheet and declares no `INTERNET`.
 
 **v2 (deferred):** JSON export/import, optional "tap = edit", widget.
 
