@@ -7,8 +7,30 @@
 **Goal:** A buildable, navigable Compose app over Room with notes CRUD persistence
 and a passing test harness — no notification/service code yet.
 
-**Tech stack:** Kotlin 2.0.x · Jetpack Compose (Material 3, dark) · Room (KSP) ·
-Compose Navigation · JDK 17 · Gradle 8.x.
+**Tech stack (pinned):** Kotlin 2.1.0 · AGP 8.9.2 · Gradle 8.11.1 · JDK 21
+(Android Studio JBR; bytecode target 17) · Jetpack Compose (Material 3, dark,
+BOM 2024.12.01) · Room 2.6.1 (KSP) · Compose Navigation 2.8.5 ·
+compileSdk/targetSdk 36 · minSdk 26.
+
+---
+
+## Status (2026-06-08)
+
+- ✅ **Task 1 — Bootstrap.** `assembleDebug` builds a debug APK. The Gradle
+  distribution is cached locally to work around a slow in-wrapper download.
+- ✅ **Task 2 — Skeleton.** Manifest (no permissions), dark Material 3 theme,
+  `StelaApp` Application, `MainActivity` placeholder. Merged manifest verified to
+  contain no `INTERNET` permission.
+- ✅ **Task 3 — Room layer.** `Note` / `NoteDao` / `StelaDatabase`; 5 instrumented
+  DAO tests pass on the API 36 emulator. Schema export enabled
+  (`exportSchema = true`; baseline at `app/schemas/.../1.json`).
+- ⏳ **Task 4 — NoteRepository** · **Task 5 — Screens + nav** · **Task 6 — Verify.**
+
+Resolved during implementation:
+- `Note.DEFAULT_ICON_ID = "default"` — the single v1 silhouette key.
+- `NoteDao.upsert` returns the row id (equals `Note.id` for a fresh insert).
+- Build runs require `JAVA_HOME` to point at the Studio JBR; env vars are now
+  persisted at the user level on the dev machine.
 
 ---
 
