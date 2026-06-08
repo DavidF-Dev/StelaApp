@@ -1,0 +1,45 @@
+# Normalize line endings: Git stores text as LF, checks out native on each OS.
+* text=auto
+
+# Source and config files are text.
+*.kt        text
+*.kts       text
+*.java      text
+*.xml       text
+*.toml      text
+*.properties text
+*.pro        text
+*.md        text
+*.json      text
+*.txt       text
+*.cfg       text
+*.yml       text
+*.yaml      text
+
+# Shell scripts must always be LF, even when checked out on Windows.
+*.sh        text eol=lf
+gradlew     text eol=lf
+
+# Windows batch scripts must always be CRLF.
+*.bat       text eol=crlf
+gradlew.bat text eol=crlf
+
+# Binary assets — never normalize, never diff as text.
+*.jar       binary
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.gif       binary
+*.webp      binary
+*.ico       binary
+*.ttf       binary
+*.otf       binary
+*.woff      binary
+*.woff2     binary
+*.keystore  binary
+*.jks       binary
+*.apk       binary
+*.aab       binary
+
+# Keep the Gradle wrapper jar reproducible and treated as binary.
+gradle/wrapper/gradle-wrapper.jar binary
