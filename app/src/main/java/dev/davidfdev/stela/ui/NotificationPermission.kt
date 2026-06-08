@@ -1,6 +1,7 @@
 package dev.davidfdev.stela.ui
 
 import android.Manifest
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -13,6 +14,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import dev.davidfdev.stela.notifications.AndroidNotificationController
 
 /// Whether the app may currently post notifications. On API 33+ this is the
 /// POST_NOTIFICATIONS grant; below that, whether notifications are enabled at all.
@@ -46,6 +48,15 @@ fun rememberNotificationPermissionGate(onDenied: () -> Unit): (action: () -> Uni
             launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
     }
+}
+
+/// Whether pinned-note notifications would fail to show: notifications disabled for
+/// the app, or the pinned-notes channel turned off (importance NONE).
+fun arePinnedNotificationsBlocked(context: Context): Boolean {
+    val manager = NotificationManagerCompat.from(context)
+    if (!manager.areNotificationsEnabled()) return true
+    val channel = manager.getNotificationChannel(AndroidNotificationController.CHANNEL_PINNED)
+    return channel != null && channel.importance == NotificationManager.IMPORTANCE_NONE
 }
 
 /// Opens this app's notification settings, for when the user has denied the

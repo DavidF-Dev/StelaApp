@@ -67,6 +67,8 @@ class AndroidNotificationController(private val context: Context) : Notification
             .setSilent(true)
             .setShowWhen(false)
             .setVisibility(visibility)
+            // Self-heal: if the user swipes the ongoing notification away, re-post it.
+            .setDeleteIntent(reassertIntent(note.id))
             .addAction(0, "Edit", editIntent(note.id))
             .addAction(0, "Remove", removeIntent(note.id))
             .build()
@@ -85,6 +87,11 @@ class AndroidNotificationController(private val context: Context) : Notification
 
     private fun removeIntent(noteId: Long): PendingIntent {
         val intent = NotificationActionReceiver.removeIntent(context, noteId)
+        return PendingIntent.getBroadcast(context, notificationId(noteId), intent, PENDING_FLAGS)
+    }
+
+    private fun reassertIntent(noteId: Long): PendingIntent {
+        val intent = NotificationActionReceiver.reassertIntent(context, noteId)
         return PendingIntent.getBroadcast(context, notificationId(noteId), intent, PENDING_FLAGS)
     }
 

@@ -1,5 +1,6 @@
 package dev.davidfdev.stela.ui.settings
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -21,13 +22,18 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.davidfdev.stela.resilience.DeviceResilience
 import dev.davidfdev.stela.settings.Settings
 import dev.davidfdev.stela.settings.ThemeMode
 import dev.davidfdev.stela.ui.openAppNotificationSettings
@@ -55,14 +61,29 @@ fun SettingsRoute(
         },
     )
 
+    var batteryExempt by remember { mutableStateOf(DeviceResilience.isIgnoringBatteryOptimizations(context)) }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        batteryExempt = DeviceResilience.isIgnoringBatteryOptimizations(context)
+    }
+    val autostartIntent = remember { DeviceResilience.autostartIntent() }
+    val autostartAvailable = remember(autostartIntent) {
+        autostartIntent != null && autostartIntent.resolveActivity(context.packageManager) != null
+    }
+
     SettingsScreen(
         state = state,
         snackbarHostState = snackbarHostState,
+        batteryExempt = batteryExempt,
+        autostartAvailable = autostartAvailable,
         onThemeModeChange = viewModel::setThemeMode,
         onHideOnLockScreenChange = viewModel::setHideOnLockScreen,
         onQuickAddEnabledChange = { enabled ->
             if (enabled) gate { viewModel.setQuickAddEnabled(true) } else viewModel.setQuickAddEnabled(false)
         },
+        onOpenBatterySettings = {
+            runCatching { context.startActivity(DeviceResilience.batteryOptimizationSettingsIntent()) }
+        },
+        onOpenAutostart = { autostartIntent?.let { intent -> runCatching { context.startActivity(intent) } } },
         onBack = onBack,
     )
 }
@@ -72,9 +93,13 @@ fun SettingsRoute(
 fun SettingsScreen(
     state: Settings,
     snackbarHostState: SnackbarHostState,
+    batteryExempt: Boolean,
+    autostartAvailable: Boolean,
     onThemeModeChange: (ThemeMode) -> Unit,
     onHideOnLockScreenChange: (Boolean) -> Unit,
     onQuickAddEnabledChange: (Boolean) -> Unit,
+    onOpenBatterySettings: () -> Unit,
+    onOpenAutostart: () -> Unit,
     onBack: () -> Unit,
 ) {
     Scaffold(
@@ -115,6 +140,28 @@ fun SettingsScreen(
                     Switch(checked = state.hideOnLockScreen, onCheckedChange = onHideOnLockScreenChange)
                 },
             )
+
+            SectionHeader("Keep notes alive")
+            ListItem(
+                headlineContent = { Text("Battery optimization") },
+                supportingContent = {
+                    Text(
+                        if (batteryExempt) {
+                            "Exempt — Stela can run freely."
+                        } else {
+                            "Not exempt — Stela may be killed in the background."
+                        },
+                    )
+                },
+                modifier = Modifier.clickable(onClick = onOpenBatterySettings),
+            )
+            if (autostartAvailable) {
+                ListItem(
+                    headlineContent = { Text("Auto-start") },
+                    supportingContent = { Text("Allow Stela to start automatically (device-specific).") },
+                    modifier = Modifier.clickable(onClick = onOpenAutostart),
+                )
+            }
         }
     }
 }

@@ -134,6 +134,15 @@ foreground notification has three states:
 
 # Slice 5c — Resilience helpers
 
+**Status (2026-06-08) — complete.** Tests: 35 JVM unit + 19 instrumented, all green;
+no `INTERNET`, no `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`. `DeviceResilience` (battery
+state + OEM mapping, JVM-tested); Settings "Keep notes alive" section (battery row
+shows exempt state, opens settings; autostart row hidden on the generic emulator as
+expected); re-assert-on-clear (deleteIntent + `REASSERT` action, instrumented — re-posts
+when pinned, no-op when not); channel-disabled banner (instrumented Compose test).
+Real-device-only (not verified here): OEM-autostart deep links, actual battery-kill
+resistance. **Phase 5 complete (5a + 5b + 5c).**
+
 The "fight the OS" set (§§7–9). OEM-specific and **largely emulator-untestable** —
 the plan flags what is automatable vs real-device-only.
 
