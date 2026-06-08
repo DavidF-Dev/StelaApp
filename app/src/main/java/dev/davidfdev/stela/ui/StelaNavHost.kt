@@ -12,7 +12,7 @@ import dev.davidfdev.stela.notifications.AndroidNotificationController
 import dev.davidfdev.stela.ui.editor.EditorRoute
 import dev.davidfdev.stela.ui.editor.EditorViewModel
 import dev.davidfdev.stela.ui.notelist.NoteListRoute
-import dev.davidfdev.stela.ui.settings.SettingsScreen
+import dev.davidfdev.stela.ui.settings.SettingsRoute
 
 object Routes {
     const val LIST = "list"
@@ -59,7 +59,7 @@ fun StelaNavHost(navController: NavHostController = rememberNavController()) {
             EditorRoute(onDone = { navController.popBackStack() })
         }
         composable(Routes.SETTINGS) {
-            SettingsScreen(onBack = { navController.popBackStack() })
+            SettingsRoute(onBack = { navController.popBackStack() })
         }
     }
 }

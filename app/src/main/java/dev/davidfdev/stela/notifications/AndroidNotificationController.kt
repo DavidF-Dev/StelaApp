@@ -19,6 +19,9 @@ class AndroidNotificationController(private val context: Context) : Notification
 
     private val manager = NotificationManagerCompat.from(context)
 
+    @Volatile
+    override var hideOnLockScreen: Boolean = false
+
     init {
         val pinned = NotificationChannelCompat.Builder(CHANNEL_PINNED, NotificationManagerCompat.IMPORTANCE_DEFAULT)
             .setName("Pinned notes")
@@ -45,6 +48,8 @@ class AndroidNotificationController(private val context: Context) : Notification
     // The caller gates posting behind POST_NOTIFICATIONS; lint cannot see that.
     @SuppressLint("MissingPermission")
     private fun post(note: Note) {
+        val visibility =
+            if (hideOnLockScreen) NotificationCompat.VISIBILITY_SECRET else NotificationCompat.VISIBILITY_PUBLIC
         val notification = NotificationCompat.Builder(context, CHANNEL_PINNED)
             .setSmallIcon(R.drawable.ic_stela_pin)
             .setContentTitle(note.title)
@@ -54,6 +59,7 @@ class AndroidNotificationController(private val context: Context) : Notification
             .setOnlyAlertOnce(true)
             .setSilent(true)
             .setShowWhen(false)
+            .setVisibility(visibility)
             .addAction(0, "Edit", editIntent(note.id))
             .addAction(0, "Remove", removeIntent(note.id))
             .build()

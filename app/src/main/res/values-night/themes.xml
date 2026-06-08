@@ -1,0 +1,4 @@
+<resources>
+    <!-- Night (dark) variant of the pre-Compose window theme. -->
+    <style name="Theme.Stela" parent="android:Theme.Material.NoActionBar" />
+</resources>

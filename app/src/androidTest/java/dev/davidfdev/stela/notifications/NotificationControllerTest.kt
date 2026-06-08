@@ -7,6 +7,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.davidfdev.stela.data.Note
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -47,6 +48,18 @@ class NotificationControllerTest {
         waitUntil { manager.activeNotifications.any { it.id == id } }
         val posted = manager.activeNotifications.first { it.id == id }
         assertTrue(posted.isOngoing)
+    }
+
+    @Test
+    fun pin_appliesSecretVisibility_whenHideOnLockScreenEnabled() {
+        controller.hideOnLockScreen = true
+        val id = notificationId(8L)
+
+        controller.pin(pinnedNote(8L))
+
+        waitUntil { manager.activeNotifications.any { it.id == id } }
+        val posted = manager.activeNotifications.first { it.id == id }
+        assertEquals(android.app.Notification.VISIBILITY_SECRET, posted.notification.visibility)
     }
 
     @Test

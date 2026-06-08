@@ -3,6 +3,7 @@ package dev.davidfdev.stela.pin
 import dev.davidfdev.stela.data.Note
 import dev.davidfdev.stela.data.NoteRepository
 import dev.davidfdev.stela.notifications.NotificationController
+import kotlinx.coroutines.flow.first
 
 /// Coordinates a pin state change: persist the flag, post or cancel the
 /// notification, then reconcile the service. The single seam through which
@@ -28,6 +29,12 @@ class NotePinner(
     /// when the note is not pinned.
     fun refresh(note: Note) {
         if (note.isPinned) controller.refresh(note)
+    }
+
+    /// Re-posts every pinned note's notification — used after a preference change
+    /// (e.g. lock-screen visibility) so it applies to already-posted notifications.
+    suspend fun reassertPinned() {
+        repository.notes.first().filter { it.isPinned }.forEach { controller.pin(it) }
     }
 
     // Quick-add has no independent toggle until Phase 5, so the service runs purely

@@ -1,0 +1,19 @@
+package dev.davidfdev.stela.settings
+
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
+
+class FakeSettingsRepository(initial: Settings = Settings()) : SettingsRepository {
+
+    private val state = MutableStateFlow(initial)
+    override val settings: Flow<Settings> = state
+
+    override suspend fun setThemeMode(mode: ThemeMode) {
+        state.update { it.copy(themeMode = mode) }
+    }
+
+    override suspend fun setHideOnLockScreen(value: Boolean) {
+        state.update { it.copy(hideOnLockScreen = value) }
+    }
+}

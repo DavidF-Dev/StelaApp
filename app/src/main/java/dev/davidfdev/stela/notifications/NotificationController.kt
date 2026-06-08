@@ -6,6 +6,10 @@ import dev.davidfdev.stela.data.Note
 /// notifications. Its sole implementation is the single class permitted to touch
 /// the platform NotificationManager.
 interface NotificationController {
+    /// When true, pinned-note notifications are hidden on a secure lock screen.
+    /// Set from the user's preference; applied to notifications built afterward.
+    var hideOnLockScreen: Boolean
+
     fun pin(note: Note)
     fun unpin(noteId: Long)
     fun refresh(note: Note)

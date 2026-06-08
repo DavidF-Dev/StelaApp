@@ -48,6 +48,13 @@ state, added in Phase 7.
 
 # Slice 5a — Settings foundation + theme + display toggles
 
+**Status (2026-06-08) — complete.** Tests: 29 JVM unit + 15 instrumented, all green;
+no `INTERNET`. DataStore `SettingsRepository` (pure mapping + round-trip tested);
+theme Light/Dark/Follow-System verified switching live and persisting; `SettingsScreen`
++ `SettingsViewModel`; hide-on-lock-screen applies `VISIBILITY_SECRET` (instrumented)
+and re-asserts pinned notifications on change via a `StelaApp` observer. No
+list-ordering work (moved to Phase 7).
+
 Low-risk "preference → presentation." Mostly JVM-testable.
 
 ## Units
