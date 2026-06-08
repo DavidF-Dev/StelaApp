@@ -14,6 +14,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -35,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.davidfdev.stela.R
+import dev.davidfdev.stela.ui.TimeFormatter
 import dev.davidfdev.stela.ui.openAppNotificationSettings
 import dev.davidfdev.stela.ui.rememberNotificationPermissionGate
 import kotlinx.coroutines.launch
@@ -140,6 +142,21 @@ fun EditorScreen(
                     .padding(top = 12.dp)
                     .height(200.dp),
             )
+
+            val created = state.createdAt
+            val updated = state.updatedAt
+            if (created != null && updated != null) {
+                Text(
+                    text = stringResource(
+                        R.string.editor_timestamps,
+                        TimeFormatter.absolute(created),
+                        TimeFormatter.absolute(updated),
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 12.dp),
+                )
+            }
         }
     }
 

@@ -87,6 +87,26 @@ class EditorViewModelTest {
     }
 
     @Test
+    fun existingNote_exposesCreatedAndUpdatedTimestamps() = runTest(dispatcher) {
+        val f = Fixture()
+        val id = f.repository.create(title = "T", description = "")
+        val viewModel = f.viewModel(id)
+        advanceUntilIdle()
+
+        assertEquals(1_000L, viewModel.uiState.value.createdAt)
+        assertEquals(1_000L, viewModel.uiState.value.updatedAt)
+    }
+
+    @Test
+    fun newNote_hasNoTimestamps() = runTest(dispatcher) {
+        val viewModel = Fixture().viewModel()
+        advanceUntilIdle()
+
+        assertNull(viewModel.uiState.value.createdAt)
+        assertNull(viewModel.uiState.value.updatedAt)
+    }
+
+    @Test
     fun existingNote_delete_removesIt() = runTest(dispatcher) {
         val f = Fixture()
         val id = f.repository.create(title = "Temp", description = "")

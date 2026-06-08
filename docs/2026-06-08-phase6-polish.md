@@ -53,6 +53,12 @@ language ships; the system locale governs otherwise. No in-app picker (deferred)
 
 ## Slice 6b — Timestamps
 
+**Status (2026-06-08) — complete.** Tests: 38 JVM unit + 19 instrumented, all green.
+`TimeFormatter` (absolute via `java.time`, JVM-tested; relative via `DateUtils`); list
+row shows a relative-time overline above the title; editor shows an absolute
+"Created … · Updated …" caption when editing. Verified live. (Sub-minute notes render
+"0 minutes ago" — standard `DateUtils` output; could be polished to "Just now" later.)
+
 Pure presentation — the data (`createdAt`/`updatedAt`, epoch millis) already exists,
 so no schema or DAO changes.
 

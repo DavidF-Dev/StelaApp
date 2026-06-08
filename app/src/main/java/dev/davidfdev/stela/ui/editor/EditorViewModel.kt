@@ -22,6 +22,8 @@ data class EditorUiState(
     val description: String = "",
     val isEditing: Boolean = false,
     val isPinned: Boolean = false,
+    val createdAt: Long? = null,
+    val updatedAt: Long? = null,
 ) {
     val canSave: Boolean get() = title.isNotBlank()
 }
@@ -46,7 +48,13 @@ class EditorViewModel(
                 repository.getById(noteId)?.let { note ->
                     loaded = note
                     _uiState.update {
-                        it.copy(title = note.title, description = note.description, isPinned = note.isPinned)
+                        it.copy(
+                            title = note.title,
+                            description = note.description,
+                            isPinned = note.isPinned,
+                            createdAt = note.createdAt,
+                            updatedAt = note.updatedAt,
+                        )
                     }
                 }
             }

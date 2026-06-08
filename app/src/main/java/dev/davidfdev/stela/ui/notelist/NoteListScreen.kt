@@ -46,6 +46,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.davidfdev.stela.R
 import dev.davidfdev.stela.data.Note
+import dev.davidfdev.stela.ui.TimeFormatter
 import dev.davidfdev.stela.ui.arePinnedNotificationsBlocked
 import dev.davidfdev.stela.ui.openAppNotificationSettings
 import dev.davidfdev.stela.ui.rememberNotificationPermissionGate
@@ -177,6 +178,9 @@ private fun NotificationsBlockedBanner(onOpenSettings: () -> Unit) {
 @Composable
 private fun NoteRow(note: Note, onClick: () -> Unit, onTogglePin: () -> Unit) {
     ListItem(
+        overlineContent = {
+            Text(TimeFormatter.relative(note.updatedAt).toString())
+        },
         headlineContent = {
             Text(note.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
         },
