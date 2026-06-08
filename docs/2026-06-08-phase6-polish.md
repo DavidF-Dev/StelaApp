@@ -48,3 +48,38 @@ language ships; the system locale governs otherwise. No in-app picker (deferred)
 
 **Adding a language later:** drop a `values-<lang>` strings file and add one
 `<locale>` entry — no code changes.
+
+---
+
+## Slice 6b — Timestamps
+
+Pure presentation — the data (`createdAt`/`updatedAt`, epoch millis) already exists,
+so no schema or DAO changes.
+
+**Confirmed decisions:** relative time via `DateUtils`; list shows the modified time
+as an **overline above the title**; the editor caption shows **created + modified**.
+
+**What & where**
+- **List row** — modified time, **relative** (`DateUtils.getRelativeTimeSpanString`,
+  localized for free), as `ListItem` overlineContent above the title. Formatted
+  against "now" at composition (no live ticking — fine for a list).
+- **Editor** — **created and modified**, **absolute** + locale-formatted, as a small
+  caption shown only when editing an existing note.
+
+**Units**
+- **`TimeFormatter`** util:
+  - `absolute(epochMillis, locale, zone)` — `java.time` +
+    `DateTimeFormatter.ofLocalizedDateTime(MEDIUM)`; pure, JVM-tested with a fixed
+    `Instant`/`Locale`/`ZoneId`.
+  - `relative(epochMillis, now)` — thin `DateUtils` call; verified by a light
+    instrumented test.
+- **`EditorUiState`** gains nullable `createdAt`/`updatedAt` (null for a new note);
+  the editor formats them. `NoteRow` formats `note.updatedAt`.
+
+**Tasks**
+1. `TimeFormatter` (absolute TDD on JVM; relative via DateUtils). 2. List overline.
+3. Editor caption + `EditorUiState` timestamps. 4. Verify (build + tests; manual:
+list shows relative time, editor shows created/modified).
+
+**Testing**: JVM for the absolute formatter; instrumented/manual for the relative
+list text and the editor caption.
