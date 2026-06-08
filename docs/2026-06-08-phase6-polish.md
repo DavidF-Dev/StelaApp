@@ -89,3 +89,31 @@ list shows relative time, editor shows created/modified).
 
 **Testing**: JVM for the absolute formatter; instrumented/manual for the relative
 list text and the editor caption.
+
+---
+
+## Slice 6d — Share
+
+Send the note's title + description as plain text via the system share sheet.
+
+**Confirmed decisions:** Share is available **whenever the title or description is
+non-blank** (including a new, unsaved note) and shares the **current on-screen text**;
+**manual testing** (no espresso-intents dependency).
+
+**Behaviour**
+- A **Share icon in the Editor app bar** fires `Intent.ACTION_SEND` (`text/plain`)
+  via `Intent.createChooser`, launched with `startActivity`.
+- `EXTRA_SUBJECT` = title; `EXTRA_TEXT` = title + blank line + description (so apps
+  that ignore the subject still get the title).
+- **Offline invariant intact** — Stela only hands text to the OS; no `INTERNET`.
+
+**Units**
+- `shareNote(context, title, description)` helper builds + launches the chooser;
+  `EditorRoute` passes `onShare` (reading current `state`) to `EditorScreen`. Share
+  is shown when `state.title` or `state.description` is non-blank.
+- Strings: `action_share`, `share_chooser_title`.
+
+**Tasks**: 1. `shareNote` helper + strings. 2. Editor app-bar Share action (shown on
+content). 3. Verify (build; manual: tap Share → system sheet with title + text).
+
+**Testing**: manual (Intent launch isn't JVM-testable; espresso-intents declined).
