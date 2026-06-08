@@ -94,6 +94,11 @@ list text and the editor caption.
 
 ## Slice 6d — Share
 
+**Status (2026-06-08) — complete.** Build + 38 JVM unit tests green. `shareNote`
+helper fires `ACTION_SEND` text/plain via a chooser; Editor app-bar Share action shown
+when the title or description is non-blank. Verified live (Share → system sheet with
+the note text). No `INTERNET`.
+
 Send the note's title + description as plain text via the system share sheet.
 
 **Confirmed decisions:** Share is available **whenever the title or description is

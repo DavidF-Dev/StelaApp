@@ -9,6 +9,8 @@
     <string name="action_pin">Pin</string>
     <string name="action_unpin">Unpin</string>
     <string name="action_delete">Delete</string>
+    <string name="action_share">Share</string>
+    <string name="share_chooser_title">Share note</string>
 
     <!-- Note list -->
     <string name="notelist_empty">No notes yet.\nTap + to create one.</string>

@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,6 +40,7 @@ import dev.davidfdev.stela.R
 import dev.davidfdev.stela.ui.TimeFormatter
 import dev.davidfdev.stela.ui.openAppNotificationSettings
 import dev.davidfdev.stela.ui.rememberNotificationPermissionGate
+import dev.davidfdev.stela.ui.shareNote
 import kotlinx.coroutines.launch
 
 @Composable
@@ -70,6 +72,7 @@ fun EditorRoute(
         onTitleChange = viewModel::onTitleChange,
         onDescriptionChange = viewModel::onDescriptionChange,
         onTogglePin = { if (state.isPinned) viewModel.unpin() else gate { viewModel.pin() } },
+        onShare = { shareNote(context, state.title, state.description) },
         onSave = { viewModel.save(onDone) },
         onDelete = { viewModel.delete(onDone) },
         onBack = onDone,
@@ -84,6 +87,7 @@ fun EditorScreen(
     onTitleChange: (String) -> Unit,
     onDescriptionChange: (String) -> Unit,
     onTogglePin: () -> Unit,
+    onShare: () -> Unit,
     onSave: () -> Unit,
     onDelete: () -> Unit,
     onBack: () -> Unit,
@@ -100,6 +104,11 @@ fun EditorScreen(
                     }
                 },
                 actions = {
+                    if (state.title.isNotBlank() || state.description.isNotBlank()) {
+                        IconButton(onClick = onShare) {
+                            Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.action_share))
+                        }
+                    }
                     if (state.isEditing) {
                         IconButton(onClick = onTogglePin) {
                             if (state.isPinned) {
