@@ -7,6 +7,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
+import dev.davidfdev.stela.notifications.AndroidNotificationController
 import dev.davidfdev.stela.ui.editor.EditorRoute
 import dev.davidfdev.stela.ui.editor.EditorViewModel
 import dev.davidfdev.stela.ui.notelist.NoteListRoute
@@ -37,6 +39,12 @@ fun StelaNavHost(navController: NavHostController = rememberNavController()) {
         composable(
             route = Routes.EDITOR_EDIT,
             arguments = listOf(navArgument(EditorViewModel.NOTE_ID_KEY) { type = NavType.LongType }),
+            deepLinks = listOf(
+                navDeepLink {
+                    uriPattern =
+                        "${AndroidNotificationController.DEEP_LINK_BASE}/editor/{${EditorViewModel.NOTE_ID_KEY}}"
+                },
+            ),
         ) {
             EditorRoute(onDone = { navController.popBackStack() })
         }

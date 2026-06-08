@@ -10,6 +10,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import dev.davidfdev.stela.StelaApp
 import dev.davidfdev.stela.data.Note
 import dev.davidfdev.stela.data.NoteRepository
+import dev.davidfdev.stela.pin.NotePinner
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,12 +21,14 @@ data class EditorUiState(
     val title: String = "",
     val description: String = "",
     val isEditing: Boolean = false,
+    val isPinned: Boolean = false,
 ) {
     val canSave: Boolean get() = title.isNotBlank()
 }
 
 class EditorViewModel(
     private val repository: NoteRepository,
+    private val pinner: NotePinner,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -43,7 +46,9 @@ class EditorViewModel(
             viewModelScope.launch {
                 repository.getById(noteId)?.let { note ->
                     loaded = note
-                    _uiState.update { it.copy(title = note.title, description = note.description) }
+                    _uiState.update {
+                        it.copy(title = note.title, description = note.description, isPinned = note.isPinned)
+                    }
                 }
             }
         }
@@ -53,6 +58,24 @@ class EditorViewModel(
 
     fun onDescriptionChange(value: String) = _uiState.update { it.copy(description = value) }
 
+    fun pin() {
+        val note = loaded ?: return
+        viewModelScope.launch {
+            pinner.pin(note)
+            loaded = note.copy(isPinned = true)
+            _uiState.update { it.copy(isPinned = true) }
+        }
+    }
+
+    fun unpin() {
+        val note = loaded ?: return
+        viewModelScope.launch {
+            pinner.unpin(note.id)
+            loaded = note.copy(isPinned = false)
+            _uiState.update { it.copy(isPinned = false) }
+        }
+    }
+
     fun save(onComplete: () -> Unit) {
         viewModelScope.launch {
             val state = _uiState.value
@@ -60,7 +83,9 @@ class EditorViewModel(
             if (existing == null) {
                 repository.create(state.title, state.description)
             } else {
-                repository.update(existing.copy(title = state.title, description = state.description))
+                val updated = existing.copy(title = state.title, description = state.description)
+                repository.update(updated)
+                pinner.refresh(updated)
             }
             onComplete()
         }
@@ -84,7 +109,7 @@ class EditorViewModel(
         val Factory = viewModelFactory {
             initializer {
                 val app = this[APPLICATION_KEY] as StelaApp
-                EditorViewModel(app.container.noteRepository, createSavedStateHandle())
+                EditorViewModel(app.container.noteRepository, app.container.notePinner, createSavedStateHandle())
             }
         }
     }

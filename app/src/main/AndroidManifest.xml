@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  No permissions are declared in Phase 1. INTERNET is never declared (offline by
-  design). Foreground-service, notification, and boot permissions arrive in
-  Phases 3-4 when first used.
+  INTERNET is never declared (offline by design). Foreground-service and boot
+  permissions arrive in Phase 4 when first used.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:name=".StelaApp"
@@ -17,12 +18,17 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
+            android:launchMode="singleTop"
             android:theme="@style/Theme.Stela">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <receiver
+            android:name=".notifications.NotificationActionReceiver"
+            android:exported="false" />
     </application>
 
 </manifest>

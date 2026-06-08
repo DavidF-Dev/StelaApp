@@ -36,5 +36,9 @@ class NoteRepository(
     /// preserving its original [Note.createdAt].
     suspend fun update(note: Note): Long = dao.upsert(note.copy(updatedAt = now()))
 
+    /// Sets a note's pin flag without bumping updatedAt — pinning is not a content
+    /// edit and must not reorder the list.
+    suspend fun setPinned(noteId: Long, isPinned: Boolean) = dao.setPinned(noteId, isPinned)
+
     suspend fun delete(note: Note) = dao.delete(note)
 }

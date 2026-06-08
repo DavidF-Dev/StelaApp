@@ -71,4 +71,31 @@ class NoteRepositoryTest {
     fun getById_returnsNull_whenAbsent() = runTest {
         assertNull(repository.getById(42L))
     }
+
+    @Test
+    fun setPinned_flipsFlag_withoutBumpingUpdatedAt() = runTest {
+        now = 1_000L
+        val id = repository.create(title = "Pin me", description = "")
+        val before = dao.getById(id)!!
+
+        now = 9_000L
+        repository.setPinned(id, true)
+
+        val after = dao.getById(id)!!
+        assertTrue(after.isPinned)
+        assertEquals(before.updatedAt, after.updatedAt)
+    }
+
+    @Test
+    fun setPinned_doesNotReorderList() = runTest {
+        now = 1_000L
+        val olderId = repository.create(title = "Older", description = "")
+        now = 2_000L
+        repository.create(title = "Newer", description = "")
+
+        repository.setPinned(olderId, true)
+
+        val titles = repository.notes.first().map { it.title }
+        assertEquals(listOf("Newer", "Older"), titles)
+    }
 }

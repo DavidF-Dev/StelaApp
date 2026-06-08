@@ -86,6 +86,17 @@ class NoteDaoTest {
     }
 
     @Test
+    fun setPinned_flipsFlag_withoutChangingUpdatedAt() = runTest {
+        val id = dao.upsert(note(title = "Pin", updatedAt = 1_000L))
+
+        dao.setPinned(id, true)
+
+        val stored = dao.getById(id)!!
+        assertEquals(true, stored.isPinned)
+        assertEquals(1_000L, stored.updatedAt)
+    }
+
+    @Test
     fun delete_removesNote() = runTest {
         val id = dao.upsert(note(title = "Temp", updatedAt = 1_000L))
 

@@ -32,6 +32,10 @@ class FakeNoteDao : NoteDao {
         }
     }
 
+    override suspend fun setPinned(id: Long, isPinned: Boolean) {
+        rows.value = rows.value.map { if (it.id == id) it.copy(isPinned = isPinned) else it }
+    }
+
     override suspend fun delete(note: Note) {
         rows.value = rows.value.filterNot { it.id == note.id }
     }

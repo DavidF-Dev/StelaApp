@@ -154,6 +154,8 @@ data class Note(
 3. **Settings** —
    - **Theme** — Light / Dark / Follow System, persisted via DataStore — *Phase 5*
      (the first consumer of the preferences store; default dark until then).
+   - **Pinned notes at top** — toggle whether pinned notes sort above the rest —
+     *Phase 5* (default off; the list otherwise stays in modified-time order).
    - Toggle the persistent **quick-add** notification.
    - **Battery optimization** helper (request exemption).
    - **OEM autostart** helper (deep-link / guidance where detectable).

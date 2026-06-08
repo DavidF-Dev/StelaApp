@@ -16,6 +16,11 @@ interface NoteDao {
     @Query("SELECT * FROM notes WHERE id = :id")
     suspend fun getById(id: Long): Note?
 
+    /// Flips only the pin flag. Pinning is not a content edit, so this deliberately
+    /// leaves updatedAt untouched and the list order unchanged.
+    @Query("UPDATE notes SET isPinned = :isPinned WHERE id = :id")
+    suspend fun setPinned(id: Long, isPinned: Boolean)
+
     /// Inserts a new note or updates an existing one. Returns the note's row id,
     /// which equals its generated [Note.id] for a freshly inserted note.
     @Upsert

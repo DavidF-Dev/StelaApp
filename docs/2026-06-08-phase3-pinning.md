@@ -14,6 +14,26 @@ working Edit and Remove actions, with notification permission handled gracefully
 
 ---
 
+## Status (2026-06-08) — complete
+
+All 10 increments done. Tests: **19 JVM unit** + **11 instrumented**, all green; merged
+manifest has `POST_NOTIFICATIONS` and **no `INTERNET`**.
+
+- Data: `NoteDao.setPinned` / `NoteRepository.setPinned` (no `updatedAt` bump);
+  `notificationId` pure mapping.
+- Platform: `NotificationController` (+ `AndroidNotificationController`), `pinned_notes`
+  channel, `NotificationActionReceiver` (Remove), Edit deep link to `editor/{noteId}`.
+- Coordination: `NotePinner` (pin/unpin/refresh); the Phase 4 seam.
+- UI: pin toggle on each list row and in the Editor app bar; `POST_NOTIFICATIONS`
+  requested at first pin via a reusable permission gate, with an "Open settings"
+  Snackbar on denial. Saving a pinned note refreshes its live notification.
+
+Verified by automated tests: controller post/cancel, Remove unpins + cancels,
+pin-from-list flips the icon and posts a notification. *Not yet automated:* the Edit
+deep-link landing (wired and manually verifiable) — candidate for a later UI test.
+
+---
+
 ## Scope boundary (Phase 3 vs Phase 4)
 
 Phase 3 posts ongoing notifications **directly from the app process** — there is
@@ -32,7 +52,10 @@ full silhouette icon set, optional colored large icon.
   the **Editor** app bar.
 - **List order:** unchanged — sorted by modified time; pinned rows show a **pin
   indicator** only (no float-to-top). Pinning is **not** a content edit and **must
-  not bump `updatedAt`**.
+  not bump `updatedAt`**. A **Phase 5 setting** ("pinned notes at top") will later
+  let the user opt into float-to-top; keep the list ordering in **one place** (a
+  DAO query) so it can switch between modified-only and `isPinned DESC, updatedAt
+  DESC` without restructuring. Default stays modified-only.
 - **Orchestration:** a thin **`NotePinner`** coordinator (repository + controller);
   the ViewModel and the action receiver both call it. Phase 4 inserts the service
   here, in one place.

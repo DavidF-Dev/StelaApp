@@ -8,14 +8,19 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import dev.davidfdev.stela.StelaApp
 import dev.davidfdev.stela.data.Note
 import dev.davidfdev.stela.data.NoteRepository
+import dev.davidfdev.stela.pin.NotePinner
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 data class NoteListUiState(val notes: List<Note> = emptyList())
 
-class NoteListViewModel(repository: NoteRepository) : ViewModel() {
+class NoteListViewModel(
+    repository: NoteRepository,
+    private val pinner: NotePinner,
+) : ViewModel() {
 
     val uiState: StateFlow<NoteListUiState> =
         repository.notes
@@ -26,13 +31,21 @@ class NoteListViewModel(repository: NoteRepository) : ViewModel() {
                 initialValue = NoteListUiState(),
             )
 
+    fun pin(note: Note) {
+        viewModelScope.launch { pinner.pin(note) }
+    }
+
+    fun unpin(note: Note) {
+        viewModelScope.launch { pinner.unpin(note.id) }
+    }
+
     companion object {
         private const val STOP_TIMEOUT_MILLIS = 5_000L
 
         val Factory = viewModelFactory {
             initializer {
                 val app = this[APPLICATION_KEY] as StelaApp
-                NoteListViewModel(app.container.noteRepository)
+                NoteListViewModel(app.container.noteRepository, app.container.notePinner)
             }
         }
     }

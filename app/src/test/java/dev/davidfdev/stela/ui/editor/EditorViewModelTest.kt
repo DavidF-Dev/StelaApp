@@ -3,6 +3,8 @@ package dev.davidfdev.stela.ui.editor
 import androidx.lifecycle.SavedStateHandle
 import dev.davidfdev.stela.data.FakeNoteDao
 import dev.davidfdev.stela.data.NoteRepository
+import dev.davidfdev.stela.notifications.FakeNotificationController
+import dev.davidfdev.stela.pin.NotePinner
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -30,10 +32,22 @@ class EditorViewModelTest {
     @After
     fun tearDown() = Dispatchers.resetMain()
 
+    private class Fixture {
+        val dao = FakeNoteDao()
+        val repository = NoteRepository(dao) { 1_000L }
+        val controller = FakeNotificationController()
+        val pinner = NotePinner(repository, controller)
+
+        fun viewModel(noteId: Long? = null): EditorViewModel {
+            val handle = if (noteId == null) SavedStateHandle() else SavedStateHandle(mapOf("noteId" to noteId))
+            return EditorViewModel(repository, pinner, handle)
+        }
+    }
+
     @Test
     fun newNote_save_createsNote() = runTest(dispatcher) {
-        val repository = NoteRepository(FakeNoteDao()) { 1_000L }
-        val viewModel = EditorViewModel(repository, SavedStateHandle())
+        val f = Fixture()
+        val viewModel = f.viewModel()
 
         assertFalse(viewModel.uiState.value.isEditing)
         viewModel.onTitleChange("Milk")
@@ -43,7 +57,7 @@ class EditorViewModelTest {
         advanceUntilIdle()
 
         assertTrue(completed)
-        val notes = repository.notes.first()
+        val notes = f.repository.notes.first()
         assertEquals(1, notes.size)
         assertEquals("Milk", notes[0].title)
         assertEquals("2L", notes[0].description)
@@ -51,9 +65,9 @@ class EditorViewModelTest {
 
     @Test
     fun existingNote_loads_thenUpdatePreservesCreatedAt() = runTest(dispatcher) {
-        val repository = NoteRepository(FakeNoteDao()) { 1_000L }
-        val id = repository.create(title = "Old", description = "keep")
-        val viewModel = EditorViewModel(repository, SavedStateHandle(mapOf("noteId" to id)))
+        val f = Fixture()
+        val id = f.repository.create(title = "Old", description = "keep")
+        val viewModel = f.viewModel(id)
         advanceUntilIdle()
 
         assertTrue(viewModel.uiState.value.isEditing)
@@ -64,7 +78,7 @@ class EditorViewModelTest {
         viewModel.save { }
         advanceUntilIdle()
 
-        val updated = repository.getById(id)!!
+        val updated = f.repository.getById(id)!!
         assertEquals("New", updated.title)
         assertEquals("keep", updated.description)
         assertEquals(1_000L, updated.createdAt)
@@ -72,9 +86,9 @@ class EditorViewModelTest {
 
     @Test
     fun existingNote_delete_removesIt() = runTest(dispatcher) {
-        val repository = NoteRepository(FakeNoteDao()) { 1_000L }
-        val id = repository.create(title = "Temp", description = "")
-        val viewModel = EditorViewModel(repository, SavedStateHandle(mapOf("noteId" to id)))
+        val f = Fixture()
+        val id = f.repository.create(title = "Temp", description = "")
+        val viewModel = f.viewModel(id)
         advanceUntilIdle()
 
         var completed = false
@@ -82,6 +96,36 @@ class EditorViewModelTest {
         advanceUntilIdle()
 
         assertTrue(completed)
-        assertNull(repository.getById(id))
+        assertNull(f.repository.getById(id))
+    }
+
+    @Test
+    fun pin_setsFlagAndPostsNotification() = runTest(dispatcher) {
+        val f = Fixture()
+        val id = f.repository.create(title = "Pin me", description = "")
+        val viewModel = f.viewModel(id)
+        advanceUntilIdle()
+
+        viewModel.pin()
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.isPinned)
+        assertTrue(f.repository.getById(id)!!.isPinned)
+        assertEquals(listOf(id), f.controller.pinned.map { it.id })
+    }
+
+    @Test
+    fun savingPinnedNote_refreshesItsNotification() = runTest(dispatcher) {
+        val f = Fixture()
+        val id = f.repository.create(title = "Pinned", description = "")
+        f.repository.setPinned(id, true)
+        val viewModel = f.viewModel(id)
+        advanceUntilIdle()
+
+        viewModel.onTitleChange("Edited")
+        viewModel.save { }
+        advanceUntilIdle()
+
+        assertEquals("Edited", f.controller.refreshed.single().title)
     }
 }
