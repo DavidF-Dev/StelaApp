@@ -144,11 +144,16 @@ data class Note(
 
 1. **Note list** — all notes (pinned and unpinned), most-recently-updated first.
    Per-row pin toggle. "New note" FAB. Empty state explaining the concept.
+   Each row shows the note's **modified time** (relative) — *Phase 6*.
+   Long-press enters **multi-select** with a contextual bar for **batch delete**
+   (and batch pin/unpin once pinning exists) — *Phase 6*.
 2. **Editor** — title, description, icon picker (silhouette set), pin toggle.
    Reachable from: app list, FAB, the quick-add notification, and a pinned note's
    **Edit** action. Save persists via repository (and refreshes the notification
-   if pinned).
+   if pinned). Shows **created and modified** timestamps (absolute) — *Phase 6*.
 3. **Settings** —
+   - **Theme** — Light / Dark / Follow System, persisted via DataStore — *Phase 5*
+     (the first consumer of the preferences store; default dark until then).
    - Toggle the persistent **quick-add** notification.
    - **Battery optimization** helper (request exemption).
    - **OEM autostart** helper (deep-link / guidance where detectable).
@@ -250,8 +255,9 @@ One service, one baseline notification, no redundancy.
 | Concern        | Choice                                   |
 |----------------|------------------------------------------|
 | Language       | Kotlin                                   |
-| UI             | Jetpack Compose (Material 3, dark mode)  |
+| UI             | Jetpack Compose (Material 3; dark v1, theme choice in Phase 5) |
 | Storage        | Room (SQLite), offline                   |
+| Preferences    | Jetpack DataStore (theme + settings) — Phase 5 |
 | Background     | Foreground Service                       |
 | Boot restore   | `BroadcastReceiver` on `BOOT_COMPLETED`  |
 | Min SDK        | 26 (Android 8)                           |
@@ -272,9 +278,17 @@ One service, one baseline notification, no redundancy.
 4. **Persistence** — `PinService` foreground service + reused quick-add
    notification + `BootReceiver`; service lifecycle invariant.
 5. **Resilience & settings** — battery-optimization + OEM-autostart helpers,
-   re-assert-on-clear, settings toggle, channel-disabled detection.
-6. **Polish** — silhouette icon set, theming, API 33/34 behavior, manual OEM
-   matrix.
+   re-assert-on-clear, settings toggle, channel-disabled detection. Introduces the
+   **DataStore preferences store**; its first consumer is **theme selection**
+   (Light / Dark / Follow System).
+6. **Polish** — silhouette icon set, full theming, **created/modified timestamps**
+   (relative on the list, absolute in the editor), **multi-select + batch delete**
+   (extends to batch pin/unpin), API 33/34 behavior, manual OEM matrix.
+
+**Scope additions (2026-06-08):** theme selection (→ Phase 5), timestamp display
+and multi-select / batch actions (→ Phase 6) were added after Phase 1. All are
+deferred to their natural phases rather than implemented eagerly — settings need
+the preferences store, and the rest is UX polish.
 
 **v2 (deferred):** JSON export/import, optional "tap = edit", widget.
 
