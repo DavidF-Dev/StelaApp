@@ -93,6 +93,26 @@ Run per device. Target families: **Samsung (One UI)**, **Pixel/AOSP**, **OnePlus
 ### Results
 | Device | OS / API | Battery exempt | Autostart | Swipe self-heal | Recents-swipe | Reboot restore | Overnight | Notes |
 |--------|----------|----------------|-----------|-----------------|---------------|----------------|-----------|-------|
+| OnePlus (OxygenOS) | | see below | see below | ✅ | ✅ | ✅ | | core functions good |
 | _(Samsung …)_ | | | | | | | | |
 | _(Pixel …)_ | | | | | | | | |
-| _(OnePlus/Oppo/Realme …)_ | | | | | | | | |
+
+### First device pass — OnePlus (OxygenOS), 2026-06-09
+Core flows (pin, self-heal, recents-swipe, reboot restore) all worked. Four issues found
+and addressed:
+
+- **Settings/Editor not scrollable** — content cut off at the bottom. *Fixed:* added
+  `verticalScroll` to both (NoteList is a `LazyColumn`, About already scrolled).
+- **Quick-add showed on the lock screen** — it should never. *Fixed:* quick-add and
+  "running" notifications now use `VISIBILITY_SECRET`; only pinned notes appear on the lock
+  screen, governed by the "Hide on lock screen" setting.
+- **Battery-optimisation button crashed OxygenOS Settings** — confirmed an OEM Settings
+  bug (other apps crash the same way on that screen); not detectable from our process.
+  *Mitigated:* the row now opens a guidance dialog (manual steps + best-effort "open
+  settings" + a "may not work" note) instead of launching the intent blindly.
+- **Auto-start button was a no-op** — the OnePlus auto-launch component is stale on newer
+  OxygenOS (launch blocked, silently swallowed). *Fixed:* the row now shows for any known
+  aggressive-OEM and opens the same guidance dialog; manual steps are the reliable path.
+
+Also: the default English strings were converted to **British English** (optimisation,
+licence/licences).

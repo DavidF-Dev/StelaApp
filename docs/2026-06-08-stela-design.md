@@ -209,6 +209,9 @@ Android forces a foreground service to display its own ongoing notification, so 
   low-importance** "Stela is running" line on its own channel.
 - If quick-add is **disabled** *and* nothing is pinned → **stop the service
   entirely** (nothing to keep alive, no notification shown).
+- The quick-add and "running" notifications are **never shown on the lock screen**
+  (`VISIBILITY_SECRET`) — they carry no note content. Only pinned notes appear there, and
+  only when the user has not enabled "Hide on lock screen". *(2026-06-09.)*
 
 One service, one baseline notification, no redundancy.
 
@@ -239,8 +242,12 @@ One service, one baseline notification, no redundancy.
 - **Permissions declared:** `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_SPECIAL_USE`,
   `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`. **No `INTERNET` permission.**
   *`REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` is intentionally NOT declared* — the
-  battery helper (Phase 5c) opens the battery-optimization settings screen rather
-  than the direct request dialog, avoiding Google Play's allowlist restriction.
+  battery helper opens the battery-optimisation settings screen rather than the direct
+  request dialog, avoiding Google Play's allowlist restriction. Because that screen is
+  unreliable on some OEMs (e.g. it crashes OxygenOS Settings), the battery and auto-start
+  rows open a **guidance dialog** — manual steps plus a best-effort "open settings"
+  shortcut and a "may not work on every device" note — rather than launching the intent
+  blindly. *(2026-06-09.)*
 - **Min SDK 26** (notification channels baseline; ~99% device reach).
   **Target SDK:** latest stable (Play currency requirement).
 - **Service lifecycle invariant:** the service runs **iff** (pinned notes ≥ 1) OR
@@ -253,8 +260,11 @@ One service, one baseline notification, no redundancy.
 
 - **API 34 dismissal:** users can swipe ongoing notes away → re-assert on service
   start / next repository emit; document the behavior honestly.
-- **OEM autostart:** `BOOT_COMPLETED` may not fire without it → onboarding
-  guidance; treat boot-restore as best-effort.
+- **OEM autostart:** `BOOT_COMPLETED` may not fire without it → treat boot-restore as
+  best-effort. The auto-start row shows for any known aggressive-OEM manufacturer (the
+  `autostartTarget` map) and opens the guidance dialog; the deep-link to the OEM's
+  auto-launch screen is best-effort and often stale, so the dialog's manual steps are the
+  reliable path. *(2026-06-09.)*
 - **OEM active-notification caps (~24–50):** "unlimited notes" is fine, but
   pinning hundreds may hit an OEM ceiling → documented expectation, not a blocker.
 - **Channel disabled by user:** detect and prompt (see §7).

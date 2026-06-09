@@ -108,6 +108,8 @@ class AndroidNotificationController(private val context: Context) : Notification
         return NotificationCompat.Builder(context, CHANNEL_QUICK_ADD)
             .setSmallIcon(R.drawable.ic_stela_pin)
             .setColor(context.getColor(R.color.brand_indigo))
+            // A service-only notification, not note content — never show it on the lock screen.
+            .setVisibility(NotificationCompat.VISIBILITY_SECRET)
             .setContentTitle(context.getString(R.string.quick_add_title))
             .setContentText(context.getString(R.string.quick_add_text))
             .setContentIntent(newNote)
@@ -124,6 +126,8 @@ class AndroidNotificationController(private val context: Context) : Notification
         NotificationCompat.Builder(context, CHANNEL_SERVICE_STATUS)
             .setSmallIcon(R.drawable.ic_stela_pin)
             .setColor(context.getColor(R.color.brand_indigo))
+            // A service-only notification, not note content — never show it on the lock screen.
+            .setVisibility(NotificationCompat.VISIBILITY_SECRET)
             .setContentTitle(context.getString(R.string.service_running_title))
             .setContentText(context.getString(R.string.service_running_text))
             .setContentIntent(deepLinkActivityIntent("$DEEP_LINK_BASE/list", SERVICE_RUNNING_REQUEST))

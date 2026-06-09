@@ -3,17 +3,21 @@ package dev.davidfdev.stela.ui.settings
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -21,6 +25,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -43,6 +49,8 @@ import dev.davidfdev.stela.settings.ThemeMode
 import dev.davidfdev.stela.ui.openAppNotificationSettings
 import dev.davidfdev.stela.ui.rememberNotificationPermissionGate
 import kotlinx.coroutines.launch
+
+private enum class OemSettingsDialog { Battery, Autostart }
 
 @Composable
 fun SettingsRoute(
@@ -73,9 +81,8 @@ fun SettingsRoute(
         batteryExempt = DeviceResilience.isIgnoringBatteryOptimizations(context)
     }
     val autostartIntent = remember { DeviceResilience.autostartIntent() }
-    val autostartAvailable = remember(autostartIntent) {
-        autostartIntent != null && autostartIntent.resolveActivity(context.packageManager) != null
-    }
+    // Shown for any known aggressive-OEM target; the dialog handles a stale component.
+    val autostartAvailable = autostartIntent != null
 
     SettingsScreen(
         state = state,
@@ -111,6 +118,8 @@ fun SettingsScreen(
     onOpenAbout: () -> Unit,
     onBack: () -> Unit,
 ) {
+    var oemDialog by remember { mutableStateOf<OemSettingsDialog?>(null) }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -164,13 +173,13 @@ fun SettingsScreen(
                         ),
                     )
                 },
-                modifier = Modifier.clickable(onClick = onOpenBatterySettings),
+                modifier = Modifier.clickable { oemDialog = OemSettingsDialog.Battery },
             )
             if (autostartAvailable) {
                 ListItem(
                     headlineContent = { Text(stringResource(R.string.settings_autostart_title)) },
                     supportingContent = { Text(stringResource(R.string.settings_autostart_summary)) },
-                    modifier = Modifier.clickable(onClick = onOpenAutostart),
+                    modifier = Modifier.clickable { oemDialog = OemSettingsDialog.Autostart },
                 )
             }
 
@@ -181,6 +190,52 @@ fun SettingsScreen(
             )
         }
     }
+
+    when (oemDialog) {
+        OemSettingsDialog.Battery -> OemGuidanceDialog(
+            title = stringResource(R.string.settings_battery_title),
+            steps = stringResource(R.string.settings_battery_dialog_body),
+            onOpenSettings = { oemDialog = null; onOpenBatterySettings() },
+            onDismiss = { oemDialog = null },
+        )
+        OemSettingsDialog.Autostart -> OemGuidanceDialog(
+            title = stringResource(R.string.settings_autostart_title),
+            steps = stringResource(R.string.settings_autostart_dialog_body),
+            onOpenSettings = { oemDialog = null; onOpenAutostart() },
+            onDismiss = { oemDialog = null },
+        )
+        null -> Unit
+    }
+}
+
+@Composable
+private fun OemGuidanceDialog(
+    title: String,
+    steps: String,
+    onOpenSettings: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            Column {
+                Text(steps)
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    text = stringResource(R.string.oem_dialog_caveat),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onOpenSettings) { Text(stringResource(R.string.oem_dialog_open)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.oem_dialog_close)) }
+        },
+    )
 }
 
 @Composable
