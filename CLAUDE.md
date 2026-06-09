@@ -27,7 +27,7 @@ Read it before making architectural decisions; this file is only a quick orienta
 - **`NotificationController`** — the *only* class that touches `NotificationManager`. Builds ongoing pinned notifications (Edit/Remove actions) plus the quick-add and minimal "running" service notifications. Pin/unpin/refresh/re-assert.
 - **`NotePinner`** — the single seam for pin/unpin: persists the flag, posts/cancels the notification, and reconciles the service (start/stop/swap). UI and the Remove action both route through it.
 - **`PinService`** — foreground service. Runs **iff** (≥1 pinned note) **OR** (quick-add enabled). Shows the quick-add notification, or a minimal "running" line when quick-add is off but notes are pinned; re-asserts pins on start.
-- **`BootReceiver`** — on `BOOT_COMPLETED`, starts `PinService` to re-pin flagged notes.
+- **`BootReceiver`** — on `BOOT_COMPLETED` or `MY_PACKAGE_REPLACED` (reboot or app update), starts `PinService` to re-pin flagged notes.
 - **UI (Compose)** — NoteList · Editor · Settings (theme, quick-add, lock-screen). Talks to the repositories; pin/unpin via `NotePinner`.
 
 ## Invariants — do not break

@@ -103,8 +103,9 @@ units communicating through well-defined interfaces.
   anything to keep alive (≥1 pinned note **or** quick-add enabled). Hosts the
   baseline notification (the quick-add entry — see §6). Re-asserts pinned notes
   on start. *Depends on:* `NoteRepository`, `NotificationController`.
-- **`BootReceiver`** — on `BOOT_COMPLETED`, starts `PinService`, which re-pins
-  every note flagged pinned. *Depends on:* `PinService`.
+- **`BootReceiver`** — on `BOOT_COMPLETED` or `MY_PACKAGE_REPLACED` (reboot or app
+  update), starts `PinService`, which re-pins every note flagged pinned.
+  *Depends on:* `PinService`.
 - **UI (Compose)** — NoteList, Editor, Settings. Talks only to `NoteRepository`
   and asks `NotificationController` (via repository/service intents) to pin/unpin.
 

@@ -35,9 +35,13 @@ the `canPostNotifications` guard), and wrapped the start in a `try/catch` for
 the catch is valid on all supported API levels). No happy-path behaviour change; crash-safe
 and DRY. Existing unit + instrumented suites stay green; boot restore re-verified live.
 
-**Reported (not changed).** `BootReceiver` only handles `ACTION_BOOT_COMPLETED`. Adding
-`ACTION_MY_PACKAGE_REPLACED` (re-assert pins after an app update) is a possible enhancement
-— left for the maintainer to decide.
+**Follow-up implemented (2026-06-09).** `BootReceiver` now also handles
+`ACTION_MY_PACKAGE_REPLACED`, so pinned notes re-post after an app update — not just a
+reboot — without waiting for the next launch. Verified live: with a note pinned,
+`adb install -r` (app not launched afterward) re-posted the pinned notification, with the
+FGS started via the `MY_PACKAGE_REPLACED` allow-list (`reasonCode:PACKAGE_REPLACED`).
+`ACTION_LOCKED_BOOT_COMPLETED` is deliberately **not** handled: it fires before the device
+is unlocked, when the credential-encrypted Room database isn't readable.
 
 ---
 

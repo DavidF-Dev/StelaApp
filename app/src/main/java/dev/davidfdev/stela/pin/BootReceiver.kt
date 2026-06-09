@@ -5,12 +5,16 @@ import android.content.Context
 import android.content.Intent
 import dev.davidfdev.stela.StelaApp
 
-/// On boot, starts the pin service through the shared start seam, which re-asserts
-/// pinned notes and self-stops if there is nothing to keep alive. Best-effort: some
-/// OEMs withhold BOOT_COMPLETED until the app is allowed to autostart.
+/// Re-asserts pinned notes after a reboot or an app update by starting the pin service
+/// through the shared start seam (which self-stops if there is nothing to keep alive).
+/// Best-effort: some OEMs withhold BOOT_COMPLETED until the app is allowed to autostart.
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
+        if (intent.action != Intent.ACTION_BOOT_COMPLETED &&
+            intent.action != Intent.ACTION_MY_PACKAGE_REPLACED
+        ) {
+            return
+        }
         (context.applicationContext as StelaApp).container.serviceController.start()
     }
 }
