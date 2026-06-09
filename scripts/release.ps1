@@ -86,12 +86,14 @@ try {
     if ($LASTEXITCODE -ne 0) { Fail 'assembleRelease failed' }
     $apk = 'app/build/outputs/apk/release/stela-release.apk'
     if (-not (Test-Path $apk)) { Fail "expected APK not found at $apk" }
+    $apkSizeMb = [math]::Round((Get-Item $apk).Length / 1MB, 2)
 
     # --- Confirm before the outward, irreversible step (tag + publish) ---
     Write-Host ''
     Write-Host 'About to publish a GitHub Release:' -ForegroundColor Yellow
     Write-Host "  Tag / title : $tag  (gh creates the tag at HEAD)"
     Write-Host "  APK         : stela-$version.apk  (from $apk)"
+    Write-Host "  Size        : $apkSizeMb MB"
     Write-Host '  Notes       :'
     $releaseBody -split "`n" | ForEach-Object { Write-Host "      $_" }
     Write-Host ''
