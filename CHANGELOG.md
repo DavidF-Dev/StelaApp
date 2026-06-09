@@ -3,7 +3,7 @@
 All notable changes to Stela are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
-## [1.0.1] - unreleased
+## [1.1.0] - unreleased
 
 Empty.
 
