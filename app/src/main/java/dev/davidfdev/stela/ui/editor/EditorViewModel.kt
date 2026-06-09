@@ -11,6 +11,7 @@ import dev.davidfdev.stela.StelaApp
 import dev.davidfdev.stela.data.Note
 import dev.davidfdev.stela.data.NoteRepository
 import dev.davidfdev.stela.pin.NotePinner
+import dev.davidfdev.stela.ui.canPostNotifications
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -32,6 +33,7 @@ class EditorViewModel(
     private val repository: NoteRepository,
     private val pinner: NotePinner,
     savedStateHandle: SavedStateHandle,
+    private val canPostNotifications: () -> Boolean = { true },
 ) : ViewModel() {
 
     private val noteId: Long? = savedStateHandle[NOTE_ID_KEY]
@@ -92,7 +94,8 @@ class EditorViewModel(
             val existing = loaded
             if (existing == null) {
                 val id = repository.create(state.title, state.description)
-                if (pinOnSave) repository.getById(id)?.let { pinner.pin(it) }
+                // Mirror the other pin entry points: only pin when notifications can post.
+                if (pinOnSave && canPostNotifications()) repository.getById(id)?.let { pinner.pin(it) }
             } else {
                 val updated = existing.copy(title = state.title, description = state.description)
                 repository.update(updated)
@@ -121,7 +124,11 @@ class EditorViewModel(
         val Factory = viewModelFactory {
             initializer {
                 val app = this[APPLICATION_KEY] as StelaApp
-                EditorViewModel(app.container.noteRepository, app.container.notePinner, createSavedStateHandle())
+                EditorViewModel(
+                    app.container.noteRepository,
+                    app.container.notePinner,
+                    createSavedStateHandle(),
+                ) { canPostNotifications(app) }
             }
         }
     }

@@ -282,15 +282,16 @@ private fun NoteRow(
     onLongClick: () -> Unit,
     onTogglePin: () -> Unit,
 ) {
-    val colors = if (selected) {
-        ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
-    } else {
-        ListItemDefaults.colors()
-    }
+    // DateUtils formatting is recomputed only when the timestamp changes, not every recomposition.
+    val relativeTime = remember(note.updatedAt) { TimeFormatter.relative(note.updatedAt).toString() }
     ListItem(
-        colors = colors,
+        colors = if (selected) {
+            ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+        } else {
+            ListItemDefaults.colors()
+        },
         overlineContent = {
-            Text(TimeFormatter.relative(note.updatedAt).toString())
+            Text(relativeTime)
         },
         headlineContent = {
             Text(note.title, maxLines = 1, overflow = TextOverflow.Ellipsis)

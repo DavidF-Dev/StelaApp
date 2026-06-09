@@ -5,7 +5,7 @@
 > (it's an invasive refactor that every later slice would otherwise redo).
 
 **Status (2026-06-09): Phase 6 complete.** All slices 6a–6g plus the `LICENSE` file and the
-notification-text refinements are done and verified (53 JVM unit + 21 instrumented tests
+notification-text refinements are done and verified (54 JVM unit + 21 instrumented tests
 green; no `INTERNET`). The only outstanding item is the **real-device OEM matrix** (6g
 Part C), deferred to the maintainer's later personal-device pass — see
 [2026-06-09-6g-verification.md](2026-06-09-6g-verification.md).
@@ -321,7 +321,7 @@ revisit in a later pass if wanted.
 
 ## Notification refinements + LICENSE (housekeeping)
 
-**Status (2026-06-09) — complete.** Tests: 53 JVM unit + 21 instrumented, all green; no
+**Status (2026-06-09) — complete.** Tests: 54 JVM unit + 21 instrumented, all green; no
 `INTERNET`. The two deferred notification-text refinements plus the repo's GPL-3.0 LICENSE
 file. Verified live on the emulator: the quick-add deep link (`/new?pin=true`) creates a
 note that is **pinned on save** (status-bar silhouette + filled row icon); the pinned

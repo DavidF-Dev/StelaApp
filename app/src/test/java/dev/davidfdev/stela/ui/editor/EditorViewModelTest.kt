@@ -40,12 +40,16 @@ class EditorViewModelTest {
         val controller = FakeNotificationController()
         val pinner = NotePinner(repository, controller, FakeServiceController(), FakeSettingsRepository())
 
-        fun viewModel(noteId: Long? = null, pinOnSave: Boolean = false): EditorViewModel {
+        fun viewModel(
+            noteId: Long? = null,
+            pinOnSave: Boolean = false,
+            canPost: Boolean = true,
+        ): EditorViewModel {
             val map = buildMap<String, Any> {
                 if (noteId != null) put("noteId", noteId)
                 if (pinOnSave) put("pin", true)
             }
-            return EditorViewModel(repository, pinner, SavedStateHandle(map))
+            return EditorViewModel(repository, pinner, SavedStateHandle(map)) { canPost }
         }
     }
 
@@ -80,6 +84,19 @@ class EditorViewModelTest {
         val note = f.repository.notes.first().single()
         assertTrue(note.isPinned)
         assertEquals(listOf(note.id), f.controller.pinned.map { it.id })
+    }
+
+    @Test
+    fun newNote_save_withPinFlag_butNotificationsBlocked_savesUnpinned() = runTest(dispatcher) {
+        val f = Fixture()
+        val viewModel = f.viewModel(pinOnSave = true, canPost = false)
+
+        viewModel.onTitleChange("No permission")
+        viewModel.save { }
+        advanceUntilIdle()
+
+        assertFalse(f.repository.notes.first().single().isPinned)
+        assertTrue(f.controller.pinned.isEmpty())
     }
 
     @Test

@@ -15,17 +15,14 @@ class NotePinner(
     private val serviceController: ServiceController,
     private val settingsRepository: SettingsRepository,
 ) {
-    suspend fun pin(note: Note) {
-        repository.setPinned(note.id, true)
-        controller.pin(note.copy(isPinned = true))
-        reconcileService()
-    }
+    suspend fun pin(note: Note) = pinAll(listOf(note))
 
-    suspend fun unpin(noteId: Long) {
-        repository.setPinned(noteId, false)
-        controller.unpin(noteId)
-        reconcileService()
-    }
+    suspend fun unpin(noteId: Long) = unpinAll(listOf(noteId))
+
+    /// Deletes a note, first cancelling its notification if it was pinned. The seam
+    /// through which all deletes flow so a pinned note never leaves an orphaned
+    /// notification behind.
+    suspend fun delete(note: Note) = deleteAll(listOf(note))
 
     /// Pins every note, posting each notification, then reconciles the service once
     /// for the whole batch.
@@ -43,15 +40,6 @@ class NotePinner(
             repository.setPinned(id, false)
             controller.unpin(id)
         }
-        reconcileService()
-    }
-
-    /// Deletes a note, first cancelling its notification if it was pinned, then
-    /// reconciles the service. The seam through which all deletes flow so a pinned
-    /// note never leaves an orphaned notification behind.
-    suspend fun delete(note: Note) {
-        if (note.isPinned) controller.unpin(note.id)
-        repository.delete(note)
         reconcileService()
     }
 

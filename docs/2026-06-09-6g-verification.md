@@ -49,7 +49,7 @@ is unlocked, when the credential-encrypted Room database isn't readable.
 
 All on the Pixel_8 (API 36) emulator:
 
-- ✅ Full suite: **53 JVM unit + 21 instrumented**, green.
+- ✅ Full suite: **54 JVM unit + 21 instrumented**, green.
 - ✅ **Boot restore (live):** pinned a note ("BootCheck"), `adb reboot`; after boot the
   pinned notification re-posted (id=1, `pinned_notes`) and `PinService` ran as a
   `specialUse` foreground service, started via the `BOOT_COMPLETED` temp-allow-list.

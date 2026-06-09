@@ -25,6 +25,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import dev.davidfdev.stela.R
+import dev.davidfdev.stela.ui.SectionHeader
 import dev.davidfdev.stela.ui.appVersionName
 import dev.davidfdev.stela.ui.openUrl
 
@@ -105,12 +106,7 @@ fun AboutScreen(
 
 @Composable
 private fun AboutSection(title: String, body: String) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 4.dp),
-    )
+    SectionHeader(title)
     Text(
         text = body,
         style = MaterialTheme.typography.bodyMedium,

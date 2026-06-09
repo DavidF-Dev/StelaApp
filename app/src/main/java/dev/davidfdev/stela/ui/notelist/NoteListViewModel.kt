@@ -66,10 +66,10 @@ class NoteListViewModel(
     /// Pins every selected-unpinned note, or unpins all when every selected note is
     /// already pinned, then exits selection mode.
     fun batchTogglePin() {
-        val state = uiState.value
-        val selected = state.notes.filter { it.id in state.selectedIds }
+        val pins = uiState.value.batchActionPins
+        val selected = selectedNotes()
         viewModelScope.launch {
-            if (selected.any { !it.isPinned }) {
+            if (pins) {
                 pinner.pinAll(selected.filter { !it.isPinned })
             } else {
                 pinner.unpinAll(selected.map { it.id })
@@ -79,13 +79,15 @@ class NoteListViewModel(
     }
 
     fun batchDelete() {
-        val state = uiState.value
-        val selected = state.notes.filter { it.id in state.selectedIds }
+        val selected = selectedNotes()
         viewModelScope.launch {
             pinner.deleteAll(selected)
             clearSelection()
         }
     }
+
+    private fun selectedNotes(): List<Note> =
+        uiState.value.let { state -> state.notes.filter { it.id in state.selectedIds } }
 
     companion object {
         private const val STOP_TIMEOUT_MILLIS = 5_000L
