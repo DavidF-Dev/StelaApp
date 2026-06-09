@@ -14,6 +14,13 @@ val keystoreProperties = Properties().apply {
     if (keystorePropertiesFile.exists()) FileInputStream(keystorePropertiesFile).use { load(it) }
 }
 
+// Single source of truth: versionName drives versionCode (major*10000 + minor*100 + patch),
+// so bumping the name is enough and the code can never be forgotten or go backwards.
+val stelaVersionName = "1.0.0"
+val stelaVersionCode = stelaVersionName.split(".").map(String::toInt).let { (major, minor, patch) ->
+    major * 10000 + minor * 100 + patch
+}
+
 android {
     namespace = "dev.davidfdev.stela"
     compileSdk = 36
@@ -22,8 +29,8 @@ android {
         applicationId = "dev.davidfdev.stela"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = stelaVersionCode
+        versionName = stelaVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
