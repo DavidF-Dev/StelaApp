@@ -54,7 +54,7 @@
     <string name="settings_quick_add_summary">A persistent entry to add a note from the tray.</string>
     <string name="settings_hide_lock_title">Hide on lock screen</string>
     <string name="settings_hide_lock_summary">Hide pinned notes on a secure lock screen.</string>
-    <string name="settings_battery_title">Battery optimization</string>
+    <string name="settings_battery_title">Battery optimisation</string>
     <string name="settings_battery_exempt">Exempt — Stela can run freely.</string>
     <string name="settings_battery_not_exempt">Not exempt — Stela may be killed in the background.</string>
     <string name="settings_autostart_title">Auto-start</string>
@@ -71,9 +71,9 @@
     <string name="about_privacy_body">Stela is fully offline. No ads, no analytics, and no internet permission — your notes never leave your device.</string>
     <string name="about_how_title">How Stela works</string>
     <string name="about_how_body">Pinned notes self-heal (they re-post if cleared), survive a reboot, and resist being killed in the background. Modern Android can\'t guarantee a truly undismissable notification or an unkillable app, so Stela does the next best thing.</string>
-    <string name="about_license_title">License</string>
+    <string name="about_license_title">Licence</string>
     <string name="about_license_body">Stela is free software under the GNU General Public License v3.0.</string>
-    <string name="about_licenses_title">Open-source licenses</string>
+    <string name="about_licenses_title">Open-source licences</string>
     <string name="about_licenses_body">Jetpack Compose, AndroidX, and Kotlin — Apache License 2.0.</string>
     <string name="action_view_source">View source</string>
     <string name="about_source_url" translatable="false">https://github.com/DavidF-Dev/StelaApp</string>
