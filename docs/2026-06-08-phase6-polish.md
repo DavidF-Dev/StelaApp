@@ -361,3 +361,71 @@ and the design doc were updated for the body-tap invariant change.
 
 **Testing**: JVM for the pin-on-create save logic (`EditorViewModelTest`); manual/
 instrumented for the body-tap deep links and the notification text.
+
+---
+
+## Slice 6g — API 33/34 + OEM matrix
+
+**Status (2026-06-09) — planned (real-device portion deferred).** Behaviour verification
+across API levels and aggressive OEMs. Inherently a real-device slice: this environment
+runs only the Pixel_8 (API 36) emulator (no cmdline-tools or other system images
+installed). The maintainer has opted to **defer all real-device testing** to a later
+session on their personal device, so the in-session goal is **Parts A–B** (code audit +
+API-36 verification) plus **writing the Part C checklist as a ready artifact**; executing
+the real-device matrix is deferred.
+
+**Confirmed decisions:**
+- **Emulator scope:** deep-verify on the existing API 36 emulator + a full code-level API
+  audit; no extra image downloads.
+- **Bugs:** fix + verify unambiguous findings (tests where possible); report ambiguous
+  ones for triage.
+- **Real-device matrix: deferred** — written now as a checklist for the maintainer to run
+  later on their personal device; not executed in-session.
+- **OEM targets** the checklist covers: Samsung (One UI), Pixel/AOSP, and the
+  OnePlus/Oppo/Realme (ColorOS/OxygenOS) family.
+
+**Part A — API-behavior code audit (in-environment)**
+Review every `Build.VERSION.SDK_INT` branch and the known API-level pitfalls:
+- **FGS background-start (API 31+):** `PinServiceController.start()` calls
+  `startForegroundService` without catching `ForegroundServiceStartNotAllowedException`;
+  confirm every caller is foreground-exempt, else guard it.
+- **FGS from boot + `specialUse` (API 34):** confirm `BootReceiver`'s start is permitted
+  for the `specialUse` type, and that it tolerates a missing POST_NOTIFICATIONS grant (it
+  currently bypasses the `canPostNotifications` guard that `PinServiceController` has).
+- **Notification trampolines (API 31+):** confirm no action launches an Activity via a
+  receiver/service trampoline (Edit/body = `getActivity`; Remove/reassert = `getBroadcast`
+  with no Activity launch).
+- **Ongoing-notification dismissibility (API 34):** confirm the `setDeleteIntent` self-heal
+  covers the Android 14 swipe-away of ongoing notifications (`ReassertOnClearTest`).
+- **POST_NOTIFICATIONS (API 33):** onboarding request + denial handling + the
+  blocked-channel banner.
+- **Per-app language / themed icon / adaptive icon (API 33/26):** resources resolve.
+
+**Part B — API 36 emulator verification**
+- Full JVM + instrumented suite.
+- Manual scenarios: boot restore (`adb reboot` with a pinned note → re-pinned);
+  swipe-dismiss self-heal; permission grant + deny paths; battery & autostart settings
+  intents resolve; quick-add lifecycle (enable/disable, last-unpin → service stops).
+
+**Part C — Real-device OEM checklist (deferred — written now, run later)**
+A matrix the maintainer runs per device (Samsung / Pixel / OnePlus-Oppo-Realme) at a later
+point on their personal device — produced now as a ready artifact, not executed in-session:
+- Battery-optimization exemption flow; OEM autostart toggle present + honored.
+- Kill-resistance: swipe from recents, then verify pinned notes persist / self-heal.
+- Boot restore: reboot → pinned notes re-posted (after autostart allowed).
+- Long-duration persistence (hours/overnight) under battery saver.
+- Per-app language picker (Android 13+); lock-screen visibility toggle.
+
+**Deliverable:** `docs/2026-06-09-6g-verification.md` — audit findings (+ any fixes),
+API-36 emulator results, and the real-device checklist (left for the maintainer to fill in
+per device).
+
+**Tasks**
+1. API-behavior audit; fix unambiguous bugs (+ tests); list ambiguous findings.
+2. API 36 emulator verification (suite + manual scenarios incl. boot restore).
+3. Write the real-device OEM checklist + verification doc (execution deferred to the
+   maintainer's later personal-device pass).
+4. Update CLAUDE.md / design doc if any behavior changes from fixes.
+
+**Testing**: existing suite stays green; new tests for any audit fixes; the OEM matrix is
+manual on real hardware.
