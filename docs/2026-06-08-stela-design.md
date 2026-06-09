@@ -269,8 +269,14 @@ One service, one baseline notification, no redundancy.
 - **OEM active-notification caps (~24–50):** "unlimited notes" is fine, but
   pinning hundreds may hit an OEM ceiling → documented expectation, not a blocker.
 - **Channel disabled by user:** detect and prompt (see §7).
-- **Notification permission denied:** app still works as a plain note list;
-  pinning is gated behind a clear explanation.
+- **Notification → editor return (planned, v1.x):** opening the editor from a
+  notification (Edit or quick-add) currently returns to the **Note List** on completion,
+  because the deep link builds a synthetic `[List → Editor]` back stack. Planned: return
+  the user to **where they were** — for a cold/external entry, `finish()` the task (back to
+  home / the previous app); for a warm entry (app already open), `popBackStack` to the prior
+  screen. Distinguish the two via `onCreate` (cold) vs `onNewIntent` (warm). Moderate change
+  (entry-mode flag on the editor deep links + `EditorRoute` finish-vs-pop + a `BackHandler`);
+  verified manually/instrumented. Behaviour polish — fine to ship v1 without it.
 - **Play `specialUse` review:** the biggest publishing risk; mitigated by the
   justification string and honest functionality.
 
