@@ -29,8 +29,9 @@ pin-on-create) slot in where they fit.
 ## Decisions to settle when planning a slice
 - ~~Multi-select: include batch pin/unpin now (pinning exists) or delete-only?~~
   **Resolved (6c):** include batch pin/unpin via a single smart toggle.
-- Visual: dynamic-color (Material You) toggle and/or custom brand palette, or keep
-  Material defaults?
+- ~~Visual: dynamic-color (Material You) toggle and/or custom brand palette, or keep
+  Material defaults?~~ **Resolved (6f):** custom brand palette seeded from indigo
+  #4A57B5; no dynamic color, no toggle.
 - ~~About: include a "view source" link (opens a browser; no `INTERNET` for Stela)?~~
   **Resolved (6e):** yes — `ACTION_VIEW` to the OS browser, Stela stays `INTERNET`-free.
 - Notification refinements: confirm the pinned-note content should become "Tap to
@@ -248,3 +249,58 @@ View-source) grants POST_NOTIFICATIONS in `@BeforeClass` like the selection test
 
 **Testing**: instrumented for Settings → About (version + key text visible); manual for
 the View-source intent (`ACTION_VIEW` isn't JVM-testable — same call shape as Share).
+
+---
+
+## Slice 6f — Visual polish
+
+**Status (2026-06-09) — planned.** A brand-identity pass: an adaptive launcher icon (the
+app currently ships none — it falls back to the system default), a custom Material 3
+brand palette seeded from indigo, and a notification silhouette unified with the launcher
+glyph.
+
+**Confirmed decisions:**
+- **Custom brand palette** — light + dark `ColorScheme`s seeded from **indigo #4A57B5**;
+  no dynamic color, no Material You toggle (keeps the app simple). Honors the existing
+  theme-mode setting.
+- **No colored large icon** on notifications — the tinted small silhouette stays the only
+  notification mark.
+- **minSdk 26** ⇒ adaptive icons cover every device; **no legacy PNG fallbacks** needed.
+
+**Launcher icon (adaptive, vector)**
+- `drawable/ic_launcher_foreground.xml` — the pin glyph, white, centred in the adaptive
+  safe zone (108dp canvas).
+- `drawable/ic_launcher_monochrome.xml` — same glyph for Android 13 themed icons.
+- `values/colors.xml` — `ic_launcher_background` = the indigo brand tone.
+- `mipmap-anydpi-v26/ic_launcher.xml` (+ `ic_launcher_round.xml`) — `<adaptive-icon>`
+  with background / foreground / monochrome layers.
+- Manifest gains `android:icon` + `android:roundIcon`.
+
+**Brand color scheme (Compose)**
+- New `ui/Color.kt` — brand tones derived from the indigo seed; `StelaTheme` builds the
+  light/dark `ColorScheme`s from them, overriding the key roles: primary + its containers,
+  secondary / secondaryContainer (the latter drives the selection UI), and tertiary.
+- The brand color is mirrored in `colors.xml` so the notification accent (`setColor`) and
+  the icon background can reference it.
+
+**Notification mark**
+- `ic_stela_pin` is refined to share the launcher foreground glyph, so the launcher icon
+  and the status-bar silhouette read as the same mark (still a white-on-transparent alpha
+  mask that the system tints).
+- Pinned / quick-add notifications gain `setColor(brand)` for a branded accent.
+
+**Tasks**
+1. Brand palette: `ui/Color.kt` + `StelaTheme` light/dark schemes; brand color in
+   `colors.xml`.
+2. Adaptive launcher icon (foreground/monochrome vectors, background color, mipmaps) +
+   manifest wiring.
+3. Unify `ic_stela_pin` with the launcher glyph; add `setColor(brand)` to the
+   notification builders.
+4. Verify (build; manual: launcher icon incl. themed-icon mode, in-app brand colors, a
+   pinned-notification screenshot).
+
+**Testing**: build + manual on the emulator with screenshots (icon, themed icon, app UI,
+notification). Almost pure resources — no unit-testable logic.
+
+**Deferred:** a branded splash screen (SplashScreen API) is outside the doc's 6f bullet;
+revisit in a later pass if wanted.
