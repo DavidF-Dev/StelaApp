@@ -353,6 +353,12 @@ on the Phase 5 preferences store; **sort-by-icon** stays inert until the v2 icon
 makes icons distinguishable; **share** keeps the app offline — Stela only hands
 plain text to the OS share sheet and declares no `INTERNET`.
 
+**v1.1.0 (planned, post-launch):** auto-capitalise the editor fields, a **"swipe to
+unpin"** setting, and a per-note **emoji** shown in the list + notification title (via a
+derived `displayTitle`) — the emoji supersedes the deferred v2 icon-set picker. See
+[2026-06-10-v1.1-features.md](2026-06-10-v1.1-features.md). The
+notification-→-editor return-to-context behaviour (§9) is also v1.x.
+
 **v2 (deferred):** JSON export/import, optional "tap = edit", widget.
 
 ---
