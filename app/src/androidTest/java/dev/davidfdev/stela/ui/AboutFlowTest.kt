@@ -9,6 +9,7 @@ import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.davidfdev.stela.MainActivity
+import dev.davidfdev.stela.R
 import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
@@ -38,7 +39,11 @@ class AboutFlowTest {
         composeRule.onNodeWithContentDescription("Settings").performClick()
         composeRule.onNodeWithText("About Stela").performClick()
 
-        composeRule.onNodeWithText("Version 1.0.0").assertIsDisplayed()
+        // Derive the expected text from the build so the test never needs a version bump.
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        @Suppress("DEPRECATION")
+        val version = context.packageManager.getPackageInfo(context.packageName, 0).versionName
+        composeRule.onNodeWithText(context.getString(R.string.about_version, version)).assertIsDisplayed()
         composeRule.onNodeWithText("by David F Dev").assertIsDisplayed()
         composeRule.onNodeWithText("View source").assertIsDisplayed()
     }
