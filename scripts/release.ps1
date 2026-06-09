@@ -84,14 +84,14 @@ try {
     Write-Host "Building signed release APK for $tag ..." -ForegroundColor Cyan
     & .\gradlew.bat assembleRelease
     if ($LASTEXITCODE -ne 0) { Fail 'assembleRelease failed' }
-    $apk = 'app/build/outputs/apk/release/app-release.apk'
+    $apk = 'app/build/outputs/apk/release/stela-release.apk'
     if (-not (Test-Path $apk)) { Fail "expected APK not found at $apk" }
 
     # --- Confirm before the outward, irreversible step (tag + publish) ---
     Write-Host ''
     Write-Host 'About to publish a GitHub Release:' -ForegroundColor Yellow
     Write-Host "  Tag / title : $tag  (gh creates the tag at HEAD)"
-    Write-Host "  APK         : $apk"
+    Write-Host "  APK         : stela-$version.apk  (from $apk)"
     Write-Host '  Notes       :'
     $releaseBody -split "`n" | ForEach-Object { Write-Host "      $_" }
     Write-Host ''
@@ -106,11 +106,16 @@ try {
     $notesFile = New-TemporaryFile
     # UTF-8 without BOM, so the release body has no stray leading character on any PS version.
     [System.IO.File]::WriteAllText($notesFile.FullName, $releaseBody, (New-Object System.Text.UTF8Encoding($false)))
-    gh release create $tag $apk --title "Stela $tag" --notes-file $notesFile.FullName
+    # A release asset's download name is its file basename, so stage a version-stamped copy
+    # (e.g. stela-1.0.0.apk) and upload that rather than the variant-named build output.
+    $asset = Join-Path ([System.IO.Path]::GetTempPath()) "stela-$version.apk"
+    Copy-Item $apk $asset -Force
+    gh release create $tag $asset --title "Stela $tag" --notes-file $notesFile.FullName
     $published = ($LASTEXITCODE -eq 0)
     Remove-Item $notesFile -ErrorAction SilentlyContinue
+    Remove-Item $asset -ErrorAction SilentlyContinue
     if (-not $published) { Fail 'gh release create failed' }
-    Write-Host "Published $tag" -ForegroundColor Green
+    Write-Host "Published $tag (stela-$version.apk)" -ForegroundColor Green
 }
 finally {
     Pop-Location

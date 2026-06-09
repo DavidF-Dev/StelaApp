@@ -21,6 +21,9 @@ val stelaVersionCode = stelaVersionName.split(".").map(String::toInt).let { (maj
     major * 10000 + minor * 100 + patch
 }
 
+// Name build outputs "stela-<variant>.apk" rather than the default "app-<variant>.apk".
+base.archivesName.set("stela")
+
 android {
     namespace = "dev.davidfdev.stela"
     compileSdk = 36
