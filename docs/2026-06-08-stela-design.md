@@ -195,8 +195,7 @@ Android forces a foreground service to display its own ongoing notification, so 
 
 - The foreground service's mandatory notification **is** the quick-add entry.
   Requested presentation (2026-06-08; addressed later if needed):
-  - **Title:** "New Stela note"  *(written "New Stella note" in the request; the
-    brand is "Stela" — using "Stela" unless told otherwise).*
+  - **Title:** "New Stela note"
   - **Content:** "Tap to create a new note"  *(request read "Tap to create a new
     notification note").*
   - **Body tap opens a fresh editor** *(changed 2026-06-08 from no-op).* Two actions:

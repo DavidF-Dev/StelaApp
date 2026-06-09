@@ -207,7 +207,7 @@ license, a static (grouped) open-source licenses list, and a "View source" link.
 - **Version via `PackageManager`** (`getPackageInfo(packageName, 0).versionName`), so the
   one string we need doesn't require enabling the `buildConfig` build feature.
 - **View source: included** — a row fires `ACTION_VIEW` to the OS browser for
-  `https://github.com/DavidF-Dev/StellaApp`. Offline-safe: Stela only hands a URL to the
+  `https://github.com/DavidF-Dev/StelaApp`. Offline-safe: Stela only hands a URL to the
   OS (same shape as Share), so still no `INTERNET`.
 - **Licenses: inline, grouped by license** — one About screen; "Jetpack Compose,
   AndroidX, Kotlin — Apache License 2.0", and the app itself under GPL-3.0.
@@ -244,6 +244,3 @@ license, a static (grouped) open-source licenses list, and a "View source" link.
 
 **Testing**: instrumented for Settings → About (version + key text visible); manual for
 the View-source intent (`ACTION_VIEW` isn't JVM-testable — same call shape as Share).
-
-Note: the GitHub repo is named **StellaApp** while the product is **Stela**; the
-View-source link uses the actual remote URL above.
