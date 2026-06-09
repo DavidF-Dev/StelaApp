@@ -3,6 +3,8 @@
 All notable changes to Stela are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [1.0.1] - unreleased
+
 ## [1.0.0] — 2026/06/09
 
 First public release.
