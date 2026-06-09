@@ -63,7 +63,7 @@
     <string name="settings_autostart_dialog_body">Let Stela restart after a reboot or after being closed:\n\n1. Open your device\'s Auto-start (or Auto-launch / Startup) settings.\n2. Find Stela and enable it.</string>
     <string name="oem_dialog_open">Open settings</string>
     <string name="oem_dialog_close">Close</string>
-    <string name="oem_dialog_caveat">This shortcut may not work on every device — if nothing opens, follow the steps above.</string>
+    <string name="oem_dialog_caveat">This shortcut may not work on every device. If nothing opens, follow the steps above.</string>
     <string name="snackbar_quick_add_needs_notifications">Notifications are off — quick-add needs them.</string>
     <string name="settings_section_about">About</string>
     <string name="settings_about_title">About Stela</string>
