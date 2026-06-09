@@ -59,6 +59,7 @@ class AndroidNotificationController(private val context: Context) : Notification
             if (hideOnLockScreen) NotificationCompat.VISIBILITY_SECRET else NotificationCompat.VISIBILITY_PUBLIC
         val notification = NotificationCompat.Builder(context, CHANNEL_PINNED)
             .setSmallIcon(R.drawable.ic_stela_pin)
+            .setColor(context.getColor(R.color.brand_indigo))
             .setContentTitle(note.title)
             .setContentText(note.description)
             .setStyle(NotificationCompat.BigTextStyle().bigText(note.description))
@@ -100,6 +101,7 @@ class AndroidNotificationController(private val context: Context) : Notification
         val newNote = deepLinkActivityIntent("$DEEP_LINK_BASE/new", QUICK_ADD_NEW_REQUEST)
         return NotificationCompat.Builder(context, CHANNEL_QUICK_ADD)
             .setSmallIcon(R.drawable.ic_stela_pin)
+            .setColor(context.getColor(R.color.brand_indigo))
             .setContentTitle(context.getString(R.string.quick_add_title))
             .setContentText(context.getString(R.string.quick_add_text))
             .setContentIntent(newNote)
@@ -115,6 +117,7 @@ class AndroidNotificationController(private val context: Context) : Notification
     override fun buildServiceRunningNotification(): android.app.Notification =
         NotificationCompat.Builder(context, CHANNEL_SERVICE_STATUS)
             .setSmallIcon(R.drawable.ic_stela_pin)
+            .setColor(context.getColor(R.color.brand_indigo))
             .setContentTitle(context.getString(R.string.service_running_title))
             .setContentText(context.getString(R.string.service_running_text))
             .setContentIntent(deepLinkActivityIntent("$DEEP_LINK_BASE/list", SERVICE_RUNNING_REQUEST))

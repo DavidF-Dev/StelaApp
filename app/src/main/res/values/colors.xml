@@ -1,0 +1,5 @@
+<resources>
+    <!-- Brand seed (indigo). Used for the notification accent and the launcher background. -->
+    <color name="brand_indigo">#FF4A57B5</color>
+    <color name="ic_launcher_background">@color/brand_indigo</color>
+</resources>

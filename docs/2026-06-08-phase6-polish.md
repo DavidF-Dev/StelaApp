@@ -17,8 +17,8 @@
 - **6c — Multi-select + batch** *(done)* — NoteList selection mode (long-press →
   contextual bar), batch delete + batch pin/unpin, confirm dialog with `<plurals>`.
   Largest piece; overlaps the Phase 7 list pipeline, so last of the feature slices.
-- **6f — Visual polish** — adaptive launcher icon, refined notification silhouette
-  (+ optional colored large icon), brand color scheme.
+- **6f — Visual polish** *(done)* — adaptive launcher icon, refined notification
+  silhouette (+ optional colored large icon), brand color scheme.
 - **6g — API 33/34 + OEM matrix** — behavior verification across API levels and
   aggressive OEMs (real devices).
 
@@ -254,10 +254,14 @@ the View-source intent (`ACTION_VIEW` isn't JVM-testable — same call shape as 
 
 ## Slice 6f — Visual polish
 
-**Status (2026-06-09) — planned.** A brand-identity pass: an adaptive launcher icon (the
-app currently ships none — it falls back to the system default), a custom Material 3
-brand palette seeded from indigo, and a notification silhouette unified with the launcher
-glyph.
+**Status (2026-06-09) — complete.** Tests: 51 JVM unit + 21 instrumented, all green; no
+`INTERNET`. A brand-identity pass: an adaptive launcher icon (the app previously shipped
+none — it fell back to the system default), a custom Material 3 brand palette seeded from
+indigo, and a notification silhouette unified with the launcher glyph plus a branded
+accent. Verified live on the emulator: the launcher drawer shows the indigo+pin icon, the
+in-app FAB/accents are indigo, and the quick-add notification carries the brand accent.
+(The notification's app-icon badge still showed the cached default robot from earlier
+icon-less test installs — a SystemUI cache that clears on reboot, not a resource issue.)
 
 **Confirmed decisions:**
 - **Custom brand palette** — light + dark `ColorScheme`s seeded from **indigo #4A57B5**;
