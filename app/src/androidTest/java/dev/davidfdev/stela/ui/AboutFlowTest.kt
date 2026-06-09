@@ -38,7 +38,7 @@ class AboutFlowTest {
         composeRule.onNodeWithContentDescription("Settings").performClick()
         composeRule.onNodeWithText("About Stela").performClick()
 
-        composeRule.onNodeWithText("Version 0.1.0").assertIsDisplayed()
+        composeRule.onNodeWithText("Version 1.0.0").assertIsDisplayed()
         composeRule.onNodeWithText("by David F Dev").assertIsDisplayed()
         composeRule.onNodeWithText("View source").assertIsDisplayed()
     }
