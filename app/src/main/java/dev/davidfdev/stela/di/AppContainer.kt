@@ -32,7 +32,7 @@ class AppContainer(context: Context) {
 
     val notificationController: NotificationController = AndroidNotificationController(context)
 
-    private val serviceController: ServiceController = PinServiceController(context)
+    val serviceController: ServiceController = PinServiceController(context)
 
     val notePinner: NotePinner =
         NotePinner(noteRepository, notificationController, serviceController, settingsRepository)

@@ -19,8 +19,8 @@
   Largest piece; overlaps the Phase 7 list pipeline, so last of the feature slices.
 - **6f — Visual polish** *(done)* — adaptive launcher icon, refined notification
   silhouette (+ optional colored large icon), brand color scheme.
-- **6g — API 33/34 + OEM matrix** — behavior verification across API levels and
-  aggressive OEMs (real devices).
+- **6g — API 33/34 + OEM matrix** *(audit + API-36 done; real-device matrix deferred)* —
+  behavior verification across API levels and aggressive OEMs (real devices).
 
 Also: the **`LICENSE` file** (GPL-3.0; repo housekeeping) and the deferred
 **notification-text refinements** (pinned-note "Tap to edit or remove"; quick-add
@@ -366,13 +366,21 @@ instrumented for the body-tap deep links and the notification text.
 
 ## Slice 6g — API 33/34 + OEM matrix
 
-**Status (2026-06-09) — planned (real-device portion deferred).** Behaviour verification
-across API levels and aggressive OEMs. Inherently a real-device slice: this environment
-runs only the Pixel_8 (API 36) emulator (no cmdline-tools or other system images
-installed). The maintainer has opted to **defer all real-device testing** to a later
-session on their personal device, so the in-session goal is **Parts A–B** (code audit +
-API-36 verification) plus **writing the Part C checklist as a ready artifact**; executing
-the real-device matrix is deferred.
+**Status (2026-06-09) — in-environment work complete; real-device matrix deferred.**
+Parts A–B done; Part C written as a ready checklist for the maintainer's later
+personal-device pass. Full results in
+[2026-06-09-6g-verification.md](2026-06-09-6g-verification.md). Tests: 53 JVM unit + 21
+instrumented, all green; no `INTERNET`. **Audit fix:** the two unguarded
+`startForegroundService` call sites were hardened — `BootReceiver` now routes through the
+single `serviceController.start()` seam (gaining the `canPostNotifications` guard), and
+that seam catches `ForegroundServiceStartNotAllowedException`. Boot restore verified live
+(`adb reboot` → pinned note re-posted; `specialUse` FGS started via the `BOOT_COMPLETED`
+allow-list, confirming `specialUse` is not among the boot-blocked types on API 34+).
+
+Behaviour verification across API levels and aggressive OEMs. Inherently a real-device
+slice: this environment runs only the Pixel_8 (API 36) emulator (no cmdline-tools or other
+system images installed). The maintainer has opted to **defer all real-device testing** to
+a later session on their personal device.
 
 **Confirmed decisions:**
 - **Emulator scope:** deep-verify on the existing API 36 emulator + a full code-level API

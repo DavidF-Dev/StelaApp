@@ -16,7 +16,11 @@ class PinServiceController(private val context: Context) : ServiceController {
     override fun start() {
         // No permission means the foreground notification can't show, so starting is pointless.
         if (!canPostNotifications(context)) return
-        ContextCompat.startForegroundService(context, Intent(context, PinService::class.java))
+        try {
+            ContextCompat.startForegroundService(context, Intent(context, PinService::class.java))
+        } catch (e: IllegalStateException) {
+            // A background start outside an FGS-start exemption throws on API 31+; nothing to recover.
+        }
     }
 
     override fun stop() {
