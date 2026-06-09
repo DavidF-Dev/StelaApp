@@ -5,6 +5,8 @@ All notable changes to Stela are documented here. This project adheres to
 
 ## [1.0.1] - unreleased
 
+Empty.
+
 ## [1.0.0] — 2026/06/09
 
 First public release.
