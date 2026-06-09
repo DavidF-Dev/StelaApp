@@ -31,7 +31,8 @@ pin-on-create) slot in where they fit.
   **Resolved (6c):** include batch pin/unpin via a single smart toggle.
 - Visual: dynamic-color (Material You) toggle and/or custom brand palette, or keep
   Material defaults?
-- About: include a "view source" link (opens a browser; no `INTERNET` for Stela)?
+- ~~About: include a "view source" link (opens a browser; no `INTERNET` for Stela)?~~
+  **Resolved (6e):** yes — `ACTION_VIEW` to the OS browser, Stela stays `INTERNET`-free.
 - Notification refinements: confirm the pinned-note content should become "Tap to
   edit or remove" (replaces showing the description).
 
@@ -191,3 +192,58 @@ batch pin.
 **Deferred — "Select all":** a select-all toggle in the contextual bar (overflow or a
 title affordance) is out of scope here to keep the slice bounded; add it in a later
 polish pass (or fold into this slice if it proves trivial).
+
+---
+
+## Slice 6e — About
+
+**Status (2026-06-09) — planned.** An About screen reached from Settings: app version,
+author, the privacy promise, an honest "how Stela works" persistence note, the app's
+license, a static (grouped) open-source licenses list, and a "View source" link.
+
+**Confirmed decisions:**
+- **Entry from Settings** — a new "About" section/row navigates to a dedicated About
+  screen (`Routes.ABOUT`).
+- **Version via `PackageManager`** (`getPackageInfo(packageName, 0).versionName`), so the
+  one string we need doesn't require enabling the `buildConfig` build feature.
+- **View source: included** — a row fires `ACTION_VIEW` to the OS browser for
+  `https://github.com/DavidF-Dev/StellaApp`. Offline-safe: Stela only hands a URL to the
+  OS (same shape as Share), so still no `INTERNET`.
+- **Licenses: inline, grouped by license** — one About screen; "Jetpack Compose,
+  AndroidX, Kotlin — Apache License 2.0", and the app itself under GPL-3.0.
+
+**Screen content (top → bottom)**
+1. Header — "Stela" + version name.
+2. Author — David F Dev.
+3. Privacy — fully offline; no ads, no analytics, no `INTERNET` permission.
+4. How Stela works — pinned notes self-heal (re-post if cleared), survive reboot, and
+   resist background kill; modern Android can't guarantee truly undismissable
+   notifications or unkillable processes.
+5. License — Stela is GPL-3.0.
+6. Open-source licenses — grouped static list (Apache-2.0).
+7. View source — opens the repo in a browser.
+
+**Units**
+- `Routes.ABOUT` + nav composable → `AboutRoute(onBack)`; Settings gains an `onOpenAbout`
+  callback, wired in the nav host.
+- `AboutScreen` (Scaffold + back `TopAppBar`, reusing the Settings `SectionHeader` /
+  `ListItem` idiom).
+- `appVersionName(context)` helper (thin `PackageManager` read) so the screen carries no
+  packaging logic inline.
+- `openUrl(context, url)` helper (`ACTION_VIEW`) — mirrors `shareNote`.
+- Strings: an About section/row label, title, `about_version` ("Version %1$s"), author,
+  privacy, how-it-works, the app license line, the grouped licenses line, and
+  `action_view_source`.
+
+**Tasks**
+1. Strings + `appVersionName` / `openUrl` helpers.
+2. `AboutScreen` + `AboutRoute`; `Routes.ABOUT` and nav wiring.
+3. Settings "About" section/row + `onOpenAbout`.
+4. Verify (build + tests; instrumented: Settings → About shows version; manual: View
+   source opens browser).
+
+**Testing**: instrumented for Settings → About (version + key text visible); manual for
+the View-source intent (`ACTION_VIEW` isn't JVM-testable — same call shape as Share).
+
+Note: the GitHub repo is named **StellaApp** while the product is **Stela**; the
+View-source link uses the actual remote URL above.
