@@ -12,8 +12,8 @@
 - **6b — Timestamps** *(done)* — created/modified: relative on list rows, absolute in
   editor; locale-aware formatting util (injectable clock, unit-tested).
 - **6d — Share** *(done)* — Editor `ACTION_SEND` text/plain action (offline-safe).
-- **6e — About** — version, author (David F Dev), privacy promise, "how Stela works"
-  honest-persistence note, static open-source licenses list.
+- **6e — About** *(done)* — version, author (David F Dev), privacy promise, "how Stela
+  works" honest-persistence note, static open-source licenses list.
 - **6c — Multi-select + batch** *(done)* — NoteList selection mode (long-press →
   contextual bar), batch delete + batch pin/unpin, confirm dialog with `<plurals>`.
   Largest piece; overlaps the Phase 7 list pipeline, so last of the feature slices.
@@ -197,9 +197,13 @@ polish pass (or fold into this slice if it proves trivial).
 
 ## Slice 6e — About
 
-**Status (2026-06-09) — planned.** An About screen reached from Settings: app version,
-author, the privacy promise, an honest "how Stela works" persistence note, the app's
-license, a static (grouped) open-source licenses list, and a "View source" link.
+**Status (2026-06-09) — complete.** Tests: 51 JVM unit + 21 instrumented, all green; no
+`INTERNET`. An About screen reached from Settings: app version, author, the privacy
+promise, an honest "how Stela works" persistence note, the app's license, a static
+(grouped) open-source licenses list, and a "View source" link. Version is read via
+`appVersionName` (`PackageManager`); the link uses `openUrl` (`ACTION_VIEW`, mirroring
+`shareNote`). New instrumented `AboutFlowTest` (Settings → About shows version/author/
+View-source) grants POST_NOTIFICATIONS in `@BeforeClass` like the selection test.
 
 **Confirmed decisions:**
 - **Entry from Settings** — a new "About" section/row navigates to a dedicated About

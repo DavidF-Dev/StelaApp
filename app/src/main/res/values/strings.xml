@@ -60,6 +60,23 @@
     <string name="settings_autostart_title">Auto-start</string>
     <string name="settings_autostart_summary">Allow Stela to start automatically (device-specific).</string>
     <string name="snackbar_quick_add_needs_notifications">Notifications are off — quick-add needs them.</string>
+    <string name="settings_section_about">About</string>
+    <string name="settings_about_title">About Stela</string>
+
+    <!-- About -->
+    <string name="about_title">About</string>
+    <string name="about_version">Version %1$s</string>
+    <string name="about_author">by David F Dev</string>
+    <string name="about_privacy_title">Privacy</string>
+    <string name="about_privacy_body">Stela is fully offline. No ads, no analytics, and no internet permission — your notes never leave your device.</string>
+    <string name="about_how_title">How Stela works</string>
+    <string name="about_how_body">Pinned notes self-heal (they re-post if cleared), survive a reboot, and resist being killed in the background. Modern Android can\'t guarantee a truly undismissable notification or an unkillable app, so Stela does the next best thing.</string>
+    <string name="about_license_title">License</string>
+    <string name="about_license_body">Stela is free software under the GNU General Public License v3.0.</string>
+    <string name="about_licenses_title">Open-source licenses</string>
+    <string name="about_licenses_body">Jetpack Compose, AndroidX, and Kotlin — Apache License 2.0.</string>
+    <string name="action_view_source">View source</string>
+    <string name="about_source_url" translatable="false">https://github.com/DavidF-Dev/StelaApp</string>
 
     <!-- Theme options -->
     <string name="theme_light">Light</string>

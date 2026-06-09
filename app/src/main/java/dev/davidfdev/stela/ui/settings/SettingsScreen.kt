@@ -46,6 +46,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun SettingsRoute(
     onBack: () -> Unit,
+    onOpenAbout: () -> Unit,
     viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -89,6 +90,7 @@ fun SettingsRoute(
             runCatching { context.startActivity(DeviceResilience.batteryOptimizationSettingsIntent()) }
         },
         onOpenAutostart = { autostartIntent?.let { intent -> runCatching { context.startActivity(intent) } } },
+        onOpenAbout = onOpenAbout,
         onBack = onBack,
     )
 }
@@ -105,6 +107,7 @@ fun SettingsScreen(
     onQuickAddEnabledChange: (Boolean) -> Unit,
     onOpenBatterySettings: () -> Unit,
     onOpenAutostart: () -> Unit,
+    onOpenAbout: () -> Unit,
     onBack: () -> Unit,
 ) {
     Scaffold(
@@ -165,6 +168,12 @@ fun SettingsScreen(
                     modifier = Modifier.clickable(onClick = onOpenAutostart),
                 )
             }
+
+            SectionHeader(stringResource(R.string.settings_section_about))
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.settings_about_title)) },
+                modifier = Modifier.clickable(onClick = onOpenAbout),
+            )
         }
     }
 }

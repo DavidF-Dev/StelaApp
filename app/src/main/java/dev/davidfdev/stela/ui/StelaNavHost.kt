@@ -9,6 +9,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import dev.davidfdev.stela.notifications.AndroidNotificationController
+import dev.davidfdev.stela.ui.about.AboutRoute
 import dev.davidfdev.stela.ui.editor.EditorRoute
 import dev.davidfdev.stela.ui.editor.EditorViewModel
 import dev.davidfdev.stela.ui.notelist.NoteListRoute
@@ -19,6 +20,7 @@ object Routes {
     const val EDITOR_NEW = "editor"
     const val EDITOR_EDIT = "editor/{${EditorViewModel.NOTE_ID_KEY}}"
     const val SETTINGS = "settings"
+    const val ABOUT = "about"
 
     fun editNote(noteId: Long) = "editor/$noteId"
 }
@@ -59,7 +61,13 @@ fun StelaNavHost(navController: NavHostController = rememberNavController()) {
             EditorRoute(onDone = { navController.popBackStack() })
         }
         composable(Routes.SETTINGS) {
-            SettingsRoute(onBack = { navController.popBackStack() })
+            SettingsRoute(
+                onBack = { navController.popBackStack() },
+                onOpenAbout = { navController.navigate(Routes.ABOUT) },
+            )
+        }
+        composable(Routes.ABOUT) {
+            AboutRoute(onBack = { navController.popBackStack() })
         }
     }
 }
