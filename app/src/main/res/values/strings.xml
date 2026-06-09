@@ -89,6 +89,7 @@
     <string name="channel_service_status_name">Running in background</string>
 
     <!-- Notification content -->
+    <string name="notification_pinned_hint">Tap to edit or remove</string>
     <string name="notification_action_edit">Edit</string>
     <string name="notification_action_remove">Remove</string>
     <string name="notification_action_new_note">New note</string>

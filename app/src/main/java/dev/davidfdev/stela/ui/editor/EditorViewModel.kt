@@ -36,6 +36,9 @@ class EditorViewModel(
 
     private val noteId: Long? = savedStateHandle[NOTE_ID_KEY]
 
+    // Set by the quick-add entry points: a note created here is pinned once saved.
+    private val pinOnSave: Boolean = savedStateHandle[PIN_KEY] ?: false
+
     private val _uiState = MutableStateFlow(EditorUiState(isEditing = noteId != null))
     val uiState: StateFlow<EditorUiState> = _uiState.asStateFlow()
 
@@ -88,7 +91,8 @@ class EditorViewModel(
             val state = _uiState.value
             val existing = loaded
             if (existing == null) {
-                repository.create(state.title, state.description)
+                val id = repository.create(state.title, state.description)
+                if (pinOnSave) repository.getById(id)?.let { pinner.pin(it) }
             } else {
                 val updated = existing.copy(title = state.title, description = state.description)
                 repository.update(updated)
@@ -112,6 +116,7 @@ class EditorViewModel(
 
     companion object {
         const val NOTE_ID_KEY = "noteId"
+        const val PIN_KEY = "pin"
 
         val Factory = viewModelFactory {
             initializer {

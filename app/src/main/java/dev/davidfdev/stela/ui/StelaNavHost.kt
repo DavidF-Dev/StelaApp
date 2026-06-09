@@ -18,6 +18,7 @@ import dev.davidfdev.stela.ui.settings.SettingsRoute
 object Routes {
     const val LIST = "list"
     const val EDITOR_NEW = "editor"
+    const val EDITOR_NEW_ROUTE = "editor?${EditorViewModel.PIN_KEY}={${EditorViewModel.PIN_KEY}}"
     const val EDITOR_EDIT = "editor/{${EditorViewModel.NOTE_ID_KEY}}"
     const val SETTINGS = "settings"
     const val ABOUT = "about"
@@ -41,9 +42,15 @@ fun StelaNavHost(navController: NavHostController = rememberNavController()) {
             )
         }
         composable(
-            route = Routes.EDITOR_NEW,
+            route = Routes.EDITOR_NEW_ROUTE,
+            arguments = listOf(
+                navArgument(EditorViewModel.PIN_KEY) { type = NavType.BoolType; defaultValue = false },
+            ),
             deepLinks = listOf(
-                navDeepLink { uriPattern = "${AndroidNotificationController.DEEP_LINK_BASE}/new" },
+                navDeepLink {
+                    uriPattern =
+                        "${AndroidNotificationController.DEEP_LINK_BASE}/new?${EditorViewModel.PIN_KEY}={${EditorViewModel.PIN_KEY}}"
+                },
             ),
         ) {
             EditorRoute(onDone = { navController.popBackStack() })

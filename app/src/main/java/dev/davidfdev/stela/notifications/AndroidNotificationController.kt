@@ -57,12 +57,11 @@ class AndroidNotificationController(private val context: Context) : Notification
     private fun post(note: Note) {
         val visibility =
             if (hideOnLockScreen) NotificationCompat.VISIBILITY_SECRET else NotificationCompat.VISIBILITY_PUBLIC
-        val notification = NotificationCompat.Builder(context, CHANNEL_PINNED)
+        val builder = NotificationCompat.Builder(context, CHANNEL_PINNED)
             .setSmallIcon(R.drawable.ic_stela_pin)
             .setColor(context.getColor(R.color.brand_indigo))
             .setContentTitle(note.title)
-            .setContentText(note.description)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(note.description))
+            .setContentIntent(editIntent(note.id))
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setSilent(true)
@@ -72,8 +71,14 @@ class AndroidNotificationController(private val context: Context) : Notification
             .setDeleteIntent(reassertIntent(note.id))
             .addAction(0, context.getString(R.string.notification_action_edit), editIntent(note.id))
             .addAction(0, context.getString(R.string.notification_action_remove), removeIntent(note.id))
-            .build()
-        manager.notify(notificationId(note.id), notification)
+        if (note.description.isNotBlank()) {
+            builder.setContentText(note.description)
+                .setStyle(NotificationCompat.BigTextStyle().bigText(note.description))
+        } else {
+            // Title-only note: show an action hint instead of a blank content line.
+            builder.setContentText(context.getString(R.string.notification_pinned_hint))
+        }
+        manager.notify(notificationId(note.id), builder.build())
     }
 
     private fun editIntent(noteId: Long): PendingIntent {
@@ -96,9 +101,10 @@ class AndroidNotificationController(private val context: Context) : Notification
         return PendingIntent.getBroadcast(context, notificationId(noteId), intent, PENDING_FLAGS)
     }
 
-    // Body tap and the New note action open a fresh editor; View notes opens the list.
+    // Body tap and the New note action open a fresh editor that pins on save; View notes
+    // opens the list.
     override fun buildQuickAddNotification(): android.app.Notification {
-        val newNote = deepLinkActivityIntent("$DEEP_LINK_BASE/new", QUICK_ADD_NEW_REQUEST)
+        val newNote = deepLinkActivityIntent("$DEEP_LINK_BASE/new?pin=true", QUICK_ADD_NEW_REQUEST)
         return NotificationCompat.Builder(context, CHANNEL_QUICK_ADD)
             .setSmallIcon(R.drawable.ic_stela_pin)
             .setColor(context.getColor(R.color.brand_indigo))

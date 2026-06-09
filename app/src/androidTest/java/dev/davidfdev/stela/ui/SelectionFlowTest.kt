@@ -3,6 +3,7 @@ package dev.davidfdev.stela.ui
 import android.Manifest
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -52,6 +53,9 @@ class SelectionFlowTest {
         composeRule.onNodeWithText(title).performTouchInput { longClick() }
 
         // Contextual bar appears with the close affordance and the selected count.
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithContentDescription("Close selection").fetchSemanticsNodes().isNotEmpty()
+        }
         composeRule.onNodeWithContentDescription("Close selection").assertIsDisplayed()
         composeRule.onNodeWithText("1 selected").assertIsDisplayed()
 

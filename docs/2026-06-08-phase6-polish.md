@@ -24,7 +24,7 @@
 
 Also: the **`LICENSE` file** (GPL-3.0; repo housekeeping) and the deferred
 **notification-text refinements** (pinned-note "Tap to edit or remove"; quick-add
-pin-on-create) slot in where they fit.
+pin-on-create) — **done** (see the housekeeping section below).
 
 ## Decisions to settle when planning a slice
 - ~~Multi-select: include batch pin/unpin now (pinning exists) or delete-only?~~
@@ -315,8 +315,13 @@ revisit in a later pass if wanted.
 
 ## Notification refinements + LICENSE (housekeeping)
 
-**Status (2026-06-09) — planned.** The two deferred notification-text refinements plus
-the repo's GPL-3.0 LICENSE file.
+**Status (2026-06-09) — complete.** Tests: 53 JVM unit + 21 instrumented, all green; no
+`INTERNET`. The two deferred notification-text refinements plus the repo's GPL-3.0 LICENSE
+file. Verified live on the emulator: the quick-add deep link (`/new?pin=true`) creates a
+note that is **pinned on save** (status-bar silhouette + filled row icon); the pinned
+notification shows the **"Tap to edit or remove"** hint when the description is empty (the
+description otherwise); and **tapping the notification body opens the editor**. CLAUDE.md
+and the design doc were updated for the body-tap invariant change.
 
 **Confirmed decisions:**
 - **Pinned-note content line** — show the note **description** when non-blank; fall back

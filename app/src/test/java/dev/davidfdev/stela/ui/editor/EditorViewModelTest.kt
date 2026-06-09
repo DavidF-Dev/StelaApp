@@ -40,9 +40,12 @@ class EditorViewModelTest {
         val controller = FakeNotificationController()
         val pinner = NotePinner(repository, controller, FakeServiceController(), FakeSettingsRepository())
 
-        fun viewModel(noteId: Long? = null): EditorViewModel {
-            val handle = if (noteId == null) SavedStateHandle() else SavedStateHandle(mapOf("noteId" to noteId))
-            return EditorViewModel(repository, pinner, handle)
+        fun viewModel(noteId: Long? = null, pinOnSave: Boolean = false): EditorViewModel {
+            val map = buildMap<String, Any> {
+                if (noteId != null) put("noteId", noteId)
+                if (pinOnSave) put("pin", true)
+            }
+            return EditorViewModel(repository, pinner, SavedStateHandle(map))
         }
     }
 
@@ -63,6 +66,33 @@ class EditorViewModelTest {
         assertEquals(1, notes.size)
         assertEquals("Milk", notes[0].title)
         assertEquals("2L", notes[0].description)
+    }
+
+    @Test
+    fun newNote_save_withPinFlag_pinsCreatedNote() = runTest(dispatcher) {
+        val f = Fixture()
+        val viewModel = f.viewModel(pinOnSave = true)
+
+        viewModel.onTitleChange("Pinned on create")
+        viewModel.save { }
+        advanceUntilIdle()
+
+        val note = f.repository.notes.first().single()
+        assertTrue(note.isPinned)
+        assertEquals(listOf(note.id), f.controller.pinned.map { it.id })
+    }
+
+    @Test
+    fun newNote_save_withoutPinFlag_doesNotPin() = runTest(dispatcher) {
+        val f = Fixture()
+        val viewModel = f.viewModel()
+
+        viewModel.onTitleChange("Plain")
+        viewModel.save { }
+        advanceUntilIdle()
+
+        assertFalse(f.repository.notes.first().single().isPinned)
+        assertTrue(f.controller.pinned.isEmpty())
     }
 
     @Test
