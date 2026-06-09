@@ -72,8 +72,10 @@ Run per device. Target families: **Samsung (One UI)**, **Pixel/AOSP**, **OnePlus
 
 ### Setup
 - [ ] Install; grant the notification permission when prompted (Android 13+).
-- [ ] Settings → the **Battery optimization** row opens the system screen; exempt Stela.
-- [ ] Settings → if an **Auto-start** row is shown, enable Stela's autostart.
+- [ ] Settings → the **Battery optimisation** row opens a guidance dialog; use it (or the
+  steps) to set Stela to Unrestricted / ignore battery optimisation.
+- [ ] Settings → if an **Auto-start** row is shown, open its dialog and enable Stela in the
+  device's auto-launch settings.
 
 ### Core persistence
 - [ ] Pin a note → it appears as an ongoing notification.

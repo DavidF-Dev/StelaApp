@@ -169,11 +169,12 @@ data class Note(
    - **Hide on lock screen** — when on, pinned-note notifications are hidden on a
      secure lock screen (notification visibility SECRET) — *Phase 5* (default off).
    - Toggle the persistent **quick-add** notification.
-   - **Battery optimization** helper (request exemption).
-   - **OEM autostart** helper (deep-link / guidance where detectable).
+   - **Battery optimisation** helper — a guidance dialog (manual steps + a best-effort
+     "open settings" shortcut), since the system screen is unreliable on some OEMs.
+   - **OEM autostart** helper — same guidance dialog; shown for any known aggressive OEM.
    - **About** — version, author (**David F Dev**), the privacy promise ("nothing
      leaves your device"), a short "how Stela works" honest-persistence note, and an
-     open-source licenses list (static) — *Phase 6*.
+     open-source licences list (static) — *Phase 6*.
    - (v2 placeholder) Export / import.
 
 ### Pinned-note notification anatomy

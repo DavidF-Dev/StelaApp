@@ -162,6 +162,9 @@ the plan flags what is automatable vs real-device-only.
 - **Settings "Keep notes alive" section** — a **Battery optimization** row (shows
   exempt/not-exempt, opens settings) and an **OEM autostart** row (shown when a known
   manufacturer is detected; opens it, else guidance). State re-reads on resume.
+  *(Revised 2026-06-09: both rows now open a guidance dialog — manual steps + a best-effort
+  "open settings" shortcut + a caveat — and the autostart row shows for any known OEM. See
+  the design doc and [2026-06-09-6g-verification.md](2026-06-09-6g-verification.md).)*
 - **Re-assert-on-clear** — `NotificationController` adds a `deleteIntent` to each
   pinned notification; `NotificationActionReceiver` gains a `REASSERT` action that
   re-posts the note **only if it is still pinned** (so Remove/unpin, which cancel
