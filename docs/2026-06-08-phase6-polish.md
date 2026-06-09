@@ -4,6 +4,12 @@
 > The "everything before v1 ships" phase. Sequenced so localisation comes first
 > (it's an invasive refactor that every later slice would otherwise redo).
 
+**Status (2026-06-09): Phase 6 complete.** All slices 6a–6g plus the `LICENSE` file and the
+notification-text refinements are done and verified (53 JVM unit + 21 instrumented tests
+green; no `INTERNET`). The only outstanding item is the **real-device OEM matrix** (6g
+Part C), deferred to the maintainer's later personal-device pass — see
+[2026-06-09-6g-verification.md](2026-06-09-6g-verification.md).
+
 ## Slices & recommended order
 
 - **6a — Localisation foundation** *(done)* — externalize all UI + notification

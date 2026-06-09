@@ -327,9 +327,8 @@ One service, one baseline notification, no redundancy.
 and multi-select / batch actions (→ Phase 6), plain-text **share** (→ Phase 6),
 **About screen** (→ Phase 6), **localisation** via string externalisation (→ early
 Phase 6), and **list querying** — search / sort / filter (→ Phase 7) — were added
-after Phase 1. The repo is licensed **GPL-3.0** (a `LICENSE` file is still to be
-added). All features are deferred to their natural phases rather than implemented
-eagerly. Notes:
+after Phase 1. The repo is licensed **GPL-3.0** (`LICENSE` file added in Phase 6). All
+features are deferred to their natural phases rather than implemented eagerly. Notes:
 search, sort, and filter share **one in-memory derivation** over the notes flow
 (fine at personal scale; move to SQL `WHERE`/`ORDER BY` and Room FTS only if a
 library ever grows to thousands of notes); persisted sort/filter selections depend
