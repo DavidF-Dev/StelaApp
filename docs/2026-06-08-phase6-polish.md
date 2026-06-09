@@ -34,8 +34,10 @@ pin-on-create) slot in where they fit.
   #4A57B5; no dynamic color, no toggle.
 - ~~About: include a "view source" link (opens a browser; no `INTERNET` for Stela)?~~
   **Resolved (6e):** yes — `ACTION_VIEW` to the OS browser, Stela stays `INTERNET`-free.
-- Notification refinements: confirm the pinned-note content should become "Tap to
-  edit or remove" (replaces showing the description).
+- ~~Notification refinements: confirm the pinned-note content should become "Tap to
+  edit or remove" (replaces showing the description).~~ **Resolved:** show the
+  description when present, fall back to the hint only when it's empty; body tap now
+  opens the editor; quick-add pins on create.
 
 ---
 
@@ -308,3 +310,49 @@ notification). Almost pure resources — no unit-testable logic.
 
 **Deferred:** a branded splash screen (SplashScreen API) is outside the doc's 6f bullet;
 revisit in a later pass if wanted.
+
+---
+
+## Notification refinements + LICENSE (housekeeping)
+
+**Status (2026-06-09) — planned.** The two deferred notification-text refinements plus
+the repo's GPL-3.0 LICENSE file.
+
+**Confirmed decisions:**
+- **Pinned-note content line** — show the note **description** when non-blank; fall back
+  to the **"Tap to edit or remove"** hint only when the description is empty (so a
+  title-only note still has a useful, action-pointing line). `BigTextStyle` applies only
+  when showing a description.
+- **Pinned-note body tap now opens the editor** (was a no-op). This changes a documented
+  invariant — CLAUDE.md and the design doc are updated to match; the hint wording is then
+  accurate (body tap, or Edit, opens the editor).
+- **Quick-add pin-on-create** — both the **New note** action *and* the notification body
+  tap open a fresh editor that **pins the note when it is saved**. Pinning is
+  permission-gated at the platform level: if `POST_NOTIFICATIONS` is denied the note still
+  saves (unpinned); in practice quick-add already implies the permission.
+- **LICENSE** — verbatim GPL-3.0 text at the repo root (fetched from gnu.org).
+
+**Pinned notification (`AndroidNotificationController.post`)**
+- Content line = `description` if non-blank, else the hint string; `BigTextStyle` only
+  with a description.
+- `setContentIntent(editIntent(note.id))` so the body tap opens the editor.
+
+**Quick-add pin-on-create flow**
+- The editor's new-note route gains an optional `pin` argument; the quick-add `New note`
+  action and the body-tap deep links set `pin=true`.
+- `EditorViewModel` reads the flag; on saving a *new* note with it set, it routes the
+  created note through `NotePinner.pin`.
+
+**Strings**: `notification_pinned_hint` = "Tap to edit or remove".
+
+**Tasks**
+1. `LICENSE` (GPL-3.0, fetched from gnu.org).
+2. Pinned-note: description-or-hint content line + body-tap-opens-editor; hint string.
+3. Pin-on-create: `pin` nav arg + deep links; `EditorViewModel` pins the new note on
+   save (TDD).
+4. Invariant docs: update CLAUDE.md + design doc (body tap, content line).
+5. Verify (build + unit tests; manual/instrumented: pinned body tap opens editor;
+   quick-add New note → the saved note is pinned).
+
+**Testing**: JVM for the pin-on-create save logic (`EditorViewModelTest`); manual/
+instrumented for the body-tap deep links and the notification text.
