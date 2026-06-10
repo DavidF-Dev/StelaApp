@@ -21,7 +21,7 @@ object BackupCodec {
     /// unpinned (so a bulk import never floods the status bar); other fields are preserved.
     fun decode(text: String): Result<List<Note>> = runCatching {
         // Strip a leading UTF-8 byte-order mark; some editors prepend one and the parser chokes on it.
-        json.decodeFromString(NotesBackup.serializer(), text.removePrefix("﻿")).notes.map { it.toNote() }
+        json.decodeFromString(NotesBackup.serializer(), text.removePrefix("\uFEFF")).notes.map { it.toNote() }
     }
 }
 
