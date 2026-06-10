@@ -399,6 +399,17 @@ implement); all keep the no-`INTERNET` invariant.
    chosen time (`AlarmManager` + exact-alarm permission). A natural extension of "pin as
    notification" and the largest; a deliberate step toward reminder territory, so confirm
    scope before building.
+5. **Emoji-picker search** *(planned — see [2026-06-10-emoji-search-vanniktech.md](2026-06-10-emoji-search-vanniktech.md))* —
+   the AndroidX `EmojiPickerView` has no search and exposes no way to add one, so the plan replaces it
+   with **vanniktech/Emoji**'s standalone `EmojiView` (search on by default, matches emoji by
+   shortcode), kept in the existing themed `BottomSheetDialog` host. Apache-2.0 (GPL-3 compatible);
+   uses the `emoji-androidx-emoji2` provider so glyphs render through the app's existing
+   `emoji2`/`EmojiCompat` backing — no sprite sheets, no `INTERNET`, ≈ net-flat APK size (the heavy
+   sprite providers and the network-backed `emoji-google-compat` are rejected). The one non-trivial
+   cost: vanniktech's search dialog is a `DialogFragment`, so `MainActivity` must move from
+   `ComponentActivity` to `AppCompatActivity` (with a Material3 window theme). A considered fallback —
+   a toggle to the soft keyboard so the user searches via their keyboard's own emoji panel — was kept
+   in reserve (clunkier: there is no API to open the keyboard directly in emoji mode).
 
 Lower priority, kept deferred: a branded splash screen and an in-app language picker.
 
