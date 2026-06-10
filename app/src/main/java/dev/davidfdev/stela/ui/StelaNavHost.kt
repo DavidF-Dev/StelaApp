@@ -27,7 +27,14 @@ object Routes {
 }
 
 @Composable
-fun StelaNavHost(navController: NavHostController = rememberNavController()) {
+fun StelaNavHost(
+    navController: NavHostController = rememberNavController(),
+    finishOnEditorDone: Boolean = false,
+    onFinish: () -> Unit = {},
+) {
+    val onEditorDone: () -> Unit = {
+        if (finishOnEditorDone) onFinish() else navController.popBackStack()
+    }
     NavHost(navController = navController, startDestination = Routes.LIST) {
         composable(
             route = Routes.LIST,
@@ -53,7 +60,7 @@ fun StelaNavHost(navController: NavHostController = rememberNavController()) {
                 },
             ),
         ) {
-            EditorRoute(onDone = { navController.popBackStack() })
+            EditorRoute(onDone = onEditorDone)
         }
         composable(
             route = Routes.EDITOR_EDIT,
@@ -65,7 +72,7 @@ fun StelaNavHost(navController: NavHostController = rememberNavController()) {
                 },
             ),
         ) {
-            EditorRoute(onDone = { navController.popBackStack() })
+            EditorRoute(onDone = onEditorDone)
         }
         composable(Routes.SETTINGS) {
             SettingsRoute(

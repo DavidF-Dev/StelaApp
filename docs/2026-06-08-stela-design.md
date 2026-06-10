@@ -273,14 +273,18 @@ One service, one baseline notification, no redundancy.
 - **OEM active-notification caps (~24–50):** "unlimited notes" is fine, but
   pinning hundreds may hit an OEM ceiling → documented expectation, not a blocker.
 - **Channel disabled by user:** detect and prompt (see §7).
-- **Notification → editor return (planned, v1.x):** opening the editor from a
-  notification (Edit or quick-add) currently returns to the **Note List** on completion,
-  because the deep link builds a synthetic `[List → Editor]` back stack. Planned: return
-  the user to **where they were** — for a cold/external entry, `finish()` the task (back to
-  home / the previous app); for a warm entry (app already open), `popBackStack` to the prior
-  screen. Distinguish the two via `onCreate` (cold) vs `onNewIntent` (warm). Moderate change
-  (entry-mode flag on the editor deep links + `EditorRoute` finish-vs-pop + a `BackHandler`);
-  verified manually/instrumented. Behaviour polish — fine to ship v1 without it.
+- **Notification → editor return (implemented, v1.1.x):** opening the editor from a
+  notification now returns the user to **where they were** rather than always to the Note
+  List. A cold/external entry (`onCreate` with an `ACTION_VIEW` deep link and no saved
+  state) `finish()`es the task on completion — back to home / the previous app; a warm entry
+  (`onNewIntent`) and in-app navigation `popBackStack` instead. The decision is a
+  `finishOnEditorDone` flag set in `onCreate` (classified by `isNotificationDeepLink`),
+  reset on `onNewIntent`, and persisted across recreation in `onSaveInstanceState`; it is
+  threaded into the editor deep links, and a `BackHandler` routes system back through the
+  same exit. *Warm fidelity:* a warm entry pops to the **list** (the deep link rebuilds the
+  `[List → Editor]` back stack), not an arbitrary prior screen such as Settings — accepted,
+  since the list is the usual warm screen. Verified: cold→finish (device), in-app→list
+  (instrumented); warm→list shares the in-app pop mechanism.
 - **Play `specialUse` review:** the biggest publishing risk; mitigated by the
   justification string and honest functionality.
 
@@ -358,10 +362,11 @@ makes icons distinguishable; **share** keeps the app offline — Stela only hand
 plain text to the OS share sheet and declares no `INTERNET`.
 
 **v1.1.0 (implemented, pending release):** auto-capitalise the editor fields, a **"swipe to
-unpin"** setting, and a per-note **emoji** shown in the list + notification title (via a
+unpin"** setting, a per-note **emoji** shown in the list + notification title (via a
 derived `displayTitle`; `Note.emoji` column, DB v2) — the emoji supersedes the deferred v2
-icon-set picker. See [2026-06-10-v1.1-features.md](2026-06-10-v1.1-features.md). The
-notification-→-editor return-to-context behaviour (§9) remains a v1.x follow-up.
+icon-set picker — and **notification-→-editor return-to-context** (§9): a cold notification
+entry finishes back to home on completion instead of landing on an unvisited list. See
+[2026-06-10-v1.1-features.md](2026-06-10-v1.1-features.md).
 
 **v2 (deferred):** JSON export/import, optional "tap = edit", widget.
 

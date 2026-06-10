@@ -37,10 +37,19 @@ class MainActivity : ComponentActivity() {
 
     private var navController: NavHostController? = null
 
+    // Cold-started from a notification: finishing the editor returns home, not to an unvisited list.
+    private val finishOnEditorDone = mutableStateOf(false)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val container = (application as StelaApp).container
+
+        finishOnEditorDone.value = if (savedInstanceState != null) {
+            savedInstanceState.getBoolean(KEY_FINISH_ON_EDITOR_DONE)
+        } else {
+            isNotificationDeepLink(intent.action, intent.data?.scheme)
+        }
         setContent {
             val settings by container.settingsRepository.settings.collectAsStateWithLifecycle(initialValue = Settings())
             val darkTheme = when (settings.themeMode) {
@@ -62,10 +71,19 @@ class MainActivity : ComponentActivity() {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     val controller = rememberNavController()
                     SideEffect { navController = controller }
-                    StelaNavHost(controller)
+                    StelaNavHost(
+                        navController = controller,
+                        finishOnEditorDone = finishOnEditorDone.value,
+                        onFinish = { finish() },
+                    )
                 }
             }
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(KEY_FINISH_ON_EDITOR_DONE, finishOnEditorDone.value)
     }
 
     /// The launch intent's deep link is handled by NavHost automatically; a singleTop
@@ -73,7 +91,13 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        // Warm re-delivery: the app was already open, so finishing the editor pops rather than ends the task.
+        finishOnEditorDone.value = false
         navController?.handleDeepLink(intent)
+    }
+
+    private companion object {
+        const val KEY_FINISH_ON_EDITOR_DONE = "finish_on_editor_done"
     }
 }
 

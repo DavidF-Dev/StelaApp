@@ -14,6 +14,8 @@ All notable changes to Stela are documented here. This project adheres to
 ### Changed
 - The note Title and Description fields now auto-capitalise the first letter.
 - The pinned-notification "Remove" action is now labelled "Unpin".
+- Opening the editor from a notification when the app was closed now returns you to your
+  home screen on save or back, instead of dropping you on a note list you never opened.
 
 ## [1.0.0] — 2026/06/09
 

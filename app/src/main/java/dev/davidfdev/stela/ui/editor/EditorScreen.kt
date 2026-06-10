@@ -1,5 +1,6 @@
 package dev.davidfdev.stela.ui.editor
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -106,6 +107,9 @@ fun EditorScreen(
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showEmojiPicker by remember { mutableStateOf(false) }
+
+    // Route system back through the same exit as the back arrow so a cold notification launch finishes the task.
+    BackHandler(onBack = onBack)
 
     Scaffold(
         topBar = {

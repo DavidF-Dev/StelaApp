@@ -151,7 +151,9 @@ class AndroidNotificationController(private val context: Context) : Notification
         const val CHANNEL_PINNED = "pinned_notes"
         const val CHANNEL_QUICK_ADD = "quick_add"
         const val CHANNEL_SERVICE_STATUS = "service_status"
-        const val DEEP_LINK_BASE = "stela://stela"
+        // Deep-link base is scheme://host; the scheme alone identifies our intents.
+        const val DEEP_LINK_SCHEME = "stela"
+        const val DEEP_LINK_BASE = "$DEEP_LINK_SCHEME://stela"
 
         // Reserved id outside the note-id space (note ids are positive, from 1).
         const val QUICK_ADD_NOTIFICATION_ID = -1
