@@ -3,7 +3,7 @@
 All notable changes to Stela are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
-## [1.1.0] - unreleased
+## [1.1.0] - 2026/06/10
 
 ### Added
 - Per-note emoji, shown before the title in the note list and the notification; chosen with
