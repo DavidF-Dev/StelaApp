@@ -16,7 +16,7 @@ val keystoreProperties = Properties().apply {
 
 // Single source of truth: versionName drives versionCode (major*10000 + minor*100 + patch),
 // so bumping the name is enough and the code can never be forgotten or go backwards.
-val stelaVersionName = "1.1.0"
+val stelaVersionName = "1.2.0"
 val stelaVersionCode = stelaVersionName.split(".").map(String::toInt).let { (major, minor, patch) ->
     major * 10000 + minor * 100 + patch
 }
