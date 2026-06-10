@@ -8,6 +8,7 @@ class FakeNotificationController : NotificationController {
     val pinned = mutableListOf<Note>()
     val unpinned = mutableListOf<Long>()
     val refreshed = mutableListOf<Note>()
+    val serviceReasserts = mutableListOf<Boolean>()
 
     override var hideOnLockScreen: Boolean = false
     override var swipeToUnpin: Boolean = false
@@ -23,4 +24,6 @@ class FakeNotificationController : NotificationController {
 
     override fun buildServiceRunningNotification(): android.app.Notification =
         throw UnsupportedOperationException("not used in JVM tests")
+
+    override fun reassertServiceNotification(quickAddEnabled: Boolean) { serviceReasserts += quickAddEnabled }
 }

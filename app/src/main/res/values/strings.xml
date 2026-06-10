@@ -107,7 +107,7 @@
     <string name="about_license_title">Licence</string>
     <string name="about_license_body">Stela is free software under the GNU General Public License v3.0.</string>
     <string name="about_licenses_title">Open-source licences</string>
-    <string name="about_licenses_body">Jetpack Compose, AndroidX, and Kotlin — Apache License 2.0.</string>
+    <string name="about_licenses_body">Jetpack Compose, AndroidX, Material Components, and Kotlin — Apache License 2.0.</string>
     <string name="action_view_source">View source</string>
     <string name="about_source_url" translatable="false">https://github.com/DavidF-Dev/StelaApp</string>
 

@@ -61,7 +61,9 @@ DataStore that backs the toggle.
   an injected abstraction (testable with a fake).
 - **Self-heal = re-assert on service start + boot only.** A swiped notification
   heals on the next start or data change. Instant re-assert-on-clear (deleteIntent)
-  is the explicit Phase 5 item.
+  is the explicit Phase 5 item. *(Phase 5 added it for pinned notes; the foreground-service
+  notification itself gained the same deleteIntent self-heal in v1.2.0, once Android 14 made
+  ongoing notifications swipeable — `NotificationActionReceiver.ACTION_REASSERT_SERVICE`.)*
 
 ## Invariants honored
 

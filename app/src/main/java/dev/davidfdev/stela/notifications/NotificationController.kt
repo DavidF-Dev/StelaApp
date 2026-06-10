@@ -25,4 +25,8 @@ interface NotificationController {
     /// Builds the minimal "running" notification the service shows when quick-add is
     /// disabled but it must stay alive to keep pinned notes posted.
     fun buildServiceRunningNotification(): android.app.Notification
+
+    /// Re-posts the foreground-service notification (quick-add or "running") after the
+    /// user swipes it away — the self-heal triggered by its deleteIntent.
+    fun reassertServiceNotification(quickAddEnabled: Boolean)
 }

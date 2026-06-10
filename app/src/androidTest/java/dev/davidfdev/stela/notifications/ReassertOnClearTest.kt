@@ -59,6 +59,24 @@ class ReassertOnClearTest {
     }
 
     @Test
+    fun reassertService_repostsServiceNotification_whenServiceShouldRun() = runBlocking {
+        val repository = app.container.noteRepository
+        // A pinned note forces the service-should-run rule true regardless of quick-add.
+        val id = repository.create(title = "Pinned", description = "x").also { createdIds += it }
+        repository.setPinned(id, true)
+        manager.cancelAll()
+
+        context.sendBroadcast(NotificationActionReceiver.reassertServiceIntent(context))
+
+        waitUntil {
+            manager.activeNotifications.any { it.id == AndroidNotificationController.QUICK_ADD_NOTIFICATION_ID }
+        }
+        assertTrue(
+            manager.activeNotifications.any { it.id == AndroidNotificationController.QUICK_ADD_NOTIFICATION_ID },
+        )
+    }
+
+    @Test
     fun reassert_doesNothing_whenNotPinned() = runBlocking {
         val repository = app.container.noteRepository
         val id = repository.create(title = "Unpinned", description = "x").also { createdIds += it }

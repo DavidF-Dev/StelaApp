@@ -58,6 +58,13 @@ class AndroidNotificationController(private val context: Context) : Notification
 
     // The caller gates posting behind POST_NOTIFICATIONS; lint cannot see that.
     @SuppressLint("MissingPermission")
+    override fun reassertServiceNotification(quickAddEnabled: Boolean) {
+        val notification = if (quickAddEnabled) buildQuickAddNotification() else buildServiceRunningNotification()
+        manager.notify(QUICK_ADD_NOTIFICATION_ID, notification)
+    }
+
+    // The caller gates posting behind POST_NOTIFICATIONS; lint cannot see that.
+    @SuppressLint("MissingPermission")
     private fun post(note: Note) {
         val visibility =
             if (hideOnLockScreen) NotificationCompat.VISIBILITY_SECRET else NotificationCompat.VISIBILITY_PUBLIC
@@ -106,6 +113,11 @@ class AndroidNotificationController(private val context: Context) : Notification
         return PendingIntent.getBroadcast(context, notificationId(noteId), intent, PENDING_FLAGS)
     }
 
+    private fun reassertServiceIntent(): PendingIntent {
+        val intent = NotificationActionReceiver.reassertServiceIntent(context)
+        return PendingIntent.getBroadcast(context, REASSERT_SERVICE_REQUEST, intent, PENDING_FLAGS)
+    }
+
     // Body tap and the New note action open a fresh editor that pins on save; View notes
     // opens the list.
     override fun buildQuickAddNotification(): android.app.Notification {
@@ -122,6 +134,8 @@ class AndroidNotificationController(private val context: Context) : Notification
             .setOnlyAlertOnce(true)
             .setSilent(true)
             .setShowWhen(false)
+            // Android 14+ lets users swipe ongoing notifications away; re-post on swipe.
+            .setDeleteIntent(reassertServiceIntent())
             .addAction(0, context.getString(R.string.notification_action_new_note), newNote)
             .addAction(0, context.getString(R.string.notification_action_view_notes), deepLinkActivityIntent("$DEEP_LINK_BASE/list", QUICK_ADD_VIEW_REQUEST))
             .build()
@@ -140,6 +154,8 @@ class AndroidNotificationController(private val context: Context) : Notification
             .setOnlyAlertOnce(true)
             .setSilent(true)
             .setShowWhen(false)
+            // Android 14+ lets users swipe ongoing notifications away; re-post on swipe.
+            .setDeleteIntent(reassertServiceIntent())
             .build()
 
     private fun deepLinkActivityIntent(uri: String, requestCode: Int): PendingIntent {
@@ -161,6 +177,7 @@ class AndroidNotificationController(private val context: Context) : Notification
         private const val QUICK_ADD_NEW_REQUEST = -2
         private const val QUICK_ADD_VIEW_REQUEST = -3
         private const val SERVICE_RUNNING_REQUEST = -4
+        private const val REASSERT_SERVICE_REQUEST = -5
         private const val PENDING_FLAGS =
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
     }
