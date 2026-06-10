@@ -6,6 +6,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.davidfdev.stela.MainActivity
@@ -37,7 +38,8 @@ class AboutFlowTest {
     @Test
     fun settingsToAbout_showsVersionAndAuthor() {
         composeRule.onNodeWithContentDescription("Settings").performClick()
-        composeRule.onNodeWithText("About Stela").performClick()
+        // Scroll the row into view first: it sits below the Settings fold, and performClick does not auto-scroll.
+        composeRule.onNodeWithText("About Stela").performScrollTo().performClick()
 
         // Derive the expected text from the build so the test never needs a version bump.
         val context = InstrumentationRegistry.getInstrumentation().targetContext

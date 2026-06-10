@@ -410,20 +410,26 @@ implement); all keep the no-`INTERNET` invariant.
    scheme (its built-in `EmojiTheming.from` defaults to fixed light colours that ignore dark mode). The
    one non-trivial structural cost: vanniktech's search dialog is a `DialogFragment`, so `MainActivity`
    moved from `ComponentActivity` to `AppCompatActivity` (and the window theme to Material3 DayNight).
-   Pinned to **0.23.0** — the newest release built with Kotlin 2.1.x (0.24.x needs Kotlin 2.3, which
-   this project's compiler can't read; see the queued toolchain upgrade below). A considered fallback —
-   a toggle to the soft keyboard so the user searches via their keyboard's own emoji panel — was kept
-   in reserve (clunkier: there is no API to open the keyboard directly in emoji mode).
+   First shipped on **0.23.0** (the newest release built with Kotlin 2.1.x); bumped to **0.24.1** once
+   the project moved to Kotlin 2.3 (see the toolchain upgrade below). A considered fallback — a toggle
+   to the soft keyboard so the user searches via their keyboard's own emoji panel — was kept in reserve
+   (clunkier: there is no API to open the keyboard directly in emoji mode).
 
 Lower priority, kept deferred: a branded splash screen and an in-app language picker.
 
-**Queued maintenance — Kotlin toolchain upgrade (its own slice):** bump Kotlin from **2.1.0** to the
-latest 2.3.x, moving the matched set together — `kotlin`, `ksp` (must match the Kotlin version
-exactly), the `kotlin-compose` compiler plugin, and the Compose BOM, plus an AGP/Room-KSP compatibility
-check — then a clean `assembleDebug` + `testDebugUnitTest` + smoke run on its own branch. 2.1.0 is just
-where the project was scaffolded, not a deliberate constraint. The upgrade is decoupled from feature
-work; its main payoff is riding current libraries — notably letting **vanniktech/Emoji** move from the
-Kotlin-2.1-pinned **0.23.0** to **0.24.x** (built with Kotlin 2.3). Not required by any shipped feature.
+**Kotlin toolchain upgrade *(done — 2026-06-10)*:** bumped Kotlin **2.1.0 → 2.3.21**. It cascaded
+through a matched set: **KSP 2.1.0-1.0.29 → 2.3.9** (KSP dropped the `<kotlin>-<ksp>` scheme at 2.3),
+which required **AGP 8.9.2 → 8.10.1** (KSP 2.3 needs AGP ≥ 8.10; 8.10.x still runs on the existing
+Gradle 8.11.1), **Room 2.6.1 → 2.8.4** (2.6.1's KSP processor fails under KSP2 with "unexpected jvm
+signature V"), and **kotlinx-serialization 1.7.3 → 1.9.0** (the old runtime threw `AbstractMethodError`
+against the Kotlin 2.3 serialization plugin / Room 2.8.4's bundle serializers). The build-script
+`kotlinOptions { jvmTarget }` (removed in Kotlin 2.3) was migrated to the `compilerOptions` DSL. One
+brittle instrumented test (`AboutFlowTest`) surfaced — it clicked an off-screen Settings row without
+scrolling; fixed with `performScrollTo()` (not an app regression). Verified green: `assembleDebug`,
+`testDebugUnitTest`, and all 31 instrumented tests. As immediate follow-ups (same day), two currency
+bumps the upgrade unblocked: the **Compose BOM 2024.12.01 → 2026.05.01** and **vanniktech/Emoji
+0.23.0 → 0.24.1** (built with Kotlin 2.3) — both verified green (build, all 31 instrumented tests, and a
+manual emoji-picker smoke check).
 
 ---
 

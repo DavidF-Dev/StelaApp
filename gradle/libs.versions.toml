@@ -1,20 +1,23 @@
 [versions]
-agp = "8.9.2"
-kotlin = "2.1.0"
-ksp = "2.1.0-1.0.29"
+# AGP 8.10+ is required by KSP 2.3.x; 8.10.x runs on the existing Gradle 8.11.1 (8.11+ would need a newer Gradle).
+agp = "8.10.1"
+kotlin = "2.3.21"
+# KSP 2.3.x is the decoupled scheme aligned to the Kotlin 2.3 line (was <kotlin>-<ksp> before 2.3).
+ksp = "2.3.9"
 
 coreKtx = "1.15.0"
 lifecycle = "2.8.7"
 activityCompose = "1.9.3"
-composeBom = "2024.12.01"
+composeBom = "2026.05.01"
 navigationCompose = "2.8.5"
-room = "2.6.1"
+# Room 2.7+ is required for KSP2 (Kotlin 2.3); 2.6.1 fails with "unexpected jvm signature V".
+room = "2.8.4"
 datastore = "1.1.1"
-# 0.23.0 is the newest vanniktech/Emoji built with Kotlin 2.1.x; 0.24.x needs Kotlin 2.3.
-vanniktechEmoji = "0.23.0"
+vanniktechEmoji = "0.24.1"
 appcompat = "1.7.0"
 material = "1.12.0"
-serializationJson = "1.7.3"
+# 1.9.x matches the Kotlin 2.3 serialization plugin and Room 2.8.4's runtime (1.7.3 → AbstractMethodError).
+serializationJson = "1.9.0"
 
 junit = "4.13.2"
 androidxJunit = "1.2.1"

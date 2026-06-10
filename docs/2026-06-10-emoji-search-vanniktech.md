@@ -3,11 +3,10 @@
 > Status: **Implemented** · 2026-06-10 (released in v1.2.0).
 > Replaces the AndroidX `EmojiPickerView` (no search) with vanniktech `EmojiView` (built-in search).
 >
-> **Version pin:** the latest vanniktech/Emoji (0.24.1) is built with Kotlin 2.3 and its metadata is
-> unreadable by this project's Kotlin 2.1.0 compiler (`incompatible version of Kotlin … metadata is
-> 2.3.0, expected 2.1.0`). Pinned **0.23.0** instead — the newest release built with Kotlin 2.1.x —
-> which has identical `EmojiView.setUp(...)` and `AndroidxEmoji2Provider(EmojiCompat)` APIs. Revisit if
-> the project's Kotlin is ever upgraded to 2.3+.
+> **Version:** now on **0.24.1**. Originally pinned to **0.23.0** because 0.24.x is built with Kotlin 2.3
+> and was unreadable by the then-current Kotlin 2.1.0 compiler (`incompatible version of Kotlin … metadata
+> is 2.3.0, expected 2.1.0`); 0.23.0 was the newest Kotlin-2.1.x release with identical APIs. After the
+> Kotlin 2.3.21 toolchain upgrade (2026-06-10) it was bumped to 0.24.1.
 >
 > **Verified on the Pixel_8 emulator:** app launches on the new `AppCompatActivity`/Material3 theme;
 > the picker shows a search tab; tapping it opens the search dialog (the `FragmentActivity` path) with
