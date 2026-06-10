@@ -1,5 +1,7 @@
 package dev.davidfdev.stela.ui.settings
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -28,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,6 +52,7 @@ import dev.davidfdev.stela.settings.ThemeMode
 import dev.davidfdev.stela.ui.openAppNotificationSettings
 import dev.davidfdev.stela.ui.rememberNotificationPermissionGate
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 private enum class OemSettingsDialog { Battery, Autostart }
 
@@ -76,6 +80,29 @@ fun SettingsRoute(
         },
     )
 
+    val exportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json"),
+    ) { uri -> uri?.let { viewModel.export(it) } }
+    val importLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri -> uri?.let { viewModel.import(it) } }
+
+    val exportDone = stringResource(R.string.snackbar_export_done)
+    val exportFailed = stringResource(R.string.snackbar_export_failed)
+    val importFailed = stringResource(R.string.snackbar_import_failed)
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            val message = when (event) {
+                BackupEvent.Exported -> exportDone
+                is BackupEvent.Imported ->
+                    context.resources.getQuantityString(R.plurals.snackbar_import_done, event.count, event.count)
+                BackupEvent.ExportFailed -> exportFailed
+                BackupEvent.ImportFailed -> importFailed
+            }
+            snackbarHostState.showSnackbar(message)
+        }
+    }
+
     var batteryExempt by remember { mutableStateOf(DeviceResilience.isIgnoringBatteryOptimizations(context)) }
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         batteryExempt = DeviceResilience.isIgnoringBatteryOptimizations(context)
@@ -99,6 +126,8 @@ fun SettingsRoute(
             runCatching { context.startActivity(DeviceResilience.batteryOptimizationSettingsIntent()) }
         },
         onOpenAutostart = { autostartIntent?.let { intent -> runCatching { context.startActivity(intent) } } },
+        onExport = { exportLauncher.launch("stela-backup-${LocalDate.now()}.json") },
+        onImport = { importLauncher.launch(arrayOf("application/json")) },
         onOpenAbout = onOpenAbout,
         onBack = onBack,
     )
@@ -117,6 +146,8 @@ fun SettingsScreen(
     onQuickAddEnabledChange: (Boolean) -> Unit,
     onOpenBatterySettings: () -> Unit,
     onOpenAutostart: () -> Unit,
+    onExport: () -> Unit,
+    onImport: () -> Unit,
     onOpenAbout: () -> Unit,
     onBack: () -> Unit,
 ) {
@@ -191,6 +222,18 @@ fun SettingsScreen(
                     modifier = Modifier.clickable { oemDialog = OemSettingsDialog.Autostart },
                 )
             }
+
+            SectionHeader(stringResource(R.string.settings_section_backup))
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.settings_export_title)) },
+                supportingContent = { Text(stringResource(R.string.settings_export_summary)) },
+                modifier = Modifier.clickable(onClick = onExport),
+            )
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.settings_import_title)) },
+                supportingContent = { Text(stringResource(R.string.settings_import_summary)) },
+                modifier = Modifier.clickable(onClick = onImport),
+            )
 
             SectionHeader(stringResource(R.string.settings_section_about))
             ListItem(

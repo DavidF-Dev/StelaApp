@@ -1,5 +1,8 @@
 package dev.davidfdev.stela.ui.settings
 
+import dev.davidfdev.stela.data.FakeBackupIo
+import dev.davidfdev.stela.data.FakeNoteDao
+import dev.davidfdev.stela.data.NoteRepository
 import dev.davidfdev.stela.settings.FakeSettingsRepository
 import dev.davidfdev.stela.settings.ThemeMode
 import kotlinx.coroutines.Dispatchers
@@ -28,9 +31,12 @@ class SettingsViewModelTest {
     @After
     fun tearDown() = Dispatchers.resetMain()
 
+    private fun viewModel(settings: FakeSettingsRepository = FakeSettingsRepository()) =
+        SettingsViewModel(settings, NoteRepository(FakeNoteDao()), FakeBackupIo())
+
     @Test
     fun setThemeMode_updatesState() = runTest(dispatcher) {
-        val viewModel = SettingsViewModel(FakeSettingsRepository())
+        val viewModel = viewModel()
         backgroundScope.launch { viewModel.uiState.collect {} }
         advanceUntilIdle()
 
@@ -42,7 +48,7 @@ class SettingsViewModelTest {
 
     @Test
     fun setHideOnLockScreen_updatesState() = runTest(dispatcher) {
-        val viewModel = SettingsViewModel(FakeSettingsRepository())
+        val viewModel = viewModel()
         backgroundScope.launch { viewModel.uiState.collect {} }
         advanceUntilIdle()
 
@@ -54,7 +60,7 @@ class SettingsViewModelTest {
 
     @Test
     fun setQuickAddEnabled_updatesState() = runTest(dispatcher) {
-        val viewModel = SettingsViewModel(FakeSettingsRepository())
+        val viewModel = viewModel()
         backgroundScope.launch { viewModel.uiState.collect {} }
         advanceUntilIdle()
 

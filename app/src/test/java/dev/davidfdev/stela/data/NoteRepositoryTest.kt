@@ -97,6 +97,42 @@ class NoteRepositoryTest {
     }
 
     @Test
+    fun importNotes_insertsWithFreshIds_preservingFields_andUnpinned() = runTest {
+        // An imported note (id 0 from decode), carrying its original timestamps and emoji.
+        val imported = Note(
+            id = 0,
+            title = "Imported",
+            description = "body",
+            emoji = "📄",
+            isPinned = false,
+            createdAt = 111,
+            updatedAt = 222,
+        )
+
+        val count = repository.importNotes(listOf(imported))
+
+        assertEquals(1, count)
+        val stored = repository.notes.first().single()
+        assertTrue(stored.id > 0)
+        assertEquals("Imported", stored.title)
+        assertEquals("📄", stored.emoji)
+        assertEquals(111L, stored.createdAt)
+        assertEquals(222L, stored.updatedAt)
+        assertFalse(stored.isPinned)
+    }
+
+    @Test
+    fun importNotes_addsToExisting_withoutOverwriting() = runTest {
+        repository.create(title = "Existing", description = "")
+
+        repository.importNotes(
+            listOf(Note(title = "New", description = "", createdAt = 1, updatedAt = 1)),
+        )
+
+        assertEquals(setOf("Existing", "New"), repository.notes.first().map { it.title }.toSet())
+    }
+
+    @Test
     fun setPinned_doesNotReorderList() = runTest {
         now = 1_000L
         val olderId = repository.create(title = "Older", description = "")

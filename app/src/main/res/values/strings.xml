@@ -98,6 +98,19 @@
     <string name="oem_dialog_close">Close</string>
     <string name="oem_dialog_caveat">This shortcut may not work on every device. If nothing opens, follow the steps above.</string>
     <string name="snackbar_quick_add_needs_notifications">Notifications are off — quick-add needs them.</string>
+    <string name="settings_section_backup">Backup</string>
+    <string name="settings_export_title">Export notes</string>
+    <string name="settings_export_summary">Save all notes to a JSON file</string>
+    <string name="settings_import_title">Import notes</string>
+    <string name="settings_import_summary">Add notes from a JSON file</string>
+    <string name="snackbar_export_done">Notes exported</string>
+    <string name="snackbar_export_failed">Couldn\'t export notes</string>
+    <string name="snackbar_import_failed">Couldn\'t import — invalid or unreadable file</string>
+    <plurals name="snackbar_import_done">
+        <item quantity="one">Imported %d note</item>
+        <item quantity="other">Imported %d notes</item>
+    </plurals>
+
     <string name="settings_section_about">About</string>
     <string name="settings_about_title">About Stela</string>
 

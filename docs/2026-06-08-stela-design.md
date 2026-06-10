@@ -384,9 +384,12 @@ implement); all keep the no-`INTERNET` invariant.
    re-inserts each note as it was (preserving id/timestamps, so the same notification
    re-posts). The confirm dialogs were kept in all cases; the editor's single delete keeps its
    confirm dialog without an undo (cross-screen — a possible follow-up).
-2. **JSON export/import** — back up and restore all notes to a file via the Storage Access
-   Framework (offline); the schema was kept flat for exactly this. The data-ownership
-   completion of the privacy promise.
+2. **JSON export/import** *(done — v1.2.0)* — back up and restore all notes to a file via the
+   Storage Access Framework (offline, no `INTERNET`). A versioned `NotesBackup` DTO + a pure
+   `BackupCodec` keep the file format decoupled from the Room entity; the `BackupIo` seam
+   wraps the `ContentResolver`. Import **appends** (each note gets a fresh id, so it never
+   overwrites existing notes) and brings notes in **unpinned**. Settings → Backup → Export /
+   Import. See CHANGELOG.
 3. **Home-screen widget** — a quick-add / pinned-notes widget (Jetpack Glance), extending the
    glanceable, no-app-open spirit onto the home screen. Medium effort (a separate render
    surface).

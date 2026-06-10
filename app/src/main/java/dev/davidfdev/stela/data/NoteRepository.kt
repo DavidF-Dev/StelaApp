@@ -49,4 +49,11 @@ class NoteRepository(
     /// Re-inserts a note exactly as it was — preserving its id and timestamps — so an
     /// undo restores the original row rather than creating a new one.
     suspend fun restore(note: Note): Long = dao.upsert(note)
+
+    /// Inserts imported notes as new rows: each gets a fresh id, so an import adds to the
+    /// library without ever overwriting existing notes. Other fields are kept as given.
+    suspend fun importNotes(notes: List<Note>): Int {
+        notes.forEach { dao.upsert(it.copy(id = 0)) }
+        return notes.size
+    }
 }

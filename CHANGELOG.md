@@ -8,6 +8,8 @@ All notable changes to Stela are documented here. This project adheres to
 ### Added
 - Undo delete: after deleting notes from the list, a snackbar offers to undo and restore
   them, re-pinning any that were pinned.
+- Export and import notes as a JSON file, for backup and transfer. Both use the system file
+  picker and stay fully offline. Importing adds the notes to your existing ones.
 
 ### Fixed
 - The emoji picker now scrolls and its category labels are legible. It is hosted in a
