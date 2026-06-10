@@ -1,6 +1,6 @@
 [versions]
-# AGP 8.10+ is required by KSP 2.3.x; 8.10.x runs on the existing Gradle 8.11.1 (8.11+ would need a newer Gradle).
-agp = "8.10.1"
+# AGP 8.13.2 ships the R8 that parses Kotlin 2.3 metadata (8.10's R8 only handles 2.2); needs Gradle 8.13+.
+agp = "8.13.2"
 kotlin = "2.3.21"
 # KSP 2.3.x is the decoupled scheme aligned to the Kotlin 2.3 line (was <kotlin>-<ksp> before 2.3).
 ksp = "2.3.9"
@@ -22,6 +22,7 @@ serializationJson = "1.9.0"
 junit = "4.13.2"
 androidxJunit = "1.2.1"
 espresso = "3.7.0"
+concurrentFutures = "1.2.0"
 coroutinesTest = "1.9.0"
 
 [libraries]
@@ -59,6 +60,7 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxJunit" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso" }
+androidx-concurrent-futures = { group = "androidx.concurrent", name = "concurrent-futures", version.ref = "concurrentFutures" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

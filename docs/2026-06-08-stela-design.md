@@ -419,9 +419,9 @@ Lower priority, kept deferred: a branded splash screen and an in-app language pi
 
 **Kotlin toolchain upgrade *(done — 2026-06-10)*:** bumped Kotlin **2.1.0 → 2.3.21**. It cascaded
 through a matched set: **KSP 2.1.0-1.0.29 → 2.3.9** (KSP dropped the `<kotlin>-<ksp>` scheme at 2.3),
-which required **AGP 8.9.2 → 8.10.1** (KSP 2.3 needs AGP ≥ 8.10; 8.10.x still runs on the existing
-Gradle 8.11.1), **Room 2.6.1 → 2.8.4** (2.6.1's KSP processor fails under KSP2 with "unexpected jvm
-signature V"), and **kotlinx-serialization 1.7.3 → 1.9.0** (the old runtime threw `AbstractMethodError`
+which required **AGP 8.9.2 → 8.10.1** (KSP 2.3 needs AGP ≥ 8.10), **Room 2.6.1 → 2.8.4** (2.6.1's KSP
+processor fails under KSP2 with "unexpected jvm signature V"), and **kotlinx-serialization 1.7.3 →
+1.9.0** (the old runtime threw `AbstractMethodError`
 against the Kotlin 2.3 serialization plugin / Room 2.8.4's bundle serializers). The build-script
 `kotlinOptions { jvmTarget }` (removed in Kotlin 2.3) was migrated to the `compilerOptions` DSL. One
 brittle instrumented test (`AboutFlowTest`) surfaced — it clicked an off-screen Settings row without
@@ -429,7 +429,13 @@ scrolling; fixed with `performScrollTo()` (not an app regression). Verified gree
 `testDebugUnitTest`, and all 31 instrumented tests. As immediate follow-ups (same day), two currency
 bumps the upgrade unblocked: the **Compose BOM 2024.12.01 → 2026.05.01** and **vanniktech/Emoji
 0.23.0 → 0.24.1** (built with Kotlin 2.3) — both verified green (build, all 31 instrumented tests, and a
-manual emoji-picker smoke check).
+manual emoji-picker smoke check). A later follow-up bumped **AGP 8.10.1 → 8.13.2** and **Gradle 8.11.1
+→ 8.14.5** to clear an R8 release-build warning (`An error occurred when parsing kotlin metadata` — R8
+in AGP 8.10 only parses Kotlin 2.2 metadata; 2.3 needs AGP 8.13.2 / R8 8.13.19). AGP 8.13's stricter
+consistent resolution then surfaced a transitive version skew (`androidx.concurrent:concurrent-futures`
+1.1.0 from `profileinstaller` vs 1.2.0 from the androidx.test libs), resolved with a dependency
+constraint pinning it to 1.2.0. (Two benign warnings remain and are unrelated: the native-lib strip
+notice for `graphics-path`/`datastore`, and a kotlinx-serialization R8 keep-rule note.)
 
 ---
 

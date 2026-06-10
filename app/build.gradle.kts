@@ -137,4 +137,13 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     androidTestImplementation(libs.androidx.room.testing)
     androidTestImplementation(libs.kotlinx.coroutines.test)
+
+    constraints {
+        implementation(libs.androidx.concurrent.futures) {
+            because(
+                "AGP 8.13 consistent resolution needs one concurrent-futures across main and androidTest: " +
+                    "espresso/test-core (atomic androidx.concurrent group) require 1.2.0, but profileinstaller pulls 1.1.0",
+            )
+        }
+    }
 }
