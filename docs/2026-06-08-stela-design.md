@@ -379,8 +379,11 @@ Material `BottomSheetDialog`, and the quick-add notification self-heals when swi
 
 **Planned features (prioritized, 2026-06-10):** each is its own slice (spec → plan →
 implement); all keep the no-`INTERNET` invariant.
-1. **Undo-delete** — a "Note deleted — Undo" snackbar after a single or batch delete; a safety
-   net for the app's one irreversible action. Small.
+1. **Undo-delete** *(done — v1.2.0)* — deleting from the list shows an "Undo" snackbar that
+   restores the notes (re-pinning any that were pinned), via a `NotePinner.restore` seam that
+   re-inserts each note as it was (preserving id/timestamps, so the same notification
+   re-posts). The confirm dialogs were kept in all cases; the editor's single delete keeps its
+   confirm dialog without an undo (cross-screen — a possible follow-up).
 2. **JSON export/import** — back up and restore all notes to a file via the Storage Access
    Framework (offline); the schema was kept flat for exactly this. The data-ownership
    completion of the privacy promise.

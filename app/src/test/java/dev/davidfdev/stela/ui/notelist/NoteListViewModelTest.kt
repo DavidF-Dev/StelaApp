@@ -197,6 +197,53 @@ class NoteListViewModelTest {
     }
 
     @Test
+    fun batchDelete_emitsDeletedEvent_withCount() = runTest(dispatcher) {
+        val repository = NoteRepository(FakeNoteDao()) { 1_000L }
+        val a = repository.create(title = "A", description = "")
+        val b = repository.create(title = "B", description = "")
+        val viewModel = viewModel(repository)
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        val events = mutableListOf<NoteListEvent>()
+        backgroundScope.launch { viewModel.events.collect { events += it } }
+        advanceUntilIdle()
+
+        viewModel.toggleSelection(a)
+        viewModel.toggleSelection(b)
+        advanceUntilIdle()
+        viewModel.batchDelete()
+        advanceUntilIdle()
+
+        assertEquals(listOf(NoteListEvent.NotesDeleted(2)), events)
+    }
+
+    @Test
+    fun undoDelete_restoresLastDeletedBatch_andRepinsPinned() = runTest(dispatcher) {
+        val repository = NoteRepository(FakeNoteDao()) { 1_000L }
+        val a = repository.create(title = "A", description = "")
+        val b = repository.create(title = "B", description = "")
+        repository.setPinned(a, true)
+        val controller = FakeNotificationController()
+        val viewModel = viewModel(repository, controller)
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        advanceUntilIdle()
+
+        viewModel.toggleSelection(a)
+        viewModel.toggleSelection(b)
+        advanceUntilIdle()
+        viewModel.batchDelete()
+        advanceUntilIdle()
+        assertTrue(viewModel.uiState.value.notes.isEmpty())
+
+        viewModel.undoDelete()
+        advanceUntilIdle()
+
+        // Both notes are back; the pinned one is re-pinned and its notification re-posted.
+        assertEquals(setOf("A", "B"), viewModel.uiState.value.notes.map { it.title }.toSet())
+        assertTrue(repository.getById(a)!!.isPinned)
+        assertEquals(listOf(a), controller.pinned.map { it.id })
+    }
+
+    @Test
     fun onSearchChange_narrowsToMatchingNotes() = runTest(dispatcher) {
         val repository = NoteRepository(FakeNoteDao()) { 1_000L }
         repository.create(title = "Grocery list", description = "")

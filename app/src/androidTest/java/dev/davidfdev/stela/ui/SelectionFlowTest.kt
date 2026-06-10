@@ -94,6 +94,34 @@ class SelectionFlowTest {
         }
     }
 
+    @Test
+    fun batchDelete_thenUndo_restoresNote() {
+        val title = "Undo ${System.currentTimeMillis()}"
+        createNote(title)
+
+        composeRule.onNodeWithText(title).performTouchInput { longClick() }
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithContentDescription("Close selection").fetchSemanticsNodes().isNotEmpty()
+        }
+
+        composeRule.onNodeWithContentDescription("Delete").performClick()
+        composeRule.onAllNodesWithText("Delete").onFirst().performClick() // confirm dialog
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText(title).fetchSemanticsNodes().isEmpty()
+        }
+
+        // The undo snackbar appears; tapping Undo brings the note back.
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText("Undo").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText("Undo").performClick()
+
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText(title).fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText(title).assertIsDisplayed()
+    }
+
     private fun createNote(title: String) {
         composeRule.onNodeWithContentDescription("New note").performClick()
         composeRule.onNodeWithText("Title").performTextInput(title)

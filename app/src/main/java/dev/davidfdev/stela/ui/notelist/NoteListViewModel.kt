@@ -12,13 +12,21 @@ import dev.davidfdev.stela.pin.NotePinner
 import dev.davidfdev.stela.settings.NoteFilter
 import dev.davidfdev.stela.settings.SettingsRepository
 import dev.davidfdev.stela.settings.SortOrder
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+
+/// One-shot events the list surfaces to the UI (which can't be modelled as state).
+sealed interface NoteListEvent {
+    /// [count] notes were just deleted; the UI offers an undo.
+    data class NotesDeleted(val count: Int) : NoteListEvent
+}
 
 data class NoteListUiState(
     val notes: List<Note> = emptyList(),
@@ -49,6 +57,11 @@ class NoteListViewModel(
     private val selectedIds = MutableStateFlow<Set<Long>>(emptySet())
     // Transient: search resets each session, unlike the persisted sort/filter.
     private val searchQuery = MutableStateFlow("")
+
+    private val eventsChannel = Channel<NoteListEvent>(Channel.BUFFERED)
+    val events = eventsChannel.receiveAsFlow()
+    // The last batch deleted, held so an Undo can restore it.
+    private var recentlyDeleted: List<Note> = emptyList()
 
     val uiState: StateFlow<NoteListUiState> =
         combine(repository.notes, selectedIds, searchQuery, settingsRepository.settings) { source, selected, search, settings ->
@@ -130,10 +143,21 @@ class NoteListViewModel(
     }
 
     fun batchDelete() {
-        val selected = selectedNotes()
+        val deleted = selectedNotes()
         viewModelScope.launch {
-            pinner.deleteAll(selected)
+            pinner.deleteAll(deleted)
+            recentlyDeleted = deleted
             clearSelection()
+            eventsChannel.send(NoteListEvent.NotesDeleted(deleted.size))
+        }
+    }
+
+    /// Restores the most recently deleted batch (re-pinning the ones that were pinned).
+    fun undoDelete() {
+        val toRestore = recentlyDeleted
+        recentlyDeleted = emptyList()
+        if (toRestore.isNotEmpty()) {
+            viewModelScope.launch { pinner.restore(toRestore) }
         }
     }
 

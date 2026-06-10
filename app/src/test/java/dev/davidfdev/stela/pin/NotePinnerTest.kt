@@ -150,6 +150,28 @@ class NotePinnerTest {
     }
 
     @Test
+    fun restore_reinsertsNotes_repinsPinned_andReconcilesOnce() = runTest {
+        val f = Fixture(quickAddEnabled = false)
+        val a = f.repository.create(title = "A", description = "")
+        val b = f.repository.create(title = "B", description = "")
+        f.pinner.pin(f.repository.getById(a)!!)
+        val deleted = listOf(f.repository.getById(a)!!, f.repository.getById(b)!!)
+        f.pinner.deleteAll(deleted)
+        val startsBefore = f.service.startCount
+        f.controller.pinned.clear()
+
+        f.pinner.restore(deleted)
+
+        // Both notes are back, with their original ids and pin state preserved.
+        assertEquals("A", f.repository.getById(a)!!.title)
+        assertTrue(f.repository.getById(a)!!.isPinned)
+        assertFalse(f.repository.getById(b)!!.isPinned)
+        // Only the pinned one re-posts its notification; one reconcile for the batch.
+        assertEquals(listOf(a), f.controller.pinned.map { it.id })
+        assertEquals(startsBefore + 1, f.service.startCount)
+    }
+
+    @Test
     fun refresh_reposts_onlyWhenPinned() = runTest {
         val f = Fixture()
         val id = f.repository.create(title = "A", description = "")

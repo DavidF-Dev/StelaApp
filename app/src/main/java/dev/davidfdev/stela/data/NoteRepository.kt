@@ -45,4 +45,8 @@ class NoteRepository(
     suspend fun countPinned(): Int = dao.countPinned()
 
     suspend fun delete(note: Note) = dao.delete(note)
+
+    /// Re-inserts a note exactly as it was — preserving its id and timestamps — so an
+    /// undo restores the original row rather than creating a new one.
+    suspend fun restore(note: Note): Long = dao.upsert(note)
 }

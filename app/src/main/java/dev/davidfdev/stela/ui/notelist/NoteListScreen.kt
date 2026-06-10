@@ -42,6 +42,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
@@ -108,6 +109,25 @@ fun NoteListRoute(
             }
         },
     )
+    val undoLabel = stringResource(R.string.action_undo)
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is NoteListEvent.NotesDeleted -> {
+                    val message = context.resources.getQuantityString(
+                        R.plurals.notelist_deleted, event.count, event.count,
+                    )
+                    val result = snackbarHostState.showSnackbar(
+                        message = message,
+                        actionLabel = undoLabel,
+                        duration = SnackbarDuration.Long,
+                    )
+                    if (result == SnackbarResult.ActionPerformed) viewModel.undoDelete()
+                }
+            }
+        }
+    }
+
     val onTogglePin: (Note) -> Unit = { note ->
         if (note.isPinned) viewModel.unpin(note) else gate { viewModel.pin(note) }
     }

@@ -53,6 +53,16 @@ class NotePinner(
         reconcileService()
     }
 
+    /// Restores deleted notes (the inverse of [deleteAll]): re-inserts each as it was,
+    /// re-posts the notifications of the ones that were pinned, then reconciles once.
+    suspend fun restore(notes: List<Note>) {
+        notes.forEach { note ->
+            repository.restore(note)
+            if (note.isPinned) controller.pin(note)
+        }
+        reconcileService()
+    }
+
     /// Re-posts a pinned note's notification so it reflects edited content. A no-op
     /// when the note is not pinned.
     fun refresh(note: Note) {

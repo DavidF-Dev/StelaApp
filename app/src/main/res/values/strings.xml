@@ -14,6 +14,7 @@
     <string name="action_close_selection">Close selection</string>
     <string name="action_select_all">Select all</string>
     <string name="action_deselect_all">Deselect all</string>
+    <string name="action_undo">Undo</string>
     <string name="share_chooser_title">Share note</string>
 
     <!-- Note list -->
@@ -55,6 +56,10 @@
     <plurals name="notelist_delete_dialog_message">
         <item quantity="one">This note will be permanently deleted.</item>
         <item quantity="other">These %d notes will be permanently deleted.</item>
+    </plurals>
+    <plurals name="notelist_deleted">
+        <item quantity="one">Note deleted</item>
+        <item quantity="other">%d notes deleted</item>
     </plurals>
 
     <!-- Editor -->

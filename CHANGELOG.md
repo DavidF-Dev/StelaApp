@@ -5,6 +5,10 @@ All notable changes to Stela are documented here. This project adheres to
 
 ## [1.2.0] - unreleased
 
+### Added
+- Undo delete: after deleting notes from the list, a snackbar offers to undo and restore
+  them, re-pinning any that were pinned.
+
 ### Fixed
 - The emoji picker now scrolls and its category labels are legible. It is hosted in a
   Material bottom sheet themed to match the app's light/dark setting, fixing both the
