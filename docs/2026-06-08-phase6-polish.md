@@ -198,9 +198,26 @@ stale ids pruned). New instrumented `SelectionFlowTest` grants POST_NOTIFICATION
 instrumented for long-press → contextual bar → delete; manual for the permission-gated
 batch pin.
 
-**Deferred — "Select all":** a select-all toggle in the contextual bar (overflow or a
-title affordance) is out of scope here to keep the slice bounded; add it in a later
-polish pass (or fold into this slice if it proves trivial).
+**Select all (follow-up — done 2026-06-10):** a toggle in the selection contextual bar
+that selects **all currently-visible notes** — respecting an active search/filter, since the
+query controls are hidden in selection mode the visible set is *frozen* while selecting (see
+the v1.x list-querying work,
+[2026-06-10-phase7-list-querying.md](2026-06-10-phase7-list-querying.md), for the
+visible-set semantics). Tests: 81 JVM unit + 27 instrumented, all green; no `INTERNET`.
+
+- **Decision:** a single action icon that flips **Select all ↔ Deselect all** off a derived
+  `NoteListUiState.allSelected`. **Deselect-all clears the selection, which exits selection
+  mode** — consistent with the existing invariant that deselecting the last note exits (no
+  separate `inSelectionMode` flag).
+- **Units:** `NoteListViewModel.toggleSelectAll()` reads the visible ids from `uiState`
+  (same source as `selectedNotes()`) and either sets `selectedIds` to all of them or clears
+  it; `NoteListUiState.allSelected` (`notes.isNotEmpty() && notes.all { it.id in
+  selectedIds }`) drives the icon. `SelectionTopBar` gains the action between the count and
+  pin/unpin. New strings `action_select_all` / `action_deselect_all`. No repository/pinner
+  or persistence change.
+- **Tests:** JVM — `toggleSelectAll` selects every visible id, **respects the filter** (only
+  the filtered/visible notes), toggles back to clear, and `allSelected` flips. Instrumented —
+  long-press → Select all → batch delete removes all.
 
 ---
 

@@ -7,6 +7,7 @@ import dev.davidfdev.stela.pin.FakeServiceController
 import dev.davidfdev.stela.pin.NotePinner
 import dev.davidfdev.stela.settings.FakeSettingsRepository
 import dev.davidfdev.stela.settings.NoteFilter
+import dev.davidfdev.stela.settings.Settings
 import dev.davidfdev.stela.settings.SortOrder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -247,5 +248,45 @@ class NoteListViewModelTest {
         // Title order is alphabetical, the reverse here.
         assertEquals(listOf("Apple", "Banana"), viewModel.uiState.value.notes.map { it.title })
         assertEquals(SortOrder.TITLE, viewModel.uiState.value.sortOrder)
+    }
+
+    @Test
+    fun toggleSelectAll_selectsEveryVisibleNote_thenClears() = runTest(dispatcher) {
+        val repository = NoteRepository(FakeNoteDao()) { 1_000L }
+        val a = repository.create(title = "A", description = "")
+        val b = repository.create(title = "B", description = "")
+        val viewModel = viewModel(repository)
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        advanceUntilIdle()
+
+        viewModel.toggleSelectAll()
+        advanceUntilIdle()
+        assertEquals(setOf(a, b), viewModel.uiState.value.selectedIds)
+        assertTrue(viewModel.uiState.value.allSelected)
+
+        // Toggling again with everything selected clears, exiting selection mode.
+        viewModel.toggleSelectAll()
+        advanceUntilIdle()
+        assertEquals(emptySet<Long>(), viewModel.uiState.value.selectedIds)
+        assertFalse(viewModel.uiState.value.inSelectionMode)
+    }
+
+    @Test
+    fun toggleSelectAll_selectsOnlyVisibleNotes_whenFiltered() = runTest(dispatcher) {
+        val repository = NoteRepository(FakeNoteDao()) { 1_000L }
+        val pinned = repository.create(title = "Pinned", description = "")
+        repository.create(title = "Plain", description = "")
+        repository.setPinned(pinned, true)
+        val settings = FakeSettingsRepository(Settings(noteFilter = NoteFilter.PINNED))
+        val viewModel = viewModel(repository, settings = settings)
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        advanceUntilIdle()
+
+        viewModel.toggleSelectAll()
+        advanceUntilIdle()
+
+        // Only the visible (pinned) note is selected, not the filtered-out one.
+        assertEquals(setOf(pinned), viewModel.uiState.value.selectedIds)
+        assertTrue(viewModel.uiState.value.allSelected)
     }
 }

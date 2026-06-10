@@ -67,4 +67,39 @@ class SelectionFlowTest {
             composeRule.onAllNodesWithText(title).fetchSemanticsNodes().isEmpty()
         }
     }
+
+    @Test
+    fun selectAll_selectsEveryNote_thenBatchDeleteRemovesThem() {
+        val stamp = System.currentTimeMillis()
+        val first = "All A $stamp"
+        val second = "All B $stamp"
+        createNote(first)
+        createNote(second)
+
+        // Long-press one note: with another note still unselected, the toggle offers Select all.
+        composeRule.onNodeWithText(first).performTouchInput { longClick() }
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithContentDescription("Select all").fetchSemanticsNodes().isNotEmpty()
+        }
+
+        composeRule.onNodeWithContentDescription("Select all").performClick()
+        // With everything selected the toggle flips to Deselect all.
+        composeRule.onNodeWithContentDescription("Deselect all").assertIsDisplayed()
+
+        composeRule.onNodeWithContentDescription("Delete").performClick()
+        composeRule.onAllNodesWithText("Delete").onFirst().performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText(first).fetchSemanticsNodes().isEmpty() &&
+                composeRule.onAllNodesWithText(second).fetchSemanticsNodes().isEmpty()
+        }
+    }
+
+    private fun createNote(title: String) {
+        composeRule.onNodeWithContentDescription("New note").performClick()
+        composeRule.onNodeWithText("Title").performTextInput(title)
+        composeRule.onNodeWithText("Save").performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText(title).fetchSemanticsNodes().isNotEmpty()
+        }
+    }
 }

@@ -14,6 +14,8 @@ All notable changes to Stela are documented here. This project adheres to
   modified / date created / title, and filter to all / pinned / unpinned notes. An active
   filter is shown as a chip you can tap to clear, and the sort and filter choices are
   remembered.
+- "Select all" in multi-select mode, which selects every note currently shown (respecting an
+  active search or filter).
 
 ### Changed
 - The note Title and Description fields now auto-capitalise the first letter.

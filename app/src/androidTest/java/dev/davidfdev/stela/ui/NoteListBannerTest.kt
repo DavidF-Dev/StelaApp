@@ -30,6 +30,7 @@ class NoteListBannerTest {
                     onTogglePin = {},
                     onToggleSelection = {},
                     onClearSelection = {},
+                    onToggleSelectAll = {},
                     onBatchTogglePin = {},
                     onBatchDelete = {},
                     onSearchChange = {},

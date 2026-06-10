@@ -34,6 +34,9 @@ data class NoteListUiState(
     /// True when the batch toggle should pin (at least one selected note is unpinned);
     /// false when every selected note is already pinned and the toggle should unpin.
     val batchActionPins: Boolean get() = notes.any { it.id in selectedIds && !it.isPinned }
+
+    /// True when every visible note is selected, so the select-all toggle should clear.
+    val allSelected: Boolean get() = notes.isNotEmpty() && notes.all { it.id in selectedIds }
 }
 
 class NoteListViewModel(
@@ -90,6 +93,18 @@ class NoteListViewModel(
 
     fun clearSelection() {
         selectedIds.value = emptySet()
+    }
+
+    /// Selects every visible note, or clears the selection when all are already selected
+    /// (which exits selection mode). Operates on the visible list, so an active filter
+    /// scopes it to what the user can see.
+    fun toggleSelectAll() {
+        val visibleIds = uiState.value.notes.mapTo(mutableSetOf()) { it.id }
+        selectedIds.value = if (visibleIds.isNotEmpty() && selectedIds.value.containsAll(visibleIds)) {
+            emptySet()
+        } else {
+            visibleIds
+        }
     }
 
     /// Pins every selected-unpinned note, or unpins all when every selected note is

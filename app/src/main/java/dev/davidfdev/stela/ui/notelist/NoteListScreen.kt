@@ -20,8 +20,10 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Deselect
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.outlined.PushPin
@@ -126,6 +128,7 @@ fun NoteListRoute(
         onTogglePin = onTogglePin,
         onToggleSelection = viewModel::toggleSelection,
         onClearSelection = viewModel::clearSelection,
+        onToggleSelectAll = viewModel::toggleSelectAll,
         onBatchTogglePin = onBatchTogglePin,
         onBatchDelete = viewModel::batchDelete,
         onSearchChange = viewModel::onSearchChange,
@@ -147,6 +150,7 @@ fun NoteListScreen(
     onTogglePin: (Note) -> Unit,
     onToggleSelection: (Long) -> Unit,
     onClearSelection: () -> Unit,
+    onToggleSelectAll: () -> Unit,
     onBatchTogglePin: () -> Unit,
     onBatchDelete: () -> Unit,
     onSearchChange: (String) -> Unit,
@@ -173,8 +177,10 @@ fun NoteListScreen(
             if (state.inSelectionMode) {
                 SelectionTopBar(
                     count = state.selectedCount,
+                    allSelected = state.allSelected,
                     pinAction = state.batchActionPins,
                     onClose = onClearSelection,
+                    onToggleSelectAll = onToggleSelectAll,
                     onTogglePin = onBatchTogglePin,
                     onDelete = { showDeleteConfirm = true },
                 )
@@ -276,8 +282,10 @@ fun NoteListScreen(
 @Composable
 private fun SelectionTopBar(
     count: Int,
+    allSelected: Boolean,
     pinAction: Boolean,
     onClose: () -> Unit,
+    onToggleSelectAll: () -> Unit,
     onTogglePin: () -> Unit,
     onDelete: () -> Unit,
 ) {
@@ -292,6 +300,13 @@ private fun SelectionTopBar(
         },
         title = { Text(pluralStringResource(R.plurals.notelist_selected_count, count, count)) },
         actions = {
+            IconButton(onClick = onToggleSelectAll) {
+                if (allSelected) {
+                    Icon(Icons.Filled.Deselect, contentDescription = stringResource(R.string.action_deselect_all))
+                } else {
+                    Icon(Icons.Filled.SelectAll, contentDescription = stringResource(R.string.action_select_all))
+                }
+            }
             IconButton(onClick = onTogglePin) {
                 if (pinAction) {
                     Icon(Icons.Outlined.PushPin, contentDescription = stringResource(R.string.action_pin))
