@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.outlined.RadioButtonUnchecked
@@ -133,6 +134,7 @@ fun NoteListRoute(
         onBatchDelete = viewModel::batchDelete,
         onSearchChange = viewModel::onSearchChange,
         onSortChange = viewModel::onSortChange,
+        onToggleSortDirection = viewModel::onToggleSortDirection,
         onFilterChange = viewModel::onFilterChange,
         snackbarHostState = snackbarHostState,
         notificationsBlocked = notificationsBlocked,
@@ -155,6 +157,7 @@ fun NoteListScreen(
     onBatchDelete: () -> Unit,
     onSearchChange: (String) -> Unit,
     onSortChange: (SortOrder) -> Unit,
+    onToggleSortDirection: () -> Unit,
     onFilterChange: (NoteFilter) -> Unit,
     snackbarHostState: SnackbarHostState,
     notificationsBlocked: Boolean,
@@ -250,8 +253,10 @@ fun NoteListScreen(
     if (showSortFilter) {
         SortFilterSheet(
             sortOrder = state.sortOrder,
+            sortReversed = state.sortReversed,
             noteFilter = state.noteFilter,
             onSortChange = onSortChange,
+            onToggleSortDirection = onToggleSortDirection,
             onFilterChange = onFilterChange,
             onDismiss = { showSortFilter = false },
         )
@@ -478,8 +483,10 @@ private fun NoteListTopBar(
 @Composable
 private fun SortFilterSheet(
     sortOrder: SortOrder,
+    sortReversed: Boolean,
     noteFilter: NoteFilter,
     onSortChange: (SortOrder) -> Unit,
+    onToggleSortDirection: () -> Unit,
     onFilterChange: (NoteFilter) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -493,6 +500,10 @@ private fun SortFilterSheet(
                     onClick = { onSortChange(order) },
                 )
             }
+            SortDirectionRow(
+                label = stringResource(sortDirectionLabel(sortOrder, sortReversed)),
+                onToggle = onToggleSortDirection,
+            )
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
             SheetSectionLabel(stringResource(R.string.notelist_filter_label))
             NoteFilter.entries.forEach { filter ->
@@ -549,6 +560,22 @@ private fun ChoiceRow(label: String, selected: Boolean, onClick: () -> Unit) {
     }
 }
 
+@Composable
+private fun SortDirectionRow(label: String, onToggle: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onToggle)
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        IconButton(onClick = onToggle) {
+            Icon(Icons.Filled.SwapVert, contentDescription = stringResource(R.string.action_sort_direction))
+        }
+        Text(label, modifier = Modifier.padding(start = 8.dp))
+    }
+}
+
 private fun sortLabel(order: SortOrder): Int = when (order) {
     SortOrder.MODIFIED -> R.string.notelist_sort_modified
     SortOrder.CREATED -> R.string.notelist_sort_created
@@ -559,4 +586,12 @@ private fun filterLabel(filter: NoteFilter): Int = when (filter) {
     NoteFilter.ALL -> R.string.notelist_filter_all
     NoteFilter.PINNED -> R.string.notelist_filter_pinned
     NoteFilter.UNPINNED -> R.string.notelist_filter_unpinned
+}
+
+// The direction label is order-aware: newest/oldest for the timestamps, A–Z/Z–A for title.
+private fun sortDirectionLabel(order: SortOrder, reversed: Boolean): Int = when (order) {
+    SortOrder.MODIFIED, SortOrder.CREATED ->
+        if (reversed) R.string.notelist_sort_oldest_first else R.string.notelist_sort_newest_first
+    SortOrder.TITLE ->
+        if (reversed) R.string.notelist_sort_z_a else R.string.notelist_sort_a_z
 }

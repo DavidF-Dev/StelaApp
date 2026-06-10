@@ -17,6 +17,7 @@ class SettingsMappingTest {
         assertTrue(settings.quickAddEnabled)
         assertFalse(settings.swipeToUnpin)
         assertEquals(SortOrder.MODIFIED, settings.sortOrder)
+        assertFalse(settings.sortReversed)
         assertEquals(NoteFilter.ALL, settings.noteFilter)
     }
 
@@ -28,6 +29,7 @@ class SettingsMappingTest {
             SettingsKeys.QUICK_ADD_ENABLED to false,
             SettingsKeys.SWIPE_TO_UNPIN to true,
             SettingsKeys.SORT_ORDER to SortOrder.TITLE.name,
+            SettingsKeys.SORT_REVERSED to true,
             SettingsKeys.NOTE_FILTER to NoteFilter.PINNED.name,
         )
 
@@ -38,6 +40,7 @@ class SettingsMappingTest {
         assertFalse(settings.quickAddEnabled)
         assertTrue(settings.swipeToUnpin)
         assertEquals(SortOrder.TITLE, settings.sortOrder)
+        assertTrue(settings.sortReversed)
         assertEquals(NoteFilter.PINNED, settings.noteFilter)
     }
 

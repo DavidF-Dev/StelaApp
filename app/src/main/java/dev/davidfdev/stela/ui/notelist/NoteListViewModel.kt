@@ -25,6 +25,7 @@ data class NoteListUiState(
     val selectedIds: Set<Long> = emptySet(),
     val searchQuery: String = "",
     val sortOrder: SortOrder = SortOrder.MODIFIED,
+    val sortReversed: Boolean = false,
     val noteFilter: NoteFilter = NoteFilter.ALL,
     val isSourceEmpty: Boolean = true,
 ) {
@@ -54,10 +55,11 @@ class NoteListViewModel(
             // Drop ids whose note no longer exists so selection can't outlive a delete.
             val present = selected.filterTo(mutableSetOf()) { id -> source.any { it.id == id } }
             NoteListUiState(
-                notes = applyQuery(source, search, settings.sortOrder, settings.noteFilter),
+                notes = applyQuery(source, search, settings.sortOrder, settings.noteFilter, settings.sortReversed),
                 selectedIds = present,
                 searchQuery = search,
                 sortOrder = settings.sortOrder,
+                sortReversed = settings.sortReversed,
                 noteFilter = settings.noteFilter,
                 isSourceEmpty = source.isEmpty(),
             )
@@ -73,6 +75,11 @@ class NoteListViewModel(
 
     fun onSortChange(order: SortOrder) {
         viewModelScope.launch { settingsRepository.setSortOrder(order) }
+    }
+
+    fun onToggleSortDirection() {
+        val reversed = uiState.value.sortReversed
+        viewModelScope.launch { settingsRepository.setSortReversed(!reversed) }
     }
 
     fun onFilterChange(filter: NoteFilter) {

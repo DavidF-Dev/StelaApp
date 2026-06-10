@@ -29,6 +29,10 @@ class FakeSettingsRepository(initial: Settings = Settings()) : SettingsRepositor
         state.update { it.copy(sortOrder = value) }
     }
 
+    override suspend fun setSortReversed(value: Boolean) {
+        state.update { it.copy(sortReversed = value) }
+    }
+
     override suspend fun setNoteFilter(value: NoteFilter) {
         state.update { it.copy(noteFilter = value) }
     }

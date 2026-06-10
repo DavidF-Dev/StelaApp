@@ -35,6 +35,7 @@ class NoteListBannerTest {
                     onBatchDelete = {},
                     onSearchChange = {},
                     onSortChange = {},
+                    onToggleSortDirection = {},
                     onFilterChange = {},
                     snackbarHostState = SnackbarHostState(),
                     notificationsBlocked = notificationsBlocked,

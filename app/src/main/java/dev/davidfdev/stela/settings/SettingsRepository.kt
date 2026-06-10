@@ -17,6 +17,7 @@ interface SettingsRepository {
     suspend fun setQuickAddEnabled(value: Boolean)
     suspend fun setSwipeToUnpin(value: Boolean)
     suspend fun setSortOrder(value: SortOrder)
+    suspend fun setSortReversed(value: Boolean)
     suspend fun setNoteFilter(value: NoteFilter)
 }
 
@@ -46,6 +47,10 @@ class DataStoreSettingsRepository(
         dataStore.edit { it[SettingsKeys.SORT_ORDER] = value.name }
     }
 
+    override suspend fun setSortReversed(value: Boolean) {
+        dataStore.edit { it[SettingsKeys.SORT_REVERSED] = value }
+    }
+
     override suspend fun setNoteFilter(value: NoteFilter) {
         dataStore.edit { it[SettingsKeys.NOTE_FILTER] = value.name }
     }
@@ -57,6 +62,7 @@ internal object SettingsKeys {
     val QUICK_ADD_ENABLED = booleanPreferencesKey("quick_add_enabled")
     val SWIPE_TO_UNPIN = booleanPreferencesKey("swipe_to_unpin")
     val SORT_ORDER = stringPreferencesKey("sort_order")
+    val SORT_REVERSED = booleanPreferencesKey("sort_reversed")
     val NOTE_FILTER = stringPreferencesKey("note_filter")
 }
 
@@ -79,6 +85,7 @@ fun settingsFromPreferences(prefs: Preferences): Settings {
         quickAddEnabled = prefs[SettingsKeys.QUICK_ADD_ENABLED] ?: defaults.quickAddEnabled,
         swipeToUnpin = prefs[SettingsKeys.SWIPE_TO_UNPIN] ?: defaults.swipeToUnpin,
         sortOrder = sortOrder,
+        sortReversed = prefs[SettingsKeys.SORT_REVERSED] ?: defaults.sortReversed,
         noteFilter = noteFilter,
     )
 }

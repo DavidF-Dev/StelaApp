@@ -6,12 +6,14 @@ import dev.davidfdev.stela.settings.SortOrder
 
 /// Derives the displayed note list in one in-memory pass: filter by pin state, keep
 /// notes whose title or description contains the trimmed query (case-insensitive),
-/// then sort. Pure so search/filter/sort stay consistent and stay unit-testable.
+/// then sort (the sort's default direction, reversed when [reversed] is set). Pure so
+/// search/filter/sort stay consistent and stay unit-testable.
 fun applyQuery(
     notes: List<Note>,
     search: String,
     sort: SortOrder,
     filter: NoteFilter,
+    reversed: Boolean = false,
 ): List<Note> {
     val filtered = when (filter) {
         NoteFilter.ALL -> notes
@@ -27,9 +29,10 @@ fun applyQuery(
                 note.description.contains(query, ignoreCase = true)
         }
     }
-    return when (sort) {
+    val ordered = when (sort) {
         SortOrder.MODIFIED -> matched.sortedByDescending { it.updatedAt }
         SortOrder.CREATED -> matched.sortedByDescending { it.createdAt }
         SortOrder.TITLE -> matched.sortedBy { it.title.lowercase() }
     }
+    return if (reversed) ordered.reversed() else ordered
 }

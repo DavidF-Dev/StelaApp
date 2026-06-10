@@ -32,6 +32,11 @@
     <string name="notelist_sort_modified">Last modified</string>
     <string name="notelist_sort_created">Date created</string>
     <string name="notelist_sort_title">Title</string>
+    <string name="action_sort_direction">Change sort direction</string>
+    <string name="notelist_sort_newest_first">Newest first</string>
+    <string name="notelist_sort_oldest_first">Oldest first</string>
+    <string name="notelist_sort_a_z">A–Z</string>
+    <string name="notelist_sort_z_a">Z–A</string>
     <string name="notelist_filter_label">Show</string>
     <string name="notelist_filter_all">All</string>
     <string name="notelist_filter_pinned">Pinned</string>

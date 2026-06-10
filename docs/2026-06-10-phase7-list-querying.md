@@ -3,10 +3,12 @@
 > The last pre-v2 roadmap item (§12 of [2026-06-08-stela-design.md](2026-06-08-stela-design.md)):
 > search, sort, and filter over the note list, derived in one in-memory pass.
 
-**Status (2026-06-10) — complete.** Tests: 79 JVM unit (adds `NoteQueryTest` + sort/filter
-mapping and ViewModel cases) + 26 instrumented (adds `ListQueryFlowTest`), all green; no
-`INTERNET`. Verified on the emulator: search narrows the list; the sort/filter sheet opens
-and applies; an active filter shows as a tap-to-clear chip; sort/filter persist across restart.
+**Status (2026-06-10) — complete** (incl. the sort-direction follow-up below). Tests: 85 JVM
+unit (adds `NoteQueryTest` + sort/filter/direction mapping and ViewModel cases) + 28
+instrumented (adds `ListQueryFlowTest`), all green; no `INTERNET`. Verified on the emulator:
+search narrows the list; the sort/filter sheet opens and applies; an active filter shows as a
+tap-to-clear chip; the sort-direction toggle flips the order; sort/filter/direction persist
+across restart.
 
 ## Confirmed decisions
 
@@ -54,7 +56,12 @@ tap). Bottom-sheet taps are gated on the sheet being fully open/closed so they d
 animation, and an `@After` resets the persisted filter so a mutated filter can't poison other
 tests on the device.
 
-## Queued follow-up
+## Sort-direction toggle (follow-up — done 2026-06-10)
 
-- **Sort-direction toggle** (asc/desc) — fixed direction ships now; a per-order direction
-  control can follow.
+A `sortReversed: Boolean` preference (default `false` = the natural order, so no change to
+existing behaviour) inverts the active sort when set. `applyQuery` gains a `reversed`
+parameter (`ordered.reversed()` when set); a `SwapVert` row in the sort sheet toggles it,
+labelled **order-aware** ("Newest first / Oldest first" for the timestamps, "A–Z / Z–A" for
+title) so the control reads naturally for whichever sort is active. Persisted alongside
+`sortOrder`. Unit-tested (reversed for each order; mapping; ViewModel toggle) + instrumented
+(the label flips on tap).

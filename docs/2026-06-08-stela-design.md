@@ -370,10 +370,11 @@ icon-set picker — and **notification-→-editor return-to-context** (§9): a c
 entry finishes back to home on completion instead of landing on an unvisited list. See
 [2026-06-10-v1.1-features.md](2026-06-10-v1.1-features.md).
 
-**v1.x queued follow-ups (2026-06-10):** a note-list **sort-direction toggle** (asc/desc) —
-next; then an opt-in **"Tap to edit"** setting modelled on "swipe to unpin" (scope to be
-pinned down — list rows and notification bodies already open the editor, so the setting's
-exact target needs nailing down before implementation).
+**v1.x queued follow-ups (2026-06-10):** the note-list **sort-direction toggle** (asc/desc)
+is **done** (see [2026-06-10-phase7-list-querying.md](2026-06-10-phase7-list-querying.md)).
+Next: an opt-in **"Tap to edit"** setting modelled on "swipe to unpin" (scope to be pinned
+down — list rows and notification bodies already open the editor, so the setting's exact
+target needs nailing down before implementation).
 
 **v2 (deferred):** JSON export/import, home-screen widget.
 

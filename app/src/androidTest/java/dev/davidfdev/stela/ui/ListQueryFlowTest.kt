@@ -15,6 +15,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import dev.davidfdev.stela.MainActivity
 import dev.davidfdev.stela.StelaApp
 import dev.davidfdev.stela.settings.NoteFilter
+import dev.davidfdev.stela.settings.SortOrder
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.BeforeClass
@@ -39,12 +40,15 @@ class ListQueryFlowTest {
         }
     }
 
-    // Sort/filter persist to the real DataStore; reset after each test so a mutated (or
-    // interrupted) filter can't hide notes from the other tests on this device.
+    // Reset the persisted query after each test so a mutated one can't affect the others on this device.
     @After
-    fun resetPersistedFilter() {
+    fun resetPersistedQuery() {
         val app = InstrumentationRegistry.getInstrumentation().targetContext.applicationContext as StelaApp
-        runBlocking { app.container.settingsRepository.setNoteFilter(NoteFilter.ALL) }
+        runBlocking {
+            app.container.settingsRepository.setNoteFilter(NoteFilter.ALL)
+            app.container.settingsRepository.setSortOrder(SortOrder.MODIFIED)
+            app.container.settingsRepository.setSortReversed(false)
+        }
     }
 
     @Test
@@ -106,6 +110,21 @@ class ListQueryFlowTest {
             composeRule.onAllNodesWithText(plain).fetchSemanticsNodes().isNotEmpty()
         }
         composeRule.onAllNodesWithText("Pinned").assertCountEquals(0)
+    }
+
+    @Test
+    fun sortDirectionToggle_flipsTheOrderAwareLabel() {
+        // Default sort is Last modified, so the direction reads "Newest first".
+        composeRule.onNodeWithContentDescription("Sort and filter").performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText("Newest first").fetchSemanticsNodes().isNotEmpty()
+        }
+
+        composeRule.onNodeWithContentDescription("Change sort direction").performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText("Oldest first").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText("Oldest first").assertIsDisplayed()
     }
 
     /// Opens the sort/filter sheet, taps an option, and dismisses it — waiting for the

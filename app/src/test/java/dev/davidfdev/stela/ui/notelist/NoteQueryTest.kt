@@ -93,6 +93,34 @@ class NoteQueryTest {
     }
 
     @Test
+    fun reversed_modified_flipsToOldestFirst() {
+        val notes = listOf(note(1, updatedAt = 100), note(2, updatedAt = 300), note(3, updatedAt = 200))
+        assertEquals(
+            listOf(1L, 3L, 2L),
+            ids(applyQuery(notes, "", SortOrder.MODIFIED, NoteFilter.ALL, reversed = true)),
+        )
+    }
+
+    @Test
+    fun reversed_title_flipsToZtoA() {
+        val notes = listOf(note(1, title = "banana"), note(2, title = "Apple"), note(3, title = "cherry"))
+        assertEquals(
+            listOf(3L, 1L, 2L),
+            ids(applyQuery(notes, "", SortOrder.TITLE, NoteFilter.ALL, reversed = true)),
+        )
+    }
+
+    @Test
+    fun reversedDefault_isNaturalOrder() {
+        val notes = listOf(note(1, updatedAt = 100), note(2, updatedAt = 300))
+        // The default (reversed = false) matches the unreversed call.
+        assertEquals(
+            ids(applyQuery(notes, "", SortOrder.MODIFIED, NoteFilter.ALL)),
+            ids(applyQuery(notes, "", SortOrder.MODIFIED, NoteFilter.ALL, reversed = false)),
+        )
+    }
+
+    @Test
     fun combined_filterThenSearchThenSort() {
         val notes = listOf(
             note(1, title = "Shopping", description = "milk", isPinned = true, updatedAt = 100),

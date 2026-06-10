@@ -11,9 +11,9 @@ All notable changes to Stela are documented here. This project adheres to
 - "Swipe to unpin" setting (off by default): when on, swiping a pinned notification unpins
   it instead of self-healing.
 - Search, sort, and filter on the note list: search by title or description, sort by last
-  modified / date created / title, and filter to all / pinned / unpinned notes. An active
-  filter is shown as a chip you can tap to clear, and the sort and filter choices are
-  remembered.
+  modified / date created / title (with a direction toggle — newest/oldest first, or A–Z /
+  Z–A), and filter to all / pinned / unpinned notes. An active filter is shown as a chip you
+  can tap to clear, and the sort and filter choices are remembered.
 - "Select all" in multi-select mode, which selects every note currently shown (respecting an
   active search or filter).
 

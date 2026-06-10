@@ -251,6 +251,26 @@ class NoteListViewModelTest {
     }
 
     @Test
+    fun onToggleSortDirection_reversesOrder_andPersists() = runTest(dispatcher) {
+        val repository = NoteRepository(FakeNoteDao()) { now }
+        now = 1_000L
+        repository.create(title = "Older", description = "")
+        now = 2_000L
+        repository.create(title = "Newer", description = "")
+        val viewModel = viewModel(repository)
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        advanceUntilIdle()
+        // Default MODIFIED is newest-first.
+        assertEquals(listOf("Newer", "Older"), viewModel.uiState.value.notes.map { it.title })
+
+        viewModel.onToggleSortDirection()
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.sortReversed)
+        assertEquals(listOf("Older", "Newer"), viewModel.uiState.value.notes.map { it.title })
+    }
+
+    @Test
     fun toggleSelectAll_selectsEveryVisibleNote_thenClears() = runTest(dispatcher) {
         val repository = NoteRepository(FakeNoteDao()) { 1_000L }
         val a = repository.create(title = "A", description = "")
