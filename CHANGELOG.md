@@ -6,6 +6,8 @@ All notable changes to Stela are documented here. This project adheres to
 ## [1.1.0] - unreleased
 
 ### Added
+- Per-note emoji, shown before the title in the note list and the notification; chosen with
+  an emoji picker in the editor.
 - "Swipe to unpin" setting (off by default): when on, swiping a pinned notification unpins
   it instead of self-healing.
 

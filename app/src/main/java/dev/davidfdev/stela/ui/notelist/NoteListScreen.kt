@@ -56,6 +56,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.davidfdev.stela.R
 import dev.davidfdev.stela.data.Note
+import dev.davidfdev.stela.data.displayTitle
 import dev.davidfdev.stela.ui.TimeFormatter
 import dev.davidfdev.stela.ui.arePinnedNotificationsBlocked
 import dev.davidfdev.stela.ui.openAppNotificationSettings
@@ -294,7 +295,7 @@ private fun NoteRow(
             Text(relativeTime)
         },
         headlineContent = {
-            Text(note.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(note.displayTitle, maxLines = 1, overflow = TextOverflow.Ellipsis)
         },
         supportingContent = {
             if (note.description.isNotBlank()) {

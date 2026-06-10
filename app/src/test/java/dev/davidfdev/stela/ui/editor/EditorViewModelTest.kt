@@ -87,6 +87,21 @@ class EditorViewModelTest {
     }
 
     @Test
+    fun newNote_save_withEmoji_persistsEmoji() = runTest(dispatcher) {
+        val f = Fixture()
+        val viewModel = f.viewModel()
+
+        viewModel.onTitleChange("Groceries")
+        viewModel.onEmojiChange("🛒")
+        viewModel.save { }
+        advanceUntilIdle()
+
+        val note = f.repository.notes.first().single()
+        assertEquals("Groceries", note.title)
+        assertEquals("🛒", note.emoji)
+    }
+
+    @Test
     fun newNote_save_withPinFlag_butNotificationsBlocked_savesUnpinned() = runTest(dispatcher) {
         val f = Fixture()
         val viewModel = f.viewModel(pinOnSave = true, canPost = false)

@@ -21,6 +21,7 @@ import kotlinx.coroutines.launch
 data class EditorUiState(
     val title: String = "",
     val description: String = "",
+    val emoji: String = "",
     val isEditing: Boolean = false,
     val isPinned: Boolean = false,
     val createdAt: Long? = null,
@@ -56,6 +57,7 @@ class EditorViewModel(
                         it.copy(
                             title = note.title,
                             description = note.description,
+                            emoji = note.emoji,
                             isPinned = note.isPinned,
                             createdAt = note.createdAt,
                             updatedAt = note.updatedAt,
@@ -69,6 +71,8 @@ class EditorViewModel(
     fun onTitleChange(value: String) = _uiState.update { it.copy(title = value) }
 
     fun onDescriptionChange(value: String) = _uiState.update { it.copy(description = value) }
+
+    fun onEmojiChange(value: String) = _uiState.update { it.copy(emoji = value) }
 
     fun pin() {
         val note = loaded ?: return
@@ -93,11 +97,15 @@ class EditorViewModel(
             val state = _uiState.value
             val existing = loaded
             if (existing == null) {
-                val id = repository.create(state.title, state.description)
+                val id = repository.create(state.title, state.description, emoji = state.emoji)
                 // Mirror the other pin entry points: only pin when notifications can post.
                 if (pinOnSave && canPostNotifications()) repository.getById(id)?.let { pinner.pin(it) }
             } else {
-                val updated = existing.copy(title = state.title, description = state.description)
+                val updated = existing.copy(
+                    title = state.title,
+                    description = state.description,
+                    emoji = state.emoji,
+                )
                 repository.update(updated)
                 pinner.refresh(updated)
             }

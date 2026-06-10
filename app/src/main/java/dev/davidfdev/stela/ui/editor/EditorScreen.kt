@@ -13,12 +13,14 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.outlined.Mood
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -33,14 +35,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.emoji2.emojipicker.EmojiPickerView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.davidfdev.stela.R
+import dev.davidfdev.stela.data.displayTitle
 import dev.davidfdev.stela.ui.TimeFormatter
 import dev.davidfdev.stela.ui.openAppNotificationSettings
 import dev.davidfdev.stela.ui.rememberNotificationPermissionGate
@@ -75,8 +81,9 @@ fun EditorRoute(
         snackbarHostState = snackbarHostState,
         onTitleChange = viewModel::onTitleChange,
         onDescriptionChange = viewModel::onDescriptionChange,
+        onEmojiChange = viewModel::onEmojiChange,
         onTogglePin = { if (state.isPinned) viewModel.unpin() else gate { viewModel.pin() } },
-        onShare = { shareNote(context, state.title, state.description) },
+        onShare = { shareNote(context, displayTitle(state.emoji, state.title), state.description) },
         onSave = { viewModel.save(onDone) },
         onDelete = { viewModel.delete(onDone) },
         onBack = onDone,
@@ -90,6 +97,7 @@ fun EditorScreen(
     snackbarHostState: SnackbarHostState,
     onTitleChange: (String) -> Unit,
     onDescriptionChange: (String) -> Unit,
+    onEmojiChange: (String) -> Unit,
     onTogglePin: () -> Unit,
     onShare: () -> Unit,
     onSave: () -> Unit,
@@ -97,6 +105,7 @@ fun EditorScreen(
     onBack: () -> Unit,
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showEmojiPicker by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -146,6 +155,15 @@ fun EditorScreen(
                 label = { Text(stringResource(R.string.editor_label_title)) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                leadingIcon = {
+                    IconButton(onClick = { showEmojiPicker = true }) {
+                        if (state.emoji.isBlank()) {
+                            Icon(Icons.Outlined.Mood, contentDescription = stringResource(R.string.editor_add_emoji))
+                        } else {
+                            Text(state.emoji, style = MaterialTheme.typography.titleLarge)
+                        }
+                    }
+                },
                 modifier = Modifier.fillMaxWidth(),
             )
             OutlinedTextField(
@@ -191,5 +209,33 @@ fun EditorScreen(
                 TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.editor_delete_dialog_cancel)) }
             },
         )
+    }
+
+    if (showEmojiPicker) {
+        ModalBottomSheet(onDismissRequest = { showEmojiPicker = false }) {
+            if (state.emoji.isNotBlank()) {
+                TextButton(
+                    onClick = {
+                        onEmojiChange("")
+                        showEmojiPicker = false
+                    },
+                    modifier = Modifier.align(Alignment.End).padding(horizontal = 8.dp),
+                ) { Text(stringResource(R.string.editor_clear_emoji)) }
+            }
+            // The official picker is a View; host it and report the picked emoji.
+            AndroidView(
+                factory = { ctx ->
+                    EmojiPickerView(ctx).apply {
+                        setOnEmojiPickedListener { picked ->
+                            onEmojiChange(picked.emoji)
+                            showEmojiPicker = false
+                        }
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(360.dp),
+            )
+        }
     }
 }

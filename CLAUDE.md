@@ -38,7 +38,7 @@ Read it before making architectural decisions; this file is only a quick orienta
 - **`PendingIntent`s use `FLAG_IMMUTABLE`** (API 31+).
 - **Notification ID is derived deterministically from `note.id`** so a note always maps to the same notification.
 - **Pinned-note body tap opens the editor** for that note (same as the **Edit** action); **Unpin** removes it from the status bar without deleting. (The quick-add notification's body tap opens a new note and pins it on save.)
-- **v1 ships a single default silhouette icon** — no icon picker. The `iconId` column exists (defaulted) only to keep the v2 icon set migration-free.
+- **The notification small icon is the single default silhouette** — no icon picker. A per-note **emoji** (v1.1) prefixes the display title in the list and notification (see `displayTitle`); the `iconId` column is now vestigial (the emoji superseded the planned v2 icon set).
 
 ## Persistence reality
 

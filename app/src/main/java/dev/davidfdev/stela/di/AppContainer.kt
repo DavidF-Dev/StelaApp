@@ -24,7 +24,9 @@ private val Context.settingsDataStore: DataStore<Preferences> by preferencesData
 class AppContainer(context: Context) {
 
     private val database: StelaDatabase =
-        Room.databaseBuilder(context, StelaDatabase::class.java, DATABASE_NAME).build()
+        Room.databaseBuilder(context, StelaDatabase::class.java, DATABASE_NAME)
+            .addMigrations(StelaDatabase.MIGRATION_1_2)
+            .build()
 
     val noteRepository: NoteRepository = NoteRepository(database.noteDao())
 

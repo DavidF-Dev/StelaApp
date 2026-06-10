@@ -39,6 +39,8 @@
     <string name="editor_save">Save</string>
     <string name="editor_label_title">Title</string>
     <string name="editor_label_description">Description</string>
+    <string name="editor_add_emoji">Add emoji</string>
+    <string name="editor_clear_emoji">Clear emoji</string>
     <string name="editor_delete_dialog_title">Delete note?</string>
     <string name="editor_delete_dialog_message">This note will be permanently deleted.</string>
     <string name="editor_delete_dialog_confirm">Delete</string>

@@ -79,6 +79,11 @@ android {
     buildFeatures {
         compose = true
     }
+
+    sourceSets {
+        // Expose the exported Room schemas to instrumented migration tests.
+        getByName("androidTest").assets.srcDir("$projectDir/schemas")
+    }
 }
 
 ksp {
@@ -106,6 +111,7 @@ dependencies {
     ksp(libs.androidx.room.compiler)
 
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.emoji2.emojipicker)
 
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)

@@ -11,6 +11,7 @@ import androidx.core.net.toUri
 import dev.davidfdev.stela.MainActivity
 import dev.davidfdev.stela.R
 import dev.davidfdev.stela.data.Note
+import dev.davidfdev.stela.data.displayTitle
 
 /// The sole class that touches the platform notification system. Builds an ongoing
 /// notification per pinned note with Edit and Remove actions, and creates the
@@ -63,7 +64,7 @@ class AndroidNotificationController(private val context: Context) : Notification
         val builder = NotificationCompat.Builder(context, CHANNEL_PINNED)
             .setSmallIcon(R.drawable.ic_stela_pin)
             .setColor(context.getColor(R.color.brand_indigo))
-            .setContentTitle(note.title)
+            .setContentTitle(note.displayTitle)
             .setContentIntent(editIntent(note.id))
             // Non-ongoing (swipeable) when the user opted into swipe-to-unpin.
             .setOngoing(!swipeToUnpin)

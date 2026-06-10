@@ -19,6 +19,7 @@ class NoteRepository(
         title: String,
         description: String,
         iconId: String = Note.DEFAULT_ICON_ID,
+        emoji: String = "",
     ): Long {
         val timestamp = now()
         return dao.upsert(
@@ -26,6 +27,7 @@ class NoteRepository(
                 title = title,
                 description = description,
                 iconId = iconId,
+                emoji = emoji,
                 createdAt = timestamp,
                 updatedAt = timestamp,
             ),
