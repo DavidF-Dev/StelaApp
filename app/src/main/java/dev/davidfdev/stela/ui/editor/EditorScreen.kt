@@ -42,14 +42,16 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
-import androidx.emoji2.emojipicker.EmojiPickerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
+import com.vanniktech.emoji.EmojiTheming
+import com.vanniktech.emoji.EmojiView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.davidfdev.stela.R
@@ -237,11 +239,12 @@ fun EditorScreen(
     }
 }
 
-/// Hosts the official `EmojiPickerView` in a Material `BottomSheetDialog`. A Compose
-/// `ModalBottomSheet` steals the vertical drag from the picker's `RecyclerView` (so it
-/// cannot scroll); the View-system bottom sheet coordinates that scroll natively. The
-/// dialog is themed with a Material 3 theme matching the in-app light/dark choice, since
-/// the picker reads its label colours from the host theme.
+/// Hosts a vanniktech `EmojiView` (categories + search) in a Material `BottomSheetDialog`. A
+/// Compose `ModalBottomSheet` steals the vertical drag from the picker's `RecyclerView` (so it
+/// cannot scroll); the View-system bottom sheet coordinates that scroll natively. The picker's
+/// colours are passed explicitly from the Compose colour scheme (its own `EmojiTheming.from`
+/// defaults to fixed light colours that ignore dark mode); the host theme wrapper drives the
+/// "Clear" button and the search dialog's Material 3 chrome.
 @Composable
 private fun EmojiPickerBottomSheet(
     showClear: Boolean,
@@ -250,12 +253,21 @@ private fun EmojiPickerBottomSheet(
     onDismiss: () -> Unit,
 ) {
     val context = LocalContext.current
-    val darkTheme = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+    val colorScheme = MaterialTheme.colorScheme
+    val darkTheme = colorScheme.surface.luminance() < 0.5f
+    val theming = EmojiTheming(
+        backgroundColor = colorScheme.surface.toArgb(),
+        primaryColor = colorScheme.onSurfaceVariant.toArgb(),
+        secondaryColor = colorScheme.primary.toArgb(),
+        dividerColor = colorScheme.outlineVariant.toArgb(),
+        textColor = colorScheme.onSurface.toArgb(),
+        textSecondaryColor = colorScheme.onSurfaceVariant.toArgb(),
+    )
     val onPickCurrent by rememberUpdatedState(onPick)
     val onClearCurrent by rememberUpdatedState(onClear)
     val onDismissCurrent by rememberUpdatedState(onDismiss)
 
-    DisposableEffect(darkTheme, showClear) {
+    DisposableEffect(theming, showClear) {
         val themed = ContextThemeWrapper(
             context,
             if (darkTheme) {
@@ -269,8 +281,15 @@ private fun EmojiPickerBottomSheet(
             visibility = if (showClear) View.VISIBLE else View.GONE
             setOnClickListener { onClearCurrent() }
         }
-        content.findViewById<EmojiPickerView>(R.id.emoji_picker)
-            .setOnEmojiPickedListener { onPickCurrent(it.emoji) }
+        val emojiView = content.findViewById<EmojiView>(R.id.emoji_picker)
+        // editText = null: a single emoji is collected via the click listener, not typed into a field.
+        emojiView.setUp(
+            rootView = content,
+            onEmojiClickListener = { onPickCurrent(it.unicode) },
+            onEmojiBackspaceClickListener = null,
+            editText = null,
+            theming = theming,
+        )
 
         val dialog = BottomSheetDialog(themed).apply {
             setContentView(content)
@@ -280,6 +299,9 @@ private fun EmojiPickerBottomSheet(
             behavior.state = BottomSheetBehavior.STATE_EXPANDED
             show()
         }
-        onDispose { dialog.dismiss() }
+        onDispose {
+            emojiView.tearDown()
+            dialog.dismiss()
+        }
     }
 }

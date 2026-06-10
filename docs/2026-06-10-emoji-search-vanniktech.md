@@ -1,7 +1,40 @@
 # Emoji search via vanniktech/Emoji — Implementation Plan
 
-> Status: Plan (not implemented) · 2026-06-10
+> Status: **Implemented** · 2026-06-10 (released in v1.2.0).
 > Replaces the AndroidX `EmojiPickerView` (no search) with vanniktech `EmojiView` (built-in search).
+>
+> **Version pin:** the latest vanniktech/Emoji (0.24.1) is built with Kotlin 2.3 and its metadata is
+> unreadable by this project's Kotlin 2.1.0 compiler (`incompatible version of Kotlin … metadata is
+> 2.3.0, expected 2.1.0`). Pinned **0.23.0** instead — the newest release built with Kotlin 2.1.x —
+> which has identical `EmojiView.setUp(...)` and `AndroidxEmoji2Provider(EmojiCompat)` APIs. Revisit if
+> the project's Kotlin is ever upgraded to 2.3+.
+>
+> **Verified on the Pixel_8 emulator:** app launches on the new `AppCompatActivity`/Material3 theme;
+> the picker shows a search tab; tapping it opens the search dialog (the `FragmentActivity` path) with
+> no crash; typing "swim" filters to swimming emojis; picking one sets the note's emoji and closes the
+> sheet.
+>
+> ### Post-implementation revisions (2026-06-10)
+>
+> Two bugs surfaced in the first cut and were fixed (verified on the emulator in both light and dark):
+>
+> 1. **Grey/invisible emojis → switched provider to the bundled sprite set.** The original
+>    `emoji-androidx-emoji2` provider renders via `EmojiCompat`; its `AndroidxEmoji2Drawable` falls back
+>    to `drawText(..., textPaint)` with a hardcoded **white** paint (`color = -0x1`) for any emoji
+>    `EmojiCompat` doesn't produce a span for (newer than the loaded font, or font not loaded). Those
+>    drew invisible on the light picker. Replaced the provider with **`emoji-google`**
+>    (`GoogleEmojiProvider`), which draws every emoji from a bundled colour sprite sheet as a
+>    `BitmapDrawable` — no font dependency, no white fallback, every emoji coloured and background-
+>    independent, and it drops the runtime downloadable-font reliance (more offline-pure). Cost: the
+>    sprite sheet adds ~2.65 MB (the earlier "net-flat APK" claim no longer holds — an accepted trade).
+>    `EmojiCompat`/`emoji2` are no longer used directly by the picker.
+> 2. **Picker + search ignored dark mode → explicit theming.** `EmojiTheming.from(context)` resolves
+>    four of its six colours from vanniktech's own theme attributes (`emojiBackgroundColor`,
+>    `emojiTextColor`, …), which our `Theme.Material3.*` wrapper doesn't define, so they fell back to
+>    **fixed light** defaults regardless of dark mode (only `colorPrimary`/`colorAccent` flipped). Now
+>    an explicit `EmojiTheming` is built from the Compose `MaterialTheme.colorScheme` (`.toArgb()`) and
+>    passed to `setUp(theming = …)`; the `EmojiView` and the search dialog (which inherits it) both
+>    follow the app's light/dark choice exactly.
 
 **Goal:** Let users find an emoji by name when setting a note's emoji, by replacing the
 search-less AndroidX emoji picker with vanniktech's `EmojiView`, whose search is on by default.
@@ -11,9 +44,16 @@ seam already used in the editor). Add an app-level provider install. Promote `Ma
 `ComponentActivity` to `AppCompatActivity` (with a Material3 window theme) because vanniktech's search
 dialog is a `DialogFragment` that needs `supportFragmentManager` + an AppCompat-styled dialog.
 
-**Invariant guard:** no `INTERNET` permission is added. Emoji glyphs render through the **same
-`emoji2`/`EmojiCompat` backing the app already pulls in today** (via `emoji2-emojipicker`), so there
-is no new network behaviour and no large sprite sheet bundled.
+**Invariant guard:** no `INTERNET` permission is added. Emoji render from a **bundled colour sprite
+sheet** (`emoji-google`; see the post-implementation revisions above — the first cut used the
+`emoji-androidx-emoji2`/`EmojiCompat` backing but switched after a rendering bug), so there is no
+network behaviour at all.
+
+> ⚠️ **The Findings and Task sections below capture the *original* plan** (the `emoji-androidx-emoji2`
+> provider, no explicit theming). They are kept for decision history. **The as-built result differs** —
+> bundled `emoji-google` sprites + an explicit `EmojiTheming` from the Compose colour scheme — per the
+> *Post-implementation revisions* above, which are authoritative. Where the two disagree, trust the
+> revisions and the current code.
 
 ---
 
@@ -36,14 +76,16 @@ is no new network behaviour and no large sprite sheet bundled.
   (the dialog builds an `androidx.appcompat.app.AlertDialog`, which needs an AppCompat-compatible
   activity theme).
 - **License: Apache-2.0**, one-way compatible with the app's GPL-3.0; stays F-Droid-friendly.
-- **APK size (Maven Central, v0.24.1 AARs):** core `emoji` 0.16 MB + `emoji-androidx-emoji2` 0.14 MB
+- **APK size (Maven Central, v0.24.1 AARs; 0.23.0 is comparable):** core `emoji` 0.16 MB + `emoji-androidx-emoji2` 0.14 MB
   ≈ **+0.30 MB before shrinking**, and we **remove** `emoji2-emojipicker`, so net impact is roughly
   flat. The sprite providers are the heavy ones and are **not** used: `emoji-google` 2.65 MB,
   `emoji-twitter` 2.53 MB, `emoji-ios` 3.59 MB, `emoji-facebook` 3.85 MB. `emoji-google-compat`
   (0.14 MB) is **rejected** — it downloads its font at runtime via Google Play Services (network),
   against the offline ethos.
-- **Version:** 0.24.1 (latest, released 2026-03-23) contains the search feature (verified in the
-  `0.24.1` tag: `search/` package + `hasSearch`/`EmojiSearchDialog` in `EmojiView`).
+- **Version:** **0.23.0** (released 2025-11-28, built with Kotlin 2.1.21) — the search feature is
+  present from 0.21.0 onward. The newer 0.24.1 is **rejected** for now: it is built with Kotlin 2.3
+  and its metadata can't be read by this project's Kotlin 2.1.0 compiler. 0.23.0's
+  `EmojiView.setUp(...)` and `AndroidxEmoji2Provider(EmojiCompat)` APIs are identical to 0.24.1's.
 
 ### Alternative considered (documented fallback)
 
@@ -77,8 +119,8 @@ migration proves troublesome.
 **`gradle/libs.versions.toml`** — add under `[versions]`:
 
 ```toml
-vanniktechEmoji = "0.24.1"
-appcompat = "1.7.0"   # or latest stable
+vanniktechEmoji = "0.23.0"   # newest built with Kotlin 2.1.x; 0.24.x needs Kotlin 2.3
+appcompat = "1.7.0"
 ```
 
 Under `[libraries]`:

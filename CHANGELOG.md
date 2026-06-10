@@ -10,6 +10,8 @@ All notable changes to Stela are documented here. This project adheres to
   them, re-pinning any that were pinned.
 - Export and import notes as a JSON file, for backup and transfer. Both use the system file
   picker and stay fully offline. Importing adds the notes to your existing ones.
+- Search the emoji picker: tap the search tab in the editor's emoji picker and type to find an
+  emoji by name. Stays fully offline.
 
 ### Fixed
 - The emoji picker now scrolls and its category labels are legible. It is hosted in a

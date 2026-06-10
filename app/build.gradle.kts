@@ -113,7 +113,11 @@ dependencies {
 
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.androidx.emoji2.emojipicker)
+    implementation(libs.vanniktech.emoji)
+    // Bundled colour sprites render every emoji consistently and fully offline (no font dependency).
+    implementation(libs.vanniktech.emoji.google)
+    // AppCompatActivity (a FragmentActivity) is required by the emoji picker's search dialog.
+    implementation(libs.androidx.appcompat)
     // Material Components (View system): hosts the emoji picker in a themed, scrollable BottomSheetDialog.
     implementation(libs.material)
 

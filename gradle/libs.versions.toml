@@ -10,7 +10,9 @@ composeBom = "2024.12.01"
 navigationCompose = "2.8.5"
 room = "2.6.1"
 datastore = "1.1.1"
-emojipicker = "1.4.0"
+# 0.23.0 is the newest vanniktech/Emoji built with Kotlin 2.1.x; 0.24.x needs Kotlin 2.3.
+vanniktechEmoji = "0.23.0"
+appcompat = "1.7.0"
 material = "1.12.0"
 serializationJson = "1.7.3"
 
@@ -44,7 +46,9 @@ androidx-room-compiler = { group = "androidx.room", name = "room-compiler", vers
 androidx-room-testing = { group = "androidx.room", name = "room-testing", version.ref = "room" }
 
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
-androidx-emoji2-emojipicker = { group = "androidx.emoji2", name = "emoji2-emojipicker", version.ref = "emojipicker" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+vanniktech-emoji = { group = "com.vanniktech", name = "emoji", version.ref = "vanniktechEmoji" }
+vanniktech-emoji-google = { group = "com.vanniktech", name = "emoji-google", version.ref = "vanniktechEmoji" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serializationJson" }
 

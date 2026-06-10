@@ -1,8 +1,8 @@
 <resources>
     <!--
-      Window theme applied before Compose draws. The day (light) variant lives here;
-      a night (dark) variant lives in values-night. In-app colors come from the
-      Compose theme, which also honors the user's explicit theme choice.
+      Window theme applied before Compose draws. Material3 DayNight resolves light/dark itself
+      and is AppCompat-compatible, which AppCompatActivity (and the emoji search dialog) requires.
+      In-app colors come from the Compose theme, which also honors the user's explicit theme choice.
     -->
-    <style name="Theme.Stela" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.Stela" parent="Theme.Material3.DayNight.NoActionBar" />
 </resources>

@@ -1,6 +1,8 @@
 package dev.davidfdev.stela
 
 import android.app.Application
+import com.vanniktech.emoji.EmojiManager
+import com.vanniktech.emoji.google.GoogleEmojiProvider
 import dev.davidfdev.stela.di.AppContainer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -19,6 +21,8 @@ class StelaApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        // Bundled colour sprites — every emoji renders consistently and offline, with no font dependency.
+        EmojiManager.install(GoogleEmojiProvider())
         container = AppContainer(this)
         observePinnedNotificationPreferences()
         observeQuickAddPreference()

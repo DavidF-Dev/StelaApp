@@ -399,19 +399,31 @@ implement); all keep the no-`INTERNET` invariant.
    chosen time (`AlarmManager` + exact-alarm permission). A natural extension of "pin as
    notification" and the largest; a deliberate step toward reminder territory, so confirm
    scope before building.
-5. **Emoji-picker search** *(planned — see [2026-06-10-emoji-search-vanniktech.md](2026-06-10-emoji-search-vanniktech.md))* —
-   the AndroidX `EmojiPickerView` has no search and exposes no way to add one, so the plan replaces it
-   with **vanniktech/Emoji**'s standalone `EmojiView` (search on by default, matches emoji by
-   shortcode), kept in the existing themed `BottomSheetDialog` host. Apache-2.0 (GPL-3 compatible);
-   uses the `emoji-androidx-emoji2` provider so glyphs render through the app's existing
-   `emoji2`/`EmojiCompat` backing — no sprite sheets, no `INTERNET`, ≈ net-flat APK size (the heavy
-   sprite providers and the network-backed `emoji-google-compat` are rejected). The one non-trivial
-   cost: vanniktech's search dialog is a `DialogFragment`, so `MainActivity` must move from
-   `ComponentActivity` to `AppCompatActivity` (with a Material3 window theme). A considered fallback —
+5. **Emoji-picker search** *(done — v1.2.0; see [2026-06-10-emoji-search-vanniktech.md](2026-06-10-emoji-search-vanniktech.md))* —
+   the AndroidX `EmojiPickerView` had no search and exposed no way to add one, so it was replaced with
+   **vanniktech/Emoji**'s standalone `EmojiView` (search on by default, matches emoji by shortcode),
+   kept in the existing themed `BottomSheetDialog` host. Apache-2.0 (GPL-3 compatible). Renders from the
+   bundled-sprite **`emoji-google`** provider — every emoji is a colour bitmap, fully offline, no
+   `INTERNET` (the first cut used the `emoji-androidx-emoji2`/`EmojiCompat` provider but its
+   white-paint fallback drew uncovered emojis invisibly, so it was swapped; sprites add ~2.65 MB). The
+   `EmojiView` + search dialog are themed from an explicit `EmojiTheming` built off the Compose colour
+   scheme (its built-in `EmojiTheming.from` defaults to fixed light colours that ignore dark mode). The
+   one non-trivial structural cost: vanniktech's search dialog is a `DialogFragment`, so `MainActivity`
+   moved from `ComponentActivity` to `AppCompatActivity` (and the window theme to Material3 DayNight).
+   Pinned to **0.23.0** — the newest release built with Kotlin 2.1.x (0.24.x needs Kotlin 2.3, which
+   this project's compiler can't read; see the queued toolchain upgrade below). A considered fallback —
    a toggle to the soft keyboard so the user searches via their keyboard's own emoji panel — was kept
    in reserve (clunkier: there is no API to open the keyboard directly in emoji mode).
 
 Lower priority, kept deferred: a branded splash screen and an in-app language picker.
+
+**Queued maintenance — Kotlin toolchain upgrade (its own slice):** bump Kotlin from **2.1.0** to the
+latest 2.3.x, moving the matched set together — `kotlin`, `ksp` (must match the Kotlin version
+exactly), the `kotlin-compose` compiler plugin, and the Compose BOM, plus an AGP/Room-KSP compatibility
+check — then a clean `assembleDebug` + `testDebugUnitTest` + smoke run on its own branch. 2.1.0 is just
+where the project was scaffolded, not a deliberate constraint. The upgrade is decoupled from feature
+work; its main payoff is riding current libraries — notably letting **vanniktech/Emoji** move from the
+Kotlin-2.1-pinned **0.23.0** to **0.24.x** (built with Kotlin 2.3). Not required by any shipped feature.
 
 ---
 
