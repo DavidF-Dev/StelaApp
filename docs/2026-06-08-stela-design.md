@@ -370,7 +370,12 @@ icon-set picker — and **notification-→-editor return-to-context** (§9): a c
 entry finishes back to home on completion instead of landing on an unvisited list. See
 [2026-06-10-v1.1-features.md](2026-06-10-v1.1-features.md).
 
-**v2 (deferred):** JSON export/import, optional "tap = edit", widget.
+**v1.x queued follow-ups (2026-06-10):** a note-list **sort-direction toggle** (asc/desc) —
+next; then an opt-in **"Tap to edit"** setting modelled on "swipe to unpin" (scope to be
+pinned down — list rows and notification bodies already open the editor, so the setting's
+exact target needs nailing down before implementation).
+
+**v2 (deferred):** JSON export/import, home-screen widget.
 
 ---
 
@@ -378,4 +383,6 @@ entry finishes back to home on completion instead of landing on an unvisited lis
 
 - Package / application id (e.g. `io.stela`, `dev.<you>.stela`)?
 - Curated icon set — how many, and any specific symbols you want?
-- Confirm "tap does nothing" vs. the friendlier "tap = edit".
+- Tap behaviour: shipped as "tap = edit" (list rows and notification bodies open the
+  editor). A configurable **"Tap to edit"** setting is queued as a v1.x follow-up (its exact
+  scope is TBD — see the v1.x queued note in §12).

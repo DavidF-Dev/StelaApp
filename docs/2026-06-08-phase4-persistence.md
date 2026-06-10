@@ -154,8 +154,9 @@ Quick-add on/off toggle and its three-state behavior, re-assert-on-clear
 detection, DataStore preferences — all Phase 5. Full icon set / colored large icon
 — Phase 6.
 
-**Notification-text refinements (deferred, address later if needed):** the
-pinned-note content line **"Tap to edit or remove"** (currently shows the
-description), and the quick-add **"New note → pin it"** flow. The core service,
+**Notification-text refinements (done in Phase 6 — see the "Notification refinements +
+LICENSE" slice in [2026-06-08-phase6-polish.md](2026-06-08-phase6-polish.md)):** the
+pinned-note content line **"Tap to edit or remove"** (shown when the description is empty),
+and the quick-add **"New note → pin it"** flow. The core service,
 boot restore, and a functional quick-add (title/content + New note / View notes
 actions, body tap inert) land in this phase; the pin-on-create nuance can follow.

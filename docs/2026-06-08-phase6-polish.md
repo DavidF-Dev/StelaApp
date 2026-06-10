@@ -54,7 +54,8 @@ no `INTERNET`. ~45 strings externalized to `res/values/strings.xml` (English val
 identical to the prior literals, so text-matching UI tests pass unchanged) across the
 note list, editor, settings, and all notification text. `res/xml/locales_config.xml`
 + `android:localeConfig` give Android 13+ a free per-app language picker once a second
-language ships; the system locale governs otherwise. No in-app picker (deferred). The
+language ships; the system locale governs otherwise. No in-app picker (**deferred
+indefinitely**, 2026-06-10 — the Android 13+ system picker suffices). The
 `specialUse` justification string stays English (for Play reviewers, not users).
 
 **Adding a language later:** drop a `values-<lang>` strings file and add one
