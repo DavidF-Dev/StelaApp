@@ -5,7 +5,8 @@ All notable changes to Stela are documented here. This project adheres to
 
 ## [1.1.0] - unreleased
 
-Empty.
+### Changed
+- The note Title and Description fields now auto-capitalise the first letter.
 
 ## [1.0.0] — 2026/06/09
 
