@@ -16,6 +16,8 @@ class SettingsMappingTest {
         assertFalse(settings.hideOnLockScreen)
         assertTrue(settings.quickAddEnabled)
         assertFalse(settings.swipeToUnpin)
+        assertEquals(SortOrder.MODIFIED, settings.sortOrder)
+        assertEquals(NoteFilter.ALL, settings.noteFilter)
     }
 
     @Test
@@ -25,6 +27,8 @@ class SettingsMappingTest {
             SettingsKeys.HIDE_ON_LOCK_SCREEN to true,
             SettingsKeys.QUICK_ADD_ENABLED to false,
             SettingsKeys.SWIPE_TO_UNPIN to true,
+            SettingsKeys.SORT_ORDER to SortOrder.TITLE.name,
+            SettingsKeys.NOTE_FILTER to NoteFilter.PINNED.name,
         )
 
         val settings = settingsFromPreferences(prefs)
@@ -33,6 +37,8 @@ class SettingsMappingTest {
         assertTrue(settings.hideOnLockScreen)
         assertFalse(settings.quickAddEnabled)
         assertTrue(settings.swipeToUnpin)
+        assertEquals(SortOrder.TITLE, settings.sortOrder)
+        assertEquals(NoteFilter.PINNED, settings.noteFilter)
     }
 
     @Test
@@ -40,5 +46,18 @@ class SettingsMappingTest {
         val prefs = mutablePreferencesOf(SettingsKeys.THEME_MODE to "PURPLE")
 
         assertEquals(ThemeMode.SYSTEM, settingsFromPreferences(prefs).themeMode)
+    }
+
+    @Test
+    fun unparsableSortAndFilter_fallBackToDefaults() {
+        val prefs = mutablePreferencesOf(
+            SettingsKeys.SORT_ORDER to "SIDEWAYS",
+            SettingsKeys.NOTE_FILTER to "MAYBE",
+        )
+
+        val settings = settingsFromPreferences(prefs)
+
+        assertEquals(SortOrder.MODIFIED, settings.sortOrder)
+        assertEquals(NoteFilter.ALL, settings.noteFilter)
     }
 }

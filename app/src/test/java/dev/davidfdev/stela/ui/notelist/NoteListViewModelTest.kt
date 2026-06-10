@@ -6,6 +6,8 @@ import dev.davidfdev.stela.notifications.FakeNotificationController
 import dev.davidfdev.stela.pin.FakeServiceController
 import dev.davidfdev.stela.pin.NotePinner
 import dev.davidfdev.stela.settings.FakeSettingsRepository
+import dev.davidfdev.stela.settings.NoteFilter
+import dev.davidfdev.stela.settings.SortOrder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
@@ -36,9 +38,11 @@ class NoteListViewModelTest {
     private fun viewModel(
         repository: NoteRepository,
         controller: FakeNotificationController = FakeNotificationController(),
+        settings: FakeSettingsRepository = FakeSettingsRepository(),
     ) = NoteListViewModel(
         repository,
-        NotePinner(repository, controller, FakeServiceController(), FakeSettingsRepository()),
+        NotePinner(repository, controller, FakeServiceController(), settings),
+        settings,
     )
 
     @Test
@@ -189,5 +193,59 @@ class NoteListViewModelTest {
 
         assertEquals(listOf("C"), viewModel.uiState.value.notes.map { it.title })
         assertFalse(viewModel.uiState.value.inSelectionMode)
+    }
+
+    @Test
+    fun onSearchChange_narrowsToMatchingNotes() = runTest(dispatcher) {
+        val repository = NoteRepository(FakeNoteDao()) { 1_000L }
+        repository.create(title = "Grocery list", description = "")
+        repository.create(title = "Work", description = "")
+        val viewModel = viewModel(repository)
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        advanceUntilIdle()
+
+        viewModel.onSearchChange("grocery")
+        advanceUntilIdle()
+
+        assertEquals(listOf("Grocery list"), viewModel.uiState.value.notes.map { it.title })
+    }
+
+    @Test
+    fun onFilterChange_pinned_showsOnlyPinned_andPersists() = runTest(dispatcher) {
+        val repository = NoteRepository(FakeNoteDao()) { 1_000L }
+        val a = repository.create(title = "Pinned", description = "")
+        repository.create(title = "Plain", description = "")
+        repository.setPinned(a, true)
+        val settings = FakeSettingsRepository()
+        val viewModel = viewModel(repository, settings = settings)
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        advanceUntilIdle()
+
+        viewModel.onFilterChange(NoteFilter.PINNED)
+        advanceUntilIdle()
+
+        assertEquals(listOf("Pinned"), viewModel.uiState.value.notes.map { it.title })
+        assertEquals(NoteFilter.PINNED, viewModel.uiState.value.noteFilter)
+    }
+
+    @Test
+    fun onSortChange_title_reordersAlphabetically() = runTest(dispatcher) {
+        val repository = NoteRepository(FakeNoteDao()) { now }
+        now = 1_000L
+        repository.create(title = "Apple", description = "")
+        now = 2_000L
+        repository.create(title = "Banana", description = "")
+        val viewModel = viewModel(repository)
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        advanceUntilIdle()
+        // Default MODIFIED order is newest-first: Banana, Apple.
+        assertEquals(listOf("Banana", "Apple"), viewModel.uiState.value.notes.map { it.title })
+
+        viewModel.onSortChange(SortOrder.TITLE)
+        advanceUntilIdle()
+
+        // Title order is alphabetical, the reverse here.
+        assertEquals(listOf("Apple", "Banana"), viewModel.uiState.value.notes.map { it.title })
+        assertEquals(SortOrder.TITLE, viewModel.uiState.value.sortOrder)
     }
 }

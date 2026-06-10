@@ -2,8 +2,10 @@ package dev.davidfdev.stela.ui.notelist
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,22 +14,28 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.outlined.RadioButtonUnchecked
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -35,9 +43,12 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,6 +56,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -57,6 +71,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.davidfdev.stela.R
 import dev.davidfdev.stela.data.Note
 import dev.davidfdev.stela.data.displayTitle
+import dev.davidfdev.stela.settings.NoteFilter
+import dev.davidfdev.stela.settings.SortOrder
 import dev.davidfdev.stela.ui.TimeFormatter
 import dev.davidfdev.stela.ui.arePinnedNotificationsBlocked
 import dev.davidfdev.stela.ui.openAppNotificationSettings
@@ -110,6 +126,9 @@ fun NoteListRoute(
         onClearSelection = viewModel::clearSelection,
         onBatchTogglePin = onBatchTogglePin,
         onBatchDelete = viewModel::batchDelete,
+        onSearchChange = viewModel::onSearchChange,
+        onSortChange = viewModel::onSortChange,
+        onFilterChange = viewModel::onFilterChange,
         snackbarHostState = snackbarHostState,
         notificationsBlocked = notificationsBlocked,
         onOpenNotificationSettings = { openAppNotificationSettings(context) },
@@ -128,13 +147,24 @@ fun NoteListScreen(
     onClearSelection: () -> Unit,
     onBatchTogglePin: () -> Unit,
     onBatchDelete: () -> Unit,
+    onSearchChange: (String) -> Unit,
+    onSortChange: (SortOrder) -> Unit,
+    onFilterChange: (NoteFilter) -> Unit,
     snackbarHostState: SnackbarHostState,
     notificationsBlocked: Boolean,
     onOpenNotificationSettings: () -> Unit,
 ) {
     var showDeleteConfirm by remember { mutableStateOf(false) }
+    var searchActive by remember { mutableStateOf(false) }
+    var showSortFilter by remember { mutableStateOf(false) }
+
+    val closeSearch = {
+        searchActive = false
+        onSearchChange("")
+    }
 
     BackHandler(enabled = state.inSelectionMode) { onClearSelection() }
+    BackHandler(enabled = searchActive && !state.inSelectionMode) { closeSearch() }
 
     Scaffold(
         topBar = {
@@ -147,13 +177,14 @@ fun NoteListScreen(
                     onDelete = { showDeleteConfirm = true },
                 )
             } else {
-                TopAppBar(
-                    title = { Text(stringResource(R.string.app_name)) },
-                    actions = {
-                        IconButton(onClick = onOpenSettings) {
-                            Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.action_settings))
-                        }
-                    },
+                NoteListTopBar(
+                    searchActive = searchActive,
+                    searchQuery = state.searchQuery,
+                    onActivateSearch = { searchActive = true },
+                    onCloseSearch = closeSearch,
+                    onSearchChange = onSearchChange,
+                    onOpenSortFilter = { showSortFilter = true },
+                    onOpenSettings = onOpenSettings,
                 )
             }
         },
@@ -166,7 +197,7 @@ fun NoteListScreen(
             }
         },
     ) { padding ->
-        androidx.compose.foundation.layout.Column(
+        Column(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize(),
@@ -175,10 +206,11 @@ fun NoteListScreen(
                 NotificationsBlockedBanner(onOpenSettings = onOpenNotificationSettings)
             }
             Box(modifier = Modifier.fillMaxSize()) {
-                if (state.notes.isEmpty()) {
-                    EmptyState()
-                } else {
-                    LazyColumn(
+                when {
+                    // No notes exist at all, vs. notes exist but the query hides them all.
+                    state.isSourceEmpty -> EmptyState(stringResource(R.string.notelist_empty))
+                    state.notes.isEmpty() -> EmptyState(stringResource(R.string.notelist_no_matches))
+                    else -> LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(vertical = 8.dp),
                     ) {
@@ -198,6 +230,16 @@ fun NoteListScreen(
                 }
             }
         }
+    }
+
+    if (showSortFilter) {
+        SortFilterSheet(
+            sortOrder = state.sortOrder,
+            noteFilter = state.noteFilter,
+            onSortChange = onSortChange,
+            onFilterChange = onFilterChange,
+            onDismiss = { showSortFilter = false },
+        )
     }
 
     if (showDeleteConfirm) {
@@ -332,12 +374,146 @@ private fun NoteRow(
 }
 
 @Composable
-private fun EmptyState(modifier: Modifier = Modifier) {
+private fun EmptyState(message: String, modifier: Modifier = Modifier) {
     Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Text(
-            text = stringResource(R.string.notelist_empty),
+            text = message,
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun NoteListTopBar(
+    searchActive: Boolean,
+    searchQuery: String,
+    onActivateSearch: () -> Unit,
+    onCloseSearch: () -> Unit,
+    onSearchChange: (String) -> Unit,
+    onOpenSortFilter: () -> Unit,
+    onOpenSettings: () -> Unit,
+) {
+    if (searchActive) {
+        val focusRequester = remember { FocusRequester() }
+        LaunchedEffect(Unit) { focusRequester.requestFocus() }
+        TopAppBar(
+            navigationIcon = {
+                IconButton(onClick = onCloseSearch) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.action_search_close),
+                    )
+                }
+            },
+            title = {
+                TextField(
+                    value = searchQuery,
+                    onValueChange = onSearchChange,
+                    placeholder = { Text(stringResource(R.string.notelist_search_hint)) },
+                    singleLine = true,
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                    ),
+                    trailingIcon = {
+                        if (searchQuery.isNotEmpty()) {
+                            IconButton(onClick = { onSearchChange("") }) {
+                                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.action_search_clear))
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(focusRequester),
+                )
+            },
+        )
+    } else {
+        TopAppBar(
+            title = { Text(stringResource(R.string.app_name)) },
+            actions = {
+                IconButton(onClick = onActivateSearch) {
+                    Icon(Icons.Filled.Search, contentDescription = stringResource(R.string.action_search))
+                }
+                IconButton(onClick = onOpenSortFilter) {
+                    Icon(Icons.Filled.Tune, contentDescription = stringResource(R.string.action_sort_and_filter))
+                }
+                IconButton(onClick = onOpenSettings) {
+                    Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.action_settings))
+                }
+            },
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SortFilterSheet(
+    sortOrder: SortOrder,
+    noteFilter: NoteFilter,
+    onSortChange: (SortOrder) -> Unit,
+    onFilterChange: (NoteFilter) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)) {
+            SheetSectionLabel(stringResource(R.string.notelist_sort_label))
+            SortOrder.entries.forEach { order ->
+                ChoiceRow(
+                    label = stringResource(sortLabel(order)),
+                    selected = order == sortOrder,
+                    onClick = { onSortChange(order) },
+                )
+            }
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+            SheetSectionLabel(stringResource(R.string.notelist_filter_label))
+            NoteFilter.entries.forEach { filter ->
+                ChoiceRow(
+                    label = stringResource(filterLabel(filter)),
+                    selected = filter == noteFilter,
+                    onClick = { onFilterChange(filter) },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SheetSectionLabel(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
+    )
+}
+
+@Composable
+private fun ChoiceRow(label: String, selected: Boolean, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        RadioButton(selected = selected, onClick = onClick)
+        Text(label, modifier = Modifier.padding(start = 8.dp))
+    }
+}
+
+private fun sortLabel(order: SortOrder): Int = when (order) {
+    SortOrder.MODIFIED -> R.string.notelist_sort_modified
+    SortOrder.CREATED -> R.string.notelist_sort_created
+    SortOrder.TITLE -> R.string.notelist_sort_title
+}
+
+private fun filterLabel(filter: NoteFilter): Int = when (filter) {
+    NoteFilter.ALL -> R.string.notelist_filter_all
+    NoteFilter.PINNED -> R.string.notelist_filter_pinned
+    NoteFilter.UNPINNED -> R.string.notelist_filter_unpinned
 }

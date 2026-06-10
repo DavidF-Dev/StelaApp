@@ -10,6 +10,9 @@ All notable changes to Stela are documented here. This project adheres to
   an emoji picker in the editor.
 - "Swipe to unpin" setting (off by default): when on, swiping a pinned notification unpins
   it instead of self-healing.
+- Search, sort, and filter on the note list: search by title or description, sort by last
+  modified / date created / title, and filter to all / pinned / unpinned notes. The sort and
+  filter choices are remembered.
 
 ### Changed
 - The note Title and Description fields now auto-capitalise the first letter.

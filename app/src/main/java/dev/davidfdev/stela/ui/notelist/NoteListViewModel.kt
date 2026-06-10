@@ -9,6 +9,9 @@ import dev.davidfdev.stela.StelaApp
 import dev.davidfdev.stela.data.Note
 import dev.davidfdev.stela.data.NoteRepository
 import dev.davidfdev.stela.pin.NotePinner
+import dev.davidfdev.stela.settings.NoteFilter
+import dev.davidfdev.stela.settings.SettingsRepository
+import dev.davidfdev.stela.settings.SortOrder
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -20,6 +23,10 @@ import kotlinx.coroutines.launch
 data class NoteListUiState(
     val notes: List<Note> = emptyList(),
     val selectedIds: Set<Long> = emptySet(),
+    val searchQuery: String = "",
+    val sortOrder: SortOrder = SortOrder.MODIFIED,
+    val noteFilter: NoteFilter = NoteFilter.ALL,
+    val isSourceEmpty: Boolean = true,
 ) {
     val inSelectionMode: Boolean get() = selectedIds.isNotEmpty()
     val selectedCount: Int get() = selectedIds.size
@@ -32,20 +39,42 @@ data class NoteListUiState(
 class NoteListViewModel(
     repository: NoteRepository,
     private val pinner: NotePinner,
+    private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
     private val selectedIds = MutableStateFlow<Set<Long>>(emptySet())
+    // Transient: search resets each session, unlike the persisted sort/filter.
+    private val searchQuery = MutableStateFlow("")
 
     val uiState: StateFlow<NoteListUiState> =
-        combine(repository.notes, selectedIds) { notes, selected ->
+        combine(repository.notes, selectedIds, searchQuery, settingsRepository.settings) { source, selected, search, settings ->
             // Drop ids whose note no longer exists so selection can't outlive a delete.
-            val present = selected.filterTo(mutableSetOf()) { id -> notes.any { it.id == id } }
-            NoteListUiState(notes = notes, selectedIds = present)
+            val present = selected.filterTo(mutableSetOf()) { id -> source.any { it.id == id } }
+            NoteListUiState(
+                notes = applyQuery(source, search, settings.sortOrder, settings.noteFilter),
+                selectedIds = present,
+                searchQuery = search,
+                sortOrder = settings.sortOrder,
+                noteFilter = settings.noteFilter,
+                isSourceEmpty = source.isEmpty(),
+            )
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
             initialValue = NoteListUiState(),
         )
+
+    fun onSearchChange(query: String) {
+        searchQuery.value = query
+    }
+
+    fun onSortChange(order: SortOrder) {
+        viewModelScope.launch { settingsRepository.setSortOrder(order) }
+    }
+
+    fun onFilterChange(filter: NoteFilter) {
+        viewModelScope.launch { settingsRepository.setNoteFilter(filter) }
+    }
 
     fun pin(note: Note) {
         viewModelScope.launch { pinner.pin(note) }
@@ -95,7 +124,11 @@ class NoteListViewModel(
         val Factory = viewModelFactory {
             initializer {
                 val app = this[APPLICATION_KEY] as StelaApp
-                NoteListViewModel(app.container.noteRepository, app.container.notePinner)
+                NoteListViewModel(
+                    app.container.noteRepository,
+                    app.container.notePinner,
+                    app.container.settingsRepository,
+                )
             }
         }
     }

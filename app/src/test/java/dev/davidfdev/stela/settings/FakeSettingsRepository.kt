@@ -24,4 +24,12 @@ class FakeSettingsRepository(initial: Settings = Settings()) : SettingsRepositor
     override suspend fun setSwipeToUnpin(value: Boolean) {
         state.update { it.copy(swipeToUnpin = value) }
     }
+
+    override suspend fun setSortOrder(value: SortOrder) {
+        state.update { it.copy(sortOrder = value) }
+    }
+
+    override suspend fun setNoteFilter(value: NoteFilter) {
+        state.update { it.copy(noteFilter = value) }
+    }
 }

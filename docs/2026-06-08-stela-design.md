@@ -342,11 +342,13 @@ One service, one baseline notification, no redundancy.
    open-source licenses), **string externalisation for localisation** (move all UI
    and notification strings to resources, with `<plurals>` and locale-aware dates —
    the i18n enabler, done early in the phase), API 33/34 behavior, manual OEM matrix.
-7. **List querying** — **search** (fuzzy, over title + description), **sort**
-   (creation / modified / title / icon), **filter** (all / pinned / unpinned),
-   all derived in one in-memory pipeline over the notes flow in the list
-   ViewModel. Sort/filter selections persist via the Phase 5 preferences store.
-   (Sort-by-icon stays inert until the v2 icon set makes icons distinguishable.)
+7. **List querying** *(implemented — see [2026-06-10-phase7-list-querying.md](2026-06-10-phase7-list-querying.md))* —
+   **search** (case-insensitive substring over title + description), **sort**
+   (modified / created / title), **filter** (all / pinned / unpinned), all derived in one
+   in-memory `applyQuery` pass over the notes flow in the list ViewModel. Sort/filter persist
+   via the Phase 5 preferences store; search is transient. (The planned *sort-by-icon* was
+   dropped — the per-note emoji superseded the v2 icon set. A sort-direction toggle is a
+   queued follow-up.)
 
 **Scope additions (2026-06-08):** theme selection (→ Phase 5), timestamp display
 and multi-select / batch actions (→ Phase 6), plain-text **share** (→ Phase 6),
@@ -357,8 +359,8 @@ features are deferred to their natural phases rather than implemented eagerly. N
 search, sort, and filter share **one in-memory derivation** over the notes flow
 (fine at personal scale; move to SQL `WHERE`/`ORDER BY` and Room FTS only if a
 library ever grows to thousands of notes); persisted sort/filter selections depend
-on the Phase 5 preferences store; **sort-by-icon** stays inert until the v2 icon set
-makes icons distinguishable; **share** keeps the app offline — Stela only hands
+on the Phase 5 preferences store; the planned **sort-by-icon** was dropped (the per-note
+emoji superseded the v2 icon set); **share** keeps the app offline — Stela only hands
 plain text to the OS share sheet and declares no `INTERNET`.
 
 **v1.1.0 (implemented, pending release):** auto-capitalise the editor fields, a **"swipe to
