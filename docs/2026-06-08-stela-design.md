@@ -363,19 +363,36 @@ on the Phase 5 preferences store; the planned **sort-by-icon** was dropped (the 
 emoji superseded the v2 icon set); **share** keeps the app offline — Stela only hands
 plain text to the OS share sheet and declares no `INTERNET`.
 
-**v1.1.0 (implemented, pending release):** auto-capitalise the editor fields, a **"swipe to
-unpin"** setting, a per-note **emoji** shown in the list + notification title (via a
-derived `displayTitle`; `Note.emoji` column, DB v2) — the emoji supersedes the deferred v2
-icon-set picker — and **notification-→-editor return-to-context** (§9): a cold notification
-entry finishes back to home on completion instead of landing on an unvisited list. See
-[2026-06-10-v1.1-features.md](2026-06-10-v1.1-features.md).
+**v1.1.0 (released 2026/06/10):** auto-capitalise the editor fields, a **"swipe to unpin"**
+setting, a per-note **emoji** shown in the list + notification title (via a derived
+`displayTitle`; `Note.emoji` column, DB v2 — the emoji supersedes the deferred v2 icon-set
+picker), **notification-→-editor return-to-context** (§9), and the **list-querying** work —
+search / sort / filter with an active-filter chip and a **sort-direction toggle**, plus
+**select all** in multi-select. See [2026-06-10-v1.1-features.md](2026-06-10-v1.1-features.md)
+and [2026-06-10-phase7-list-querying.md](2026-06-10-phase7-list-querying.md). The mooted
+**"Tap to edit" setting was dropped** — tapping already opens the editor everywhere, so there
+is nothing for it to toggle to.
 
-**v1.x follow-ups (2026-06-10):** the note-list **sort-direction toggle** (asc/desc) is
-**done** (see [2026-06-10-phase7-list-querying.md](2026-06-10-phase7-list-querying.md)). The
-mooted **"Tap to edit" setting was dropped** — tapping already opens the editor everywhere
-(list rows and notification bodies), so there is nothing for it to toggle to.
+**v1.2.0 (unreleased):** bug fixes so far — the emoji picker re-hosted in a themed, scrollable
+Material `BottomSheetDialog`, and the quick-add notification self-heals when swiped away
+(Android 14+). See [CHANGELOG.md](../CHANGELOG.md).
 
-**v2 (deferred):** JSON export/import, home-screen widget.
+**Planned features (prioritized, 2026-06-10):** each is its own slice (spec → plan →
+implement); all keep the no-`INTERNET` invariant.
+1. **Undo-delete** — a "Note deleted — Undo" snackbar after a single or batch delete; a safety
+   net for the app's one irreversible action. Small.
+2. **JSON export/import** — back up and restore all notes to a file via the Storage Access
+   Framework (offline); the schema was kept flat for exactly this. The data-ownership
+   completion of the privacy promise.
+3. **Home-screen widget** — a quick-add / pinned-notes widget (Jetpack Glance), extending the
+   glanceable, no-app-open spirit onto the home screen. Medium effort (a separate render
+   surface).
+4. **Advanced note settings (scheduled/timed pins)** — pin a note as a notification at a
+   chosen time (`AlarmManager` + exact-alarm permission). A natural extension of "pin as
+   notification" and the largest; a deliberate step toward reminder territory, so confirm
+   scope before building.
+
+Lower priority, kept deferred: a branded splash screen and an in-app language picker.
 
 ---
 
