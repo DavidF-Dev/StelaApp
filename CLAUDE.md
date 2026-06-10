@@ -13,8 +13,9 @@ Read it before making architectural decisions; this file is only a quick orienta
 |--------------|-----------------------------------------------------|
 | Language     | Kotlin                                              |
 | UI           | Jetpack Compose (Material 3; Light/Dark/System theme) |
-| Storage      | Room (SQLite), offline                              |
-| Preferences  | Jetpack DataStore (theme, quick-add, lock-screen)   |
+| Storage      | Room (SQLite, schema v2), offline                   |
+| Preferences  | Jetpack DataStore (theme, quick-add, lock-screen, swipe-to-unpin, list sort/filter) |
+| Backup       | JSON export/import via Storage Access Framework (kotlinx.serialization), offline |
 | Background   | Foreground Service (`specialUse` type, API 34+)     |
 | Boot restore | `BroadcastReceiver` on `BOOT_COMPLETED`             |
 | Min SDK      | 26 (Android 8) · Target SDK: latest stable          |
@@ -23,12 +24,13 @@ Read it before making architectural decisions; this file is only a quick orienta
 ## Architecture (one-line each)
 
 - **`NoteRepository`** — single source of truth over Room; exposes notes as a `Flow` + CRUD. UI and service both read through it.
-- **`SettingsRepository`** — single source of truth for preferences over DataStore (theme, quick-add, lock-screen). UI, theme, controller, and service read through it.
+- **`SettingsRepository`** — single source of truth for preferences over DataStore (theme, quick-add, lock-screen, swipe-to-unpin, list sort/filter). UI, theme, controller, and service read through it.
+- **Backup** — `BackupCodec` (pure JSON encode/decode over a versioned `NotesBackup` DTO, decoupled from the Room entity) + `BackupIo` (the `ContentResolver` seam). Export/import is driven from the Settings screen via the Storage Access Framework; import appends notes (fresh ids, unpinned).
 - **`NotificationController`** — the *only* class that touches `NotificationManager`. Builds ongoing pinned notifications (Edit/Remove actions) plus the quick-add and minimal "running" service notifications. Pin/unpin/refresh/re-assert.
 - **`NotePinner`** — the single seam for pin/unpin: persists the flag, posts/cancels the notification, and reconciles the service (start/stop/swap). UI and the Remove action both route through it.
 - **`PinService`** — foreground service. Runs **iff** (≥1 pinned note) **OR** (quick-add enabled). Shows the quick-add notification, or a minimal "running" line when quick-add is off but notes are pinned; re-asserts pins on start.
 - **`BootReceiver`** — on `BOOT_COMPLETED` or `MY_PACKAGE_REPLACED` (reboot or app update), starts `PinService` to re-pin flagged notes.
-- **UI (Compose)** — NoteList · Editor · Settings (theme, quick-add, lock-screen). Talks to the repositories; pin/unpin via `NotePinner`.
+- **UI (Compose)** — NoteList (search · sort/filter · multi-select with select-all · undo-delete) · Editor (emoji picker) · Settings (theme, notification prefs, keep-alive guidance, backup export/import). Talks to the repositories; pin/unpin via `NotePinner`.
 
 ## Invariants — do not break
 
@@ -43,9 +45,10 @@ Read it before making architectural decisions; this file is only a quick orienta
 ## Persistence reality
 
 Modern Android cannot guarantee truly undismissable notifications or unkillable
-processes. The honest promise: pinned notes **self-heal** (re-post if cleared),
-**survive reboot** (via `BootReceiver`), and **resist background kill** (foreground
-service). Onboarding guides battery-optimization exemption + OEM autostart.
+processes. The honest promise: pinned notes (and the foreground-service notification)
+**self-heal** (re-post if cleared — on Android 14+, where ongoing notifications became
+swipeable), **survive reboot** (via `BootReceiver`), and **resist background kill**
+(foreground service). Onboarding guides battery-optimization exemption + OEM autostart.
 
 ## Building & testing
 

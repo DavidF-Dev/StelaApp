@@ -373,9 +373,11 @@ and [2026-06-10-phase7-list-querying.md](2026-06-10-phase7-list-querying.md). Th
 **"Tap to edit" setting was dropped** — tapping already opens the editor everywhere, so there
 is nothing for it to toggle to.
 
-**v1.2.0 (unreleased):** bug fixes so far — the emoji picker re-hosted in a themed, scrollable
-Material `BottomSheetDialog`, and the quick-add notification self-heals when swiped away
-(Android 14+). See [CHANGELOG.md](../CHANGELOG.md).
+**v1.2.0 (unreleased):** two bug fixes — the emoji picker re-hosted in a themed, scrollable
+Material `BottomSheetDialog`, and the quick-add notification self-healing when swiped away
+(Android 14+) — plus the first two **Planned features** below (**undo-delete** and **JSON
+export/import**, both done). Items 3–4 remain; the home-screen widget is next. See
+[CHANGELOG.md](../CHANGELOG.md).
 
 **Planned features (prioritized, 2026-06-10):** each is its own slice (spec → plan →
 implement); all keep the no-`INTERNET` invariant.
@@ -404,7 +406,6 @@ Lower priority, kept deferred: a branded splash screen and an in-app language pi
 
 ## 13. Open questions for review
 
-- Package / application id (e.g. `io.stela`, `dev.<you>.stela`)?
 - Curated icon set — how many, and any specific symbols you want?
 - Tap behaviour: **resolved** — shipped as "tap = edit" (list rows and notification bodies
   open the editor). A configurable setting was considered and **dropped**: tap already edits
