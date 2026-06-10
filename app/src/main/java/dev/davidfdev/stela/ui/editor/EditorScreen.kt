@@ -1,5 +1,8 @@
 package dev.davidfdev.stela.ui.editor
 
+import android.view.ContextThemeWrapper
+import android.view.LayoutInflater
+import android.view.View
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,7 +24,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -31,19 +33,23 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.emoji2.emojipicker.EmojiPickerView
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.button.MaterialButton
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.davidfdev.stela.R
@@ -216,30 +222,64 @@ fun EditorScreen(
     }
 
     if (showEmojiPicker) {
-        ModalBottomSheet(onDismissRequest = { showEmojiPicker = false }) {
-            if (state.emoji.isNotBlank()) {
-                TextButton(
-                    onClick = {
-                        onEmojiChange("")
-                        showEmojiPicker = false
-                    },
-                    modifier = Modifier.align(Alignment.End).padding(horizontal = 8.dp),
-                ) { Text(stringResource(R.string.editor_clear_emoji)) }
-            }
-            // The official picker is a View; host it and report the picked emoji.
-            AndroidView(
-                factory = { ctx ->
-                    EmojiPickerView(ctx).apply {
-                        setOnEmojiPickedListener { picked ->
-                            onEmojiChange(picked.emoji)
-                            showEmojiPicker = false
-                        }
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(360.dp),
-            )
+        EmojiPickerBottomSheet(
+            showClear = state.emoji.isNotBlank(),
+            onPick = { emoji ->
+                onEmojiChange(emoji)
+                showEmojiPicker = false
+            },
+            onClear = {
+                onEmojiChange("")
+                showEmojiPicker = false
+            },
+            onDismiss = { showEmojiPicker = false },
+        )
+    }
+}
+
+/// Hosts the official `EmojiPickerView` in a Material `BottomSheetDialog`. A Compose
+/// `ModalBottomSheet` steals the vertical drag from the picker's `RecyclerView` (so it
+/// cannot scroll); the View-system bottom sheet coordinates that scroll natively. The
+/// dialog is themed with a Material 3 theme matching the in-app light/dark choice, since
+/// the picker reads its label colours from the host theme.
+@Composable
+private fun EmojiPickerBottomSheet(
+    showClear: Boolean,
+    onPick: (String) -> Unit,
+    onClear: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val context = LocalContext.current
+    val darkTheme = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+    val onPickCurrent by rememberUpdatedState(onPick)
+    val onClearCurrent by rememberUpdatedState(onClear)
+    val onDismissCurrent by rememberUpdatedState(onDismiss)
+
+    DisposableEffect(darkTheme, showClear) {
+        val themed = ContextThemeWrapper(
+            context,
+            if (darkTheme) {
+                com.google.android.material.R.style.Theme_Material3_Dark
+            } else {
+                com.google.android.material.R.style.Theme_Material3_Light
+            },
+        )
+        val content = LayoutInflater.from(themed).inflate(R.layout.emoji_picker_sheet, null)
+        content.findViewById<MaterialButton>(R.id.clear_emoji).apply {
+            visibility = if (showClear) View.VISIBLE else View.GONE
+            setOnClickListener { onClearCurrent() }
         }
+        content.findViewById<EmojiPickerView>(R.id.emoji_picker)
+            .setOnEmojiPickedListener { onPickCurrent(it.emoji) }
+
+        val dialog = BottomSheetDialog(themed).apply {
+            setContentView(content)
+            setOnDismissListener { onDismissCurrent() }
+            // Disable the sheet's drag (scrim/back still dismiss) so the picker's RecyclerView gets the scroll.
+            behavior.isDraggable = false
+            behavior.state = BottomSheetBehavior.STATE_EXPANDED
+            show()
+        }
+        onDispose { dialog.dismiss() }
     }
 }

@@ -112,6 +112,8 @@ dependencies {
 
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.emoji2.emojipicker)
+    // Material Components (View system): hosts the emoji picker in a themed, scrollable BottomSheetDialog.
+    implementation(libs.material)
 
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)

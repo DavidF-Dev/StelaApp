@@ -11,6 +11,7 @@ navigationCompose = "2.8.5"
 room = "2.6.1"
 datastore = "1.1.1"
 emojipicker = "1.4.0"
+material = "1.12.0"
 
 junit = "4.13.2"
 androidxJunit = "1.2.1"
@@ -43,6 +44,7 @@ androidx-room-testing = { group = "androidx.room", name = "room-testing", versio
 
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 androidx-emoji2-emojipicker = { group = "androidx.emoji2", name = "emoji2-emojipicker", version.ref = "emojipicker" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }

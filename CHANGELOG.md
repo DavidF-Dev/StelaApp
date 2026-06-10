@@ -5,7 +5,10 @@ All notable changes to Stela are documented here. This project adheres to
 
 ## [1.2.0] - unreleased
 
-Empty.
+### Fixed
+- The emoji picker now scrolls and its category labels are legible. It is hosted in a
+  Material bottom sheet themed to match the app's light/dark setting, fixing both the
+  unreadable headers and the grid that wouldn't scroll.
 
 ## [1.1.0] - 2026/06/10
 
