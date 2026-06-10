@@ -42,12 +42,12 @@ class EditorViewModelTest {
 
         fun viewModel(
             noteId: Long? = null,
-            pinOnSave: Boolean = false,
+            initialPinned: Boolean = true,
             canPost: Boolean = true,
         ): EditorViewModel {
+            // Mirror the routes: the new-note route always supplies the pin arg; the edit route never does.
             val map = buildMap<String, Any> {
-                if (noteId != null) put("noteId", noteId)
-                if (pinOnSave) put("pin", true)
+                if (noteId != null) put("noteId", noteId) else put("pin", initialPinned)
             }
             return EditorViewModel(repository, pinner, SavedStateHandle(map)) { canPost }
         }
@@ -73,9 +73,16 @@ class EditorViewModelTest {
     }
 
     @Test
-    fun newNote_save_withPinFlag_pinsCreatedNote() = runTest(dispatcher) {
+    fun newNote_defaultsToPinnedIntent() = runTest(dispatcher) {
+        val viewModel = Fixture().viewModel()
+        assertFalse(viewModel.uiState.value.isEditing)
+        assertTrue(viewModel.uiState.value.isPinned)
+    }
+
+    @Test
+    fun newNote_save_whenPinned_pinsCreatedNote() = runTest(dispatcher) {
         val f = Fixture()
-        val viewModel = f.viewModel(pinOnSave = true)
+        val viewModel = f.viewModel()
 
         viewModel.onTitleChange("Pinned on create")
         viewModel.save { }
@@ -84,6 +91,24 @@ class EditorViewModelTest {
         val note = f.repository.notes.first().single()
         assertTrue(note.isPinned)
         assertEquals(listOf(note.id), f.controller.pinned.map { it.id })
+    }
+
+    @Test
+    fun newNote_pin_recordsIntentWithoutPostingUntilSave() = runTest(dispatcher) {
+        val f = Fixture()
+        val viewModel = f.viewModel(initialPinned = false)
+
+        viewModel.pin()
+        advanceUntilIdle()
+
+        // Intent flips immediately, but nothing is posted for a note that does not exist yet.
+        assertTrue(viewModel.uiState.value.isPinned)
+        assertTrue(f.controller.pinned.isEmpty())
+
+        viewModel.onTitleChange("Now real")
+        viewModel.save { }
+        advanceUntilIdle()
+        assertEquals(listOf(f.repository.notes.first().single().id), f.controller.pinned.map { it.id })
     }
 
     @Test
@@ -102,9 +127,9 @@ class EditorViewModelTest {
     }
 
     @Test
-    fun newNote_save_withPinFlag_butNotificationsBlocked_savesUnpinned() = runTest(dispatcher) {
+    fun newNote_save_whenPinned_butNotificationsBlocked_savesUnpinned() = runTest(dispatcher) {
         val f = Fixture()
-        val viewModel = f.viewModel(pinOnSave = true, canPost = false)
+        val viewModel = f.viewModel(canPost = false)
 
         viewModel.onTitleChange("No permission")
         viewModel.save { }
@@ -115,9 +140,9 @@ class EditorViewModelTest {
     }
 
     @Test
-    fun newNote_save_withoutPinFlag_doesNotPin() = runTest(dispatcher) {
+    fun newNote_save_whenUnpinned_doesNotPin() = runTest(dispatcher) {
         val f = Fixture()
-        val viewModel = f.viewModel()
+        val viewModel = f.viewModel(initialPinned = false)
 
         viewModel.onTitleChange("Plain")
         viewModel.save { }

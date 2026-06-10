@@ -144,6 +144,8 @@ class ListQueryFlowTest {
     private fun createNote(title: String) {
         composeRule.onNodeWithContentDescription("New note").performClick()
         composeRule.onNodeWithText("Title").performTextInput(title)
+        // New notes default to pinned; these query tests assume plain unpinned notes.
+        composeRule.onNodeWithContentDescription("Unpin").performClick()
         composeRule.onNodeWithText("Save").performClick()
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText(title).fetchSemanticsNodes().isNotEmpty()

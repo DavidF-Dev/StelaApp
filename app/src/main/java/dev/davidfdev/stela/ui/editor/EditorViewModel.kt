@@ -39,10 +39,12 @@ class EditorViewModel(
 
     private val noteId: Long? = savedStateHandle[NOTE_ID_KEY]
 
-    // Set by the quick-add entry points: a note created here is pinned once saved.
-    private val pinOnSave: Boolean = savedStateHandle[PIN_KEY] ?: false
+    // Seeds a new note's pin toggle (its intended state until saved); new-note routes default it to true.
+    private val initialPinned: Boolean = savedStateHandle[PIN_KEY] ?: true
 
-    private val _uiState = MutableStateFlow(EditorUiState(isEditing = noteId != null))
+    private val _uiState = MutableStateFlow(
+        EditorUiState(isEditing = noteId != null, isPinned = noteId == null && initialPinned),
+    )
     val uiState: StateFlow<EditorUiState> = _uiState.asStateFlow()
 
     // Retained so a save preserves fields the editor doesn't expose (createdAt, iconId, isPinned).
@@ -75,7 +77,11 @@ class EditorViewModel(
     fun onEmojiChange(value: String) = _uiState.update { it.copy(emoji = value) }
 
     fun pin() {
-        val note = loaded ?: return
+        // New note (not yet persisted): record the intent; it is pinned on save, not live.
+        val note = loaded ?: run {
+            _uiState.update { it.copy(isPinned = true) }
+            return
+        }
         viewModelScope.launch {
             pinner.pin(note)
             loaded = note.copy(isPinned = true)
@@ -84,7 +90,10 @@ class EditorViewModel(
     }
 
     fun unpin() {
-        val note = loaded ?: return
+        val note = loaded ?: run {
+            _uiState.update { it.copy(isPinned = false) }
+            return
+        }
         viewModelScope.launch {
             pinner.unpin(note.id)
             loaded = note.copy(isPinned = false)
@@ -99,7 +108,7 @@ class EditorViewModel(
             if (existing == null) {
                 val id = repository.create(state.title, state.description, emoji = state.emoji)
                 // Mirror the other pin entry points: only pin when notifications can post.
-                if (pinOnSave && canPostNotifications()) repository.getById(id)?.let { pinner.pin(it) }
+                if (state.isPinned && canPostNotifications()) repository.getById(id)?.let { pinner.pin(it) }
             } else {
                 val updated = existing.copy(
                     title = state.title,

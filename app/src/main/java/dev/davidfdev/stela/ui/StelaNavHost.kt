@@ -51,7 +51,8 @@ fun StelaNavHost(
         composable(
             route = Routes.EDITOR_NEW_ROUTE,
             arguments = listOf(
-                navArgument(EditorViewModel.PIN_KEY) { type = NavType.BoolType; defaultValue = false },
+                // New notes default to pinned; the editor's pin toggle can flip this before saving.
+                navArgument(EditorViewModel.PIN_KEY) { type = NavType.BoolType; defaultValue = true },
             ),
             deepLinks = listOf(
                 navDeepLink {

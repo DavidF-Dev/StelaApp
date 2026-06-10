@@ -12,11 +12,15 @@ All notable changes to Stela are documented here. This project adheres to
   picker and stay fully offline. Importing adds the notes to your existing ones.
 - Search the emoji picker: tap the search tab in the editor's emoji picker and type to find an
   emoji by name. Stays fully offline.
+- New notes can now be pinned straight from the editor: the pin toggle is shown while creating a
+  note (defaulting to pinned) and the note is pinned as soon as you save it.
 
 ### Fixed
 - The emoji picker now scrolls and its category labels are legible. It is hosted in a
   Material bottom sheet themed to match the app's light/dark setting, fixing both the
   unreadable headers and the grid that wouldn't scroll.
+- Searching the emoji picker no longer shifts the emoji grid up when the keyboard appears; only
+  the search box moves.
 - The quick-add notification now self-heals if swiped away (on Android 14+, where ongoing
   notifications became dismissible), matching pinned notes. To remove it, turn off quick-add
   in Settings.

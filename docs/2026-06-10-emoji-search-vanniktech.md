@@ -34,6 +34,11 @@
 >    an explicit `EmojiTheming` is built from the Compose `MaterialTheme.colorScheme` (`.toArgb()`) and
 >    passed to `setUp(theming = …)`; the `EmojiView` and the search dialog (which inherits it) both
 >    follow the app's light/dark choice exactly.
+> 3. **Search keyboard pushed the grid up → sheet ignores the IME.** Opening search shows the keyboard
+>    for vanniktech's separate search `DialogFragment`, but Material's `BottomSheetDialog` follows the
+>    IME insets and lifted the background grid with it. The sheet has no text field of its own, so its
+>    window is set to `SOFT_INPUT_ADJUST_NOTHING` — the grid stays fixed while the search dialog (its own
+>    window) keeps its box above the keyboard. *(v1.2.0.)*
 
 **Goal:** Let users find an emoji by name when setting a note's emoji, by replacing the
 search-less AndroidX emoji picker with vanniktech's `EmojiView`, whose search is on by default.

@@ -156,12 +156,16 @@ data class Note(
    *Phase 7*. The chosen sort + filter persist in the DataStore preferences store
    (set from the list, not the Settings screen; search is transient). Filtering by
    **Pinned** replaces the earlier "pinned notes at top" toggle.
-2. **Editor** — title, description, icon picker (silhouette set), pin toggle.
+2. **Editor** — title, description, emoji picker, pin toggle.
    Reachable from: app list, FAB, the quick-add notification, and a pinned note's
    **Edit** action. Save persists via repository (and refreshes the notification
    if pinned). Shows **created and modified** timestamps (absolute) — *Phase 6*.
    A **Share** action sends the note's title + description as plain text via the
    system share sheet — *Phase 6* (no new permission; Stela stays offline).
+   The **pin toggle is shown for new notes too** *(v1.2.0)* — for an unsaved note it sets the
+   *intended* pin state (no live notification until save), **defaulting to pinned**, and the note is
+   pinned on save if notifications are permitted; for an existing note it pins/unpins live. (Delete
+   stays edit-only.)
 3. **Settings** —
    - **Theme** — Light / Dark / Follow System, persisted via DataStore — *Phase 5*
      (the first consumer of the preferences store; default Follow System once

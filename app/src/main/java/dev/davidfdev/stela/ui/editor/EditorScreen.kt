@@ -3,6 +3,7 @@ package dev.davidfdev.stela.ui.editor
 import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.view.View
+import android.view.WindowManager
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -134,14 +135,14 @@ fun EditorScreen(
                             Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.action_share))
                         }
                     }
-                    if (state.isEditing) {
-                        IconButton(onClick = onTogglePin) {
-                            if (state.isPinned) {
-                                Icon(Icons.Filled.PushPin, contentDescription = stringResource(R.string.action_unpin))
-                            } else {
-                                Icon(Icons.Outlined.PushPin, contentDescription = stringResource(R.string.action_pin))
-                            }
+                    IconButton(onClick = onTogglePin) {
+                        if (state.isPinned) {
+                            Icon(Icons.Filled.PushPin, contentDescription = stringResource(R.string.action_unpin))
+                        } else {
+                            Icon(Icons.Outlined.PushPin, contentDescription = stringResource(R.string.action_pin))
                         }
+                    }
+                    if (state.isEditing) {
                         IconButton(onClick = { showDeleteDialog = true }) {
                             Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete))
                         }
@@ -294,6 +295,8 @@ private fun EmojiPickerBottomSheet(
         val dialog = BottomSheetDialog(themed).apply {
             setContentView(content)
             setOnDismissListener { onDismissCurrent() }
+            // The search box lives in a separate dialog, so keep its keyboard from shifting this grid.
+            window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING)
             // Disable the sheet's drag (scrim/back still dismiss) so the picker's RecyclerView gets the scroll.
             behavior.isDraggable = false
             behavior.state = BottomSheetBehavior.STATE_EXPANDED
