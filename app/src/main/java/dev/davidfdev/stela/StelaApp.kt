@@ -20,7 +20,7 @@ class StelaApp : Application() {
     override fun onCreate() {
         super.onCreate()
         container = AppContainer(this)
-        observeLockScreenPreference()
+        observePinnedNotificationPreferences()
         observeQuickAddPreference()
     }
 
@@ -36,16 +36,18 @@ class StelaApp : Application() {
         }
     }
 
-    /// Keeps the controller's visibility in sync with the preference, and re-asserts
-    /// pinned notifications when it changes so already-posted ones update. The first
-    /// emission only seeds the value (no re-post on every launch).
-    private fun observeLockScreenPreference() {
+    /// Keeps the controller's pinned-notification flags (lock-screen visibility,
+    /// swipe-to-unpin) in sync with preferences, and re-asserts pinned notifications when
+    /// either changes so already-posted ones update. The first emission only seeds the
+    /// values (no re-post on every launch).
+    private fun observePinnedNotificationPreferences() {
         scope.launch {
             container.settingsRepository.settings
-                .map { it.hideOnLockScreen }
+                .map { it.hideOnLockScreen to it.swipeToUnpin }
                 .distinctUntilChanged()
-                .collectIndexed { index, hide ->
+                .collectIndexed { index, (hide, swipe) ->
                     container.notificationController.hideOnLockScreen = hide
+                    container.notificationController.swipeToUnpin = swipe
                     if (index > 0) container.notePinner.reassertPinned()
                 }
         }

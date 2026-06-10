@@ -37,7 +37,7 @@ Read it before making architectural decisions; this file is only a quick orienta
 - **`NotificationController` is the sole `NotificationManager` toucher.** Route all notification changes through it.
 - **`PendingIntent`s use `FLAG_IMMUTABLE`** (API 31+).
 - **Notification ID is derived deterministically from `note.id`** so a note always maps to the same notification.
-- **Pinned-note body tap opens the editor** for that note (same as the **Edit** action); **Remove** unpins it without deleting. (The quick-add notification's body tap opens a new note and pins it on save.)
+- **Pinned-note body tap opens the editor** for that note (same as the **Edit** action); **Unpin** removes it from the status bar without deleting. (The quick-add notification's body tap opens a new note and pins it on save.)
 - **v1 ships a single default silhouette icon** — no icon picker. The `iconId` column exists (defaulted) only to keep the v2 icon set migration-free.
 
 ## Persistence reality

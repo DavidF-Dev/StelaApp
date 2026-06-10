@@ -22,6 +22,9 @@ class AndroidNotificationController(private val context: Context) : Notification
     @Volatile
     override var hideOnLockScreen: Boolean = false
 
+    @Volatile
+    override var swipeToUnpin: Boolean = false
+
     init {
         val pinned = NotificationChannelCompat.Builder(CHANNEL_PINNED, NotificationManagerCompat.IMPORTANCE_DEFAULT)
             .setName(context.getString(R.string.channel_pinned_name))
@@ -62,15 +65,16 @@ class AndroidNotificationController(private val context: Context) : Notification
             .setColor(context.getColor(R.color.brand_indigo))
             .setContentTitle(note.title)
             .setContentIntent(editIntent(note.id))
-            .setOngoing(true)
+            // Non-ongoing (swipeable) when the user opted into swipe-to-unpin.
+            .setOngoing(!swipeToUnpin)
             .setOnlyAlertOnce(true)
             .setSilent(true)
             .setShowWhen(false)
             .setVisibility(visibility)
-            // Self-heal: if the user swipes the ongoing notification away, re-post it.
-            .setDeleteIntent(reassertIntent(note.id))
+            // On swipe: unpin if the user opted in, else self-heal by re-posting.
+            .setDeleteIntent(if (swipeToUnpin) unpinIntent(note.id) else reassertIntent(note.id))
             .addAction(0, context.getString(R.string.notification_action_edit), editIntent(note.id))
-            .addAction(0, context.getString(R.string.notification_action_remove), removeIntent(note.id))
+            .addAction(0, context.getString(R.string.notification_action_unpin), unpinIntent(note.id))
         if (note.description.isNotBlank()) {
             builder.setContentText(note.description)
                 .setStyle(NotificationCompat.BigTextStyle().bigText(note.description))
@@ -91,8 +95,8 @@ class AndroidNotificationController(private val context: Context) : Notification
         return PendingIntent.getActivity(context, notificationId(noteId), intent, PENDING_FLAGS)
     }
 
-    private fun removeIntent(noteId: Long): PendingIntent {
-        val intent = NotificationActionReceiver.removeIntent(context, noteId)
+    private fun unpinIntent(noteId: Long): PendingIntent {
+        val intent = NotificationActionReceiver.unpinIntent(context, noteId)
         return PendingIntent.getBroadcast(context, notificationId(noteId), intent, PENDING_FLAGS)
     }
 

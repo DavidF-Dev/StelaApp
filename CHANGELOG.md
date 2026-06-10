@@ -5,8 +5,13 @@ All notable changes to Stela are documented here. This project adheres to
 
 ## [1.1.0] - unreleased
 
+### Added
+- "Swipe to unpin" setting (off by default): when on, swiping a pinned notification unpins
+  it instead of self-healing.
+
 ### Changed
 - The note Title and Description fields now auto-capitalise the first letter.
+- The pinned-notification "Remove" action is now labelled "Unpin".
 
 ## [1.0.0] — 2026/06/09
 

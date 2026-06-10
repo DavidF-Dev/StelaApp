@@ -15,6 +15,7 @@ class SettingsMappingTest {
         assertEquals(ThemeMode.SYSTEM, settings.themeMode)
         assertFalse(settings.hideOnLockScreen)
         assertTrue(settings.quickAddEnabled)
+        assertFalse(settings.swipeToUnpin)
     }
 
     @Test
@@ -23,6 +24,7 @@ class SettingsMappingTest {
             SettingsKeys.THEME_MODE to ThemeMode.LIGHT.name,
             SettingsKeys.HIDE_ON_LOCK_SCREEN to true,
             SettingsKeys.QUICK_ADD_ENABLED to false,
+            SettingsKeys.SWIPE_TO_UNPIN to true,
         )
 
         val settings = settingsFromPreferences(prefs)
@@ -30,6 +32,7 @@ class SettingsMappingTest {
         assertEquals(ThemeMode.LIGHT, settings.themeMode)
         assertTrue(settings.hideOnLockScreen)
         assertFalse(settings.quickAddEnabled)
+        assertTrue(settings.swipeToUnpin)
     }
 
     @Test

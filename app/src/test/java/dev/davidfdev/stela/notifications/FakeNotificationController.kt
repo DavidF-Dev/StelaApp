@@ -10,6 +10,7 @@ class FakeNotificationController : NotificationController {
     val refreshed = mutableListOf<Note>()
 
     override var hideOnLockScreen: Boolean = false
+    override var swipeToUnpin: Boolean = false
 
     override fun pin(note: Note) { pinned += note }
     override fun unpin(noteId: Long) { unpinned += noteId }

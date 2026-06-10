@@ -9,7 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 /// Receives pinned-notification PendingIntents — deliberately not the UI. Handles
-/// Remove (unpin; the note is not deleted) and Reassert (re-post a swiped pin, the
+/// Unpin (the note is kept, not deleted) and Reassert (re-post a swiped pin, the
 /// self-heal triggered by the notification's deleteIntent).
 class NotificationActionReceiver : BroadcastReceiver() {
 
@@ -19,7 +19,7 @@ class NotificationActionReceiver : BroadcastReceiver() {
         val container = (context.applicationContext as StelaApp).container
 
         when (intent.action) {
-            ACTION_REMOVE -> {
+            ACTION_UNPIN -> {
                 val pending = goAsync()
                 CoroutineScope(Dispatchers.Default).launch {
                     try {
@@ -47,13 +47,13 @@ class NotificationActionReceiver : BroadcastReceiver() {
     }
 
     companion object {
-        private const val ACTION_REMOVE = "dev.davidfdev.stela.action.REMOVE"
+        private const val ACTION_UNPIN = "dev.davidfdev.stela.action.UNPIN"
         private const val ACTION_REASSERT = "dev.davidfdev.stela.action.REASSERT"
         private const val EXTRA_NOTE_ID = "noteId"
         private const val INVALID_ID = -1L
 
-        fun removeIntent(context: Context, noteId: Long): Intent =
-            actionIntent(context, ACTION_REMOVE, noteId)
+        fun unpinIntent(context: Context, noteId: Long): Intent =
+            actionIntent(context, ACTION_UNPIN, noteId)
 
         fun reassertIntent(context: Context, noteId: Long): Intent =
             actionIntent(context, ACTION_REASSERT, noteId)

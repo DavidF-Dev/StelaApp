@@ -45,7 +45,7 @@ class NotificationActionReceiverTest {
     }
 
     @Test
-    fun removeAction_unpinsNoteAndCancelsNotification() = runBlocking {
+    fun unpinAction_unpinsNoteAndCancelsNotification() = runBlocking {
         val repository = app.container.noteRepository
         createdNoteId = repository.create(title = "Pinned", description = "x")
         // Post the pinned notification directly (not via NotePinner) so this test
@@ -55,7 +55,7 @@ class NotificationActionReceiverTest {
         val id = notificationId(createdNoteId)
         waitUntil { manager.activeNotifications.any { it.id == id } }
 
-        context.sendBroadcast(NotificationActionReceiver.removeIntent(context, createdNoteId))
+        context.sendBroadcast(NotificationActionReceiver.unpinIntent(context, createdNoteId))
 
         waitUntil(5_000) { manager.activeNotifications.none { it.id == id } }
         assertFalse(manager.activeNotifications.any { it.id == id })

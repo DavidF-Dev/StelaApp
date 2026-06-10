@@ -15,6 +15,7 @@ interface SettingsRepository {
     suspend fun setThemeMode(mode: ThemeMode)
     suspend fun setHideOnLockScreen(value: Boolean)
     suspend fun setQuickAddEnabled(value: Boolean)
+    suspend fun setSwipeToUnpin(value: Boolean)
 }
 
 class DataStoreSettingsRepository(
@@ -34,12 +35,17 @@ class DataStoreSettingsRepository(
     override suspend fun setQuickAddEnabled(value: Boolean) {
         dataStore.edit { it[SettingsKeys.QUICK_ADD_ENABLED] = value }
     }
+
+    override suspend fun setSwipeToUnpin(value: Boolean) {
+        dataStore.edit { it[SettingsKeys.SWIPE_TO_UNPIN] = value }
+    }
 }
 
 internal object SettingsKeys {
     val THEME_MODE = stringPreferencesKey("theme_mode")
     val HIDE_ON_LOCK_SCREEN = booleanPreferencesKey("hide_on_lock_screen")
     val QUICK_ADD_ENABLED = booleanPreferencesKey("quick_add_enabled")
+    val SWIPE_TO_UNPIN = booleanPreferencesKey("swipe_to_unpin")
 }
 
 /// Pure mapping from stored preferences to [Settings], applying defaults for absent
@@ -53,5 +59,6 @@ fun settingsFromPreferences(prefs: Preferences): Settings {
         themeMode = themeMode,
         hideOnLockScreen = prefs[SettingsKeys.HIDE_ON_LOCK_SCREEN] ?: defaults.hideOnLockScreen,
         quickAddEnabled = prefs[SettingsKeys.QUICK_ADD_ENABLED] ?: defaults.quickAddEnabled,
+        swipeToUnpin = prefs[SettingsKeys.SWIPE_TO_UNPIN] ?: defaults.swipeToUnpin,
     )
 }

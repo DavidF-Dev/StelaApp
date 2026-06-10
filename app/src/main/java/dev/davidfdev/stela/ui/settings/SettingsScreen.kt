@@ -91,6 +91,7 @@ fun SettingsRoute(
         autostartAvailable = autostartAvailable,
         onThemeModeChange = viewModel::setThemeMode,
         onHideOnLockScreenChange = viewModel::setHideOnLockScreen,
+        onSwipeToUnpinChange = viewModel::setSwipeToUnpin,
         onQuickAddEnabledChange = { enabled ->
             if (enabled) gate { viewModel.setQuickAddEnabled(true) } else viewModel.setQuickAddEnabled(false)
         },
@@ -112,6 +113,7 @@ fun SettingsScreen(
     autostartAvailable: Boolean,
     onThemeModeChange: (ThemeMode) -> Unit,
     onHideOnLockScreenChange: (Boolean) -> Unit,
+    onSwipeToUnpinChange: (Boolean) -> Unit,
     onQuickAddEnabledChange: (Boolean) -> Unit,
     onOpenBatterySettings: () -> Unit,
     onOpenAutostart: () -> Unit,
@@ -160,6 +162,13 @@ fun SettingsScreen(
                 supportingContent = { Text(stringResource(R.string.settings_hide_lock_summary)) },
                 trailingContent = {
                     Switch(checked = state.hideOnLockScreen, onCheckedChange = onHideOnLockScreenChange)
+                },
+            )
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.settings_swipe_unpin_title)) },
+                supportingContent = { Text(stringResource(R.string.settings_swipe_unpin_summary)) },
+                trailingContent = {
+                    Switch(checked = state.swipeToUnpin, onCheckedChange = onSwipeToUnpinChange)
                 },
             )
 

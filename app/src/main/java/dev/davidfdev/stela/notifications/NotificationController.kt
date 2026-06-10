@@ -10,6 +10,10 @@ interface NotificationController {
     /// Set from the user's preference; applied to notifications built afterward.
     var hideOnLockScreen: Boolean
 
+    /// When true, swiping a pinned notification unpins it instead of self-healing.
+    /// Set from the user's preference; applied to notifications built afterward.
+    var swipeToUnpin: Boolean
+
     fun pin(note: Note)
     fun unpin(noteId: Long)
     fun refresh(note: Note)

@@ -169,6 +169,8 @@ data class Note(
    - **Hide on lock screen** — when on, pinned-note notifications are hidden on a
      secure lock screen (notification visibility SECRET) — *Phase 5* (default off).
    - Toggle the persistent **quick-add** notification.
+   - **Swipe to unpin** — when on, swiping a pinned notification unpins it instead of
+     self-healing — *v1.1* (default off).
    - **Battery optimisation** helper — a guidance dialog (manual steps + a best-effort
      "open settings" shortcut), since the system screen is unreliable on some OEMs.
    - **OEM autostart** helper — same guidance dialog; shown for any known aggressive OEM.
@@ -182,9 +184,11 @@ data class Note(
 - Small icon: the note's **silhouette** icon (monochrome; Android tints it).
 - Large icon (optional): a colored version for in-tray richness.
 - Title = the note title; **content line = the note description when present**, falling
-  back to the **"Tap to edit or remove"** hint only when the description is empty (so a
+  back to the **"Tap to edit or unpin"** hint only when the description is empty (so a
   title-only note still has a useful, action-pointing line). *(Implemented 2026-06-09.)*
-- Actions: **Edit** (opens editor) · **Remove** (unpins; note is *not* deleted).
+- Actions: **Edit** (opens editor) · **Unpin** (the note is kept, not deleted). Swiping the
+  notification also unpins it when **"Swipe to unpin"** is enabled; otherwise it self-heals.
+  *(Unpin rename + swipe-to-unpin: 2026-06-10.)*
 - **Tapping the body opens the editor** for that note. *(Implemented 2026-06-09; was a
   no-op in the original spec.)*
 

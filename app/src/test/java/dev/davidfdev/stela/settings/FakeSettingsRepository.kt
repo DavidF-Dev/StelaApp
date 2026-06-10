@@ -20,4 +20,8 @@ class FakeSettingsRepository(initial: Settings = Settings()) : SettingsRepositor
     override suspend fun setQuickAddEnabled(value: Boolean) {
         state.update { it.copy(quickAddEnabled = value) }
     }
+
+    override suspend fun setSwipeToUnpin(value: Boolean) {
+        state.update { it.copy(swipeToUnpin = value) }
+    }
 }
