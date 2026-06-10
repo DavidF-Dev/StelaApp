@@ -4,9 +4,9 @@
 > search, sort, and filter over the note list, derived in one in-memory pass.
 
 **Status (2026-06-10) — complete.** Tests: 79 JVM unit (adds `NoteQueryTest` + sort/filter
-mapping and ViewModel cases) + 25 instrumented (adds `ListQueryFlowTest`), all green; no
+mapping and ViewModel cases) + 26 instrumented (adds `ListQueryFlowTest`), all green; no
 `INTERNET`. Verified on the emulator: search narrows the list; the sort/filter sheet opens
-and applies; sort/filter persist across restart.
+and applies; an active filter shows as a tap-to-clear chip; sort/filter persist across restart.
 
 ## Confirmed decisions
 
@@ -37,9 +37,11 @@ and applies; sort/filter persist across restart.
   query is active (the bar swaps to the selection bar), so selection always stays a subset of
   the visible notes.
 - **`NoteListScreen`** — a search field that expands in the top bar (auto-focused, clearable,
-  closes on back), a `Tune` icon opening a sort/filter **bottom sheet** (radio rows), and a
+  closes on back), a `Tune` icon opening a sort/filter **bottom sheet** (radio rows), a
   second empty state ("No matching notes") distinct from "No notes yet" via
-  `NoteListUiState.isSourceEmpty`.
+  `NoteListUiState.isSourceEmpty`, and — when a non-default filter is active — an
+  **active-filter chip** below the app bar that names the filter and clears it on tap (so a
+  shortened list reads as "filtered", not "empty"). The chip is hidden during selection.
 
 ## Testing
 
@@ -47,8 +49,10 @@ JVM: `NoteQueryTest` (each filter, substring/case-insensitivity, trimming, each 
 combined filter→search→sort case); extended `SettingsMappingTest` (read-back + unparsable
 fallback for both enums); `NoteListViewModelTest` (search narrows, filter persists, sort
 reorders). Instrumented: `ListQueryFlowTest` (search narrows the list; the Pinned filter
-hides an unpinned note and restores). Bottom-sheet taps are gated on the sheet being fully
-open/closed so they don't race the animation.
+hides an unpinned note and restores; the active-filter chip appears and clears the filter on
+tap). Bottom-sheet taps are gated on the sheet being fully open/closed so they don't race the
+animation, and an `@After` resets the persisted filter so a mutated filter can't poison other
+tests on the device.
 
 ## Queued follow-up
 

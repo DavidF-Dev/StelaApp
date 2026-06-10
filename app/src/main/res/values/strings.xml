@@ -34,6 +34,7 @@
     <string name="notelist_filter_all">All</string>
     <string name="notelist_filter_pinned">Pinned</string>
     <string name="notelist_filter_unpinned">Unpinned</string>
+    <string name="notelist_clear_filter">Clear filter</string>
 
     <!-- Note list — multi-select -->
     <plurals name="notelist_selected_count">

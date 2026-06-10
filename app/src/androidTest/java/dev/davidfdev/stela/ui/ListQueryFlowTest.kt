@@ -1,6 +1,7 @@
 package dev.davidfdev.stela.ui
 
 import android.Manifest
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
@@ -83,6 +84,28 @@ class ListQueryFlowTest {
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText(plain).fetchSemanticsNodes().isNotEmpty()
         }
+    }
+
+    @Test
+    fun activeFilterChip_isShown_andClearsTheFilter() {
+        val unique = System.currentTimeMillis()
+        val plain = "Plain $unique"
+        createNote(plain)
+
+        setFilter("Pinned")
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText(plain).fetchSemanticsNodes().isEmpty()
+        }
+        // The active-filter chip names the applied filter, with a clear (✕) affordance.
+        composeRule.onNodeWithContentDescription("Clear filter").assertIsDisplayed()
+
+        // Tapping the chip clears the filter (its onClick is the clear action).
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Pinned").performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText(plain).fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onAllNodesWithText("Pinned").assertCountEquals(0)
     }
 
     /// Opens the sort/filter sheet, taps an option, and dismisses it — waiting for the

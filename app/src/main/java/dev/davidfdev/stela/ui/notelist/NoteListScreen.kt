@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -31,6 +32,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.InputChip
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -204,6 +206,13 @@ fun NoteListScreen(
         ) {
             if (notificationsBlocked) {
                 NotificationsBlockedBanner(onOpenSettings = onOpenNotificationSettings)
+            }
+            // Surface a non-default filter so a shortened list reads as "filtered", not "empty".
+            if (!state.inSelectionMode && state.noteFilter != NoteFilter.ALL) {
+                ActiveFilterChip(
+                    filter = state.noteFilter,
+                    onClear = { onFilterChange(NoteFilter.ALL) },
+                )
             }
             Box(modifier = Modifier.fillMaxSize()) {
                 when {
@@ -479,6 +488,25 @@ private fun SortFilterSheet(
                 )
             }
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ActiveFilterChip(filter: NoteFilter, onClear: () -> Unit) {
+    Row(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+        InputChip(
+            selected = true,
+            onClick = onClear,
+            label = { Text(stringResource(filterLabel(filter))) },
+            trailingIcon = {
+                Icon(
+                    Icons.Filled.Close,
+                    contentDescription = stringResource(R.string.notelist_clear_filter),
+                    modifier = Modifier.size(18.dp),
+                )
+            },
+        )
     }
 }
 
