@@ -32,6 +32,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -78,14 +80,25 @@ internal fun QuickNotePopup(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showArchiveDialog by remember { mutableStateOf(false) }
 
+    // Hint the keyboard away before leaving so it animates out with the popup, rather than lingering over
+    // whatever is revealed behind; called on every exit path (as the editor does).
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+    val dismissKeyboard: () -> Unit = {
+        focusManager.clearFocus()
+        keyboardController?.hide()
+    }
+
     // After the note-changing work, slide the sheet down then finish the transparent activity; a bare
     // finish would snap the window away with no exit animation.
     val hideThenFinish: () -> Unit = {
+        dismissKeyboard()
         scope.launch { sheetState.hide() }.invokeOnCompletion { onFinished() }
     }
 
     ModalBottomSheet(
-        onDismissRequest = onFinished,
+        // Scrim tap / system back dismiss here; hide the keyboard so it doesn't outlive the popup.
+        onDismissRequest = { dismissKeyboard(); onFinished() },
         sheetState = sheetState,
         // No drag handle, and dragging the sheet is disabled, so dragging to scroll a long description
         // can't drag the whole popup away (scrim tap, system back, and the back button still dismiss).
@@ -123,6 +136,7 @@ internal fun QuickNotePopup(
                     onDelete = { showDeleteDialog = true },
                     onSave = { viewModel.save(hideThenFinish) },
                     onExpand = {
+                        dismissKeyboard()
                         onExpand(NoteDraft(noteId, state.title, state.description, state.emoji, state.isPinned))
                     },
                 )
