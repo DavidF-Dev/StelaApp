@@ -436,6 +436,12 @@ a small polish slice using AndroidX `core-splashscreen` to show the Stela icon o
 colour at cold start — consistently across API 26+ (the platform draws one only from API 31), static,
 with no artificial delay. Reuses the brand colour and the launcher foreground; no `INTERNET`.
 
+**Pin attention pop *(done — v1.3.0)*:** opening the editor for an **unpinned** note briefly scales
+("pops") the pin button to draw the eye to it (pinning is the app's purpose). Runs once per open, after
+a short settle delay, for unpinned notes only; **skipped when the system animation scale is off**
+(reduced-motion). Chosen over a persistent "unpinned" label/badge, which — since most notes are
+unpinned — would have been constant visual noise rather than a nudge.
+
 Lower priority, kept deferred: an in-app language picker.
 
 **Support purchase ("Supporter" gesture) *(deferred — findings recorded 2026-06-11; see

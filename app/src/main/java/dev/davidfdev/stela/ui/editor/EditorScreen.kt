@@ -1,10 +1,15 @@
 package dev.davidfdev.stela.ui.editor
 
+import android.provider.Settings
 import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -41,6 +46,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,6 +55,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
@@ -68,7 +75,11 @@ import dev.davidfdev.stela.ui.TimeFormatter
 import dev.davidfdev.stela.ui.openAppNotificationSettings
 import dev.davidfdev.stela.ui.rememberNotificationPermissionGate
 import dev.davidfdev.stela.ui.shareNote
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+
+// How long the editor settles before the unpinned-pin "pop" plays, so it reads as a deliberate nudge.
+private const val POP_START_DELAY_MILLIS = 300L
 
 @Composable
 fun EditorRoute(
@@ -126,6 +137,25 @@ fun EditorScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showEmojiPicker by remember { mutableStateOf(false) }
 
+    // A brief scale "pop" draws the eye to the pin when an unpinned note opens (pinning is the app's
+    // purpose). Keyed on noteLoaded so it runs once per open — for an existing note that is when the
+    // note has loaded (createdAt becomes non-null). Skipped when the system animation scale is off.
+    val context = LocalContext.current
+    val pinPop = remember { Animatable(1f) }
+    val noteLoaded = !state.isEditing || state.createdAt != null
+    LaunchedEffect(noteLoaded) {
+        val animationsOn = Settings.Global.getFloat(
+            context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f,
+        ) != 0f
+        if (noteLoaded && !state.isPinned && animationsOn) {
+            // Let the editor settle on screen before the pop, so it reads as a deliberate nudge.
+            delay(POP_START_DELAY_MILLIS)
+            pinPop.snapTo(1f)
+            pinPop.animateTo(1.35f, tween(durationMillis = 140))
+            pinPop.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium))
+        }
+    }
+
     // Route system back through the same exit as the back arrow so a cold notification launch finishes the task.
     BackHandler(onBack = onBack)
 
@@ -152,7 +182,10 @@ fun EditorScreen(
                             Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.action_share))
                         }
                     }
-                    IconButton(onClick = onTogglePin) {
+                    IconButton(
+                        onClick = onTogglePin,
+                        modifier = Modifier.graphicsLayer { scaleX = pinPop.value; scaleY = pinPop.value },
+                    ) {
                         if (state.isPinned) {
                             Icon(Icons.Filled.PushPin, contentDescription = stringResource(R.string.action_unpin))
                         } else {

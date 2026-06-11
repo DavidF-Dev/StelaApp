@@ -16,6 +16,8 @@ All notable changes to Stela are documented here. This project adheres to
 - The note editor's title heading is now hidden while editing a note, to give its action row more room
   (a new note keeps its "New note" heading). The Share action is hidden while creating a new note
   (shown only for existing notes). An archived note shows an "Archived" banner at the top of the editor.
+- Opening an unpinned note briefly "pops" the pin button to draw attention to it (so it's easy to pin).
+  Respects the system's reduce-animations setting.
 
 ## [1.2.0] - 2026/06/11
 
