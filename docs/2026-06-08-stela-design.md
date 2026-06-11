@@ -422,6 +422,13 @@ implement); all keep the no-`INTERNET` invariant.
    the project moved to Kotlin 2.3 (see the toolchain upgrade below). A considered fallback — a toggle
    to the soft keyboard so the user searches via their keyboard's own emoji panel — was kept in reserve
    (clunkier: there is no API to open the keyboard directly in emoji mode).
+6. **Archive notes** *(planned — v1.3.0; see [2026-06-11-archive-notes.md](2026-06-11-archive-notes.md))* —
+   a reversible way to clear a note without deleting it. **Archive** (available from the notification,
+   editor, and multi-select) unpins and hides the note; permanent **Delete** stays in-app with its undo
+   snackbar. Archived notes get their own destination (not a filter chip), stay editable, and are kept
+   in backups. New core invariant: a note is never both archived and pinned (archiving unpins; pinning
+   unarchives), so the service-lifecycle rule is untouched. Adds schema v3 (`isArchived`); no 30-day
+   trash; "swipe to unpin" is unchanged.
 
 **Branded splash screen *(done — v1.2.0; see [2026-06-11-splash-screen.md](2026-06-11-splash-screen.md))*:**
 a small polish slice using AndroidX `core-splashscreen` to show the Stela icon on the indigo brand
