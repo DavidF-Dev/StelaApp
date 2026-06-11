@@ -3,7 +3,7 @@
 All notable changes to Stela are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
-## [1.2.0] - unreleased
+## [1.2.0] - 2026/06/11
 
 ### Added
 - Undo delete: after deleting notes from the list, a snackbar offers to undo and restore
