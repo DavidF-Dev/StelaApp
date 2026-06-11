@@ -531,18 +531,21 @@ private fun NoteListTopBar(
 @Composable
 private fun OverflowMenu(onOpenArchived: () -> Unit) {
     var expanded by remember { mutableStateOf(false) }
-    IconButton(onClick = { expanded = true }) {
-        Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.action_more))
-    }
-    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-        DropdownMenuItem(
-            text = { Text(stringResource(R.string.notelist_archived)) },
-            leadingIcon = { Icon(Icons.Filled.Archive, contentDescription = null) },
-            onClick = {
-                expanded = false
-                onOpenArchived()
-            },
-        )
+    // Box so the menu anchors to the icon button's bounds and drops down aligned to it.
+    Box {
+        IconButton(onClick = { expanded = true }) {
+            Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.action_more))
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.notelist_archived)) },
+                leadingIcon = { Icon(Icons.Filled.Archive, contentDescription = null) },
+                onClick = {
+                    expanded = false
+                    onOpenArchived()
+                },
+            )
+        }
     }
 }
 
