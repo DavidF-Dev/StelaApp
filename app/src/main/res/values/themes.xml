@@ -17,4 +17,15 @@
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
         <item name="postSplashScreenTheme">@style/Theme.Stela</item>
     </style>
+
+    <!--
+      Transparent window for QuickNoteActivity: the activity itself draws nothing, so the screen behind
+      shows through; the Compose ModalBottomSheet supplies its own scrim and sheet. backgroundDimEnabled
+      is off so the system doesn't dim on top of that scrim.
+    -->
+    <style name="Theme.Stela.Transparent" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">false</item>
+    </style>
 </resources>

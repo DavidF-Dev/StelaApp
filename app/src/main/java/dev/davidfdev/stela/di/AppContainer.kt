@@ -14,6 +14,7 @@ import dev.davidfdev.stela.pin.PinServiceController
 import dev.davidfdev.stela.pin.ServiceController
 import dev.davidfdev.stela.settings.DataStoreSettingsRepository
 import dev.davidfdev.stela.settings.SettingsRepository
+import dev.davidfdev.stela.ui.editor.NoteDraft
 
 private val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
@@ -38,6 +39,11 @@ class AppContainer(context: Context) {
 
     val notePinner: NotePinner =
         NotePinner(noteRepository, notificationController, serviceController, settingsRepository)
+
+    /// One-shot hand-off from the quick-note popup's Expand to the full editor: the popup writes the
+    /// in-progress edit here, the editor's view-model reads and clears it on creation.
+    @Volatile
+    var pendingDraft: NoteDraft? = null
 
     private companion object {
         const val DATABASE_NAME = "stela.db"

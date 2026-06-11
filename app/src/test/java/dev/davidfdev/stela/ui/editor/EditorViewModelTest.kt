@@ -43,13 +43,14 @@ class EditorViewModelTest {
         fun viewModel(
             noteId: Long? = null,
             initialPinned: Boolean = true,
+            draft: NoteDraft? = null,
             canPost: Boolean = true,
         ): EditorViewModel {
             // Mirror the routes: the new-note route always supplies the pin arg; the edit route never does.
             val map = buildMap<String, Any> {
                 if (noteId != null) put("noteId", noteId) else put("pin", initialPinned)
             }
-            return EditorViewModel(repository, pinner, SavedStateHandle(map)) { canPost }
+            return EditorViewModel(repository, pinner, SavedStateHandle(map), draft) { canPost }
         }
     }
 
@@ -221,6 +222,48 @@ class EditorViewModelTest {
         assertTrue(viewModel.uiState.value.isPinned)
         assertTrue(f.repository.getById(id)!!.isPinned)
         assertEquals(listOf(id), f.controller.pinned.map { it.id })
+    }
+
+    @Test
+    fun newNoteDraft_seedsFields_andStaysACreate() = runTest(dispatcher) {
+        val f = Fixture()
+        val draft = NoteDraft(noteId = null, title = "Jot", description = "from popup", emoji = "📝", pinOnSave = true)
+        val viewModel = f.viewModel(draft = draft)
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.isEditing)
+        assertEquals("Jot", viewModel.uiState.value.title)
+        assertEquals("from popup", viewModel.uiState.value.description)
+        assertEquals("📝", viewModel.uiState.value.emoji)
+
+        viewModel.save { }
+        advanceUntilIdle()
+
+        // The draft creates a brand-new note rather than updating an existing one.
+        val note = f.repository.notes.first().single()
+        assertEquals("Jot", note.title)
+        assertTrue(note.isPinned)
+    }
+
+    @Test
+    fun existingNoteDraft_overlaysUnsavedEditsOnLoadedNote() = runTest(dispatcher) {
+        val f = Fixture()
+        val id = f.repository.create(title = "Stored", description = "stored body")
+        val draft = NoteDraft(noteId = id, title = "Edited", description = "stored body", emoji = "", pinOnSave = false)
+        val viewModel = f.viewModel(noteId = id, draft = draft)
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.isEditing)
+        // The draft's edited title wins; the stored timestamps still load.
+        assertEquals("Edited", viewModel.uiState.value.title)
+        assertEquals(1_000L, viewModel.uiState.value.createdAt)
+
+        viewModel.save { }
+        advanceUntilIdle()
+
+        val updated = f.repository.getById(id)!!
+        assertEquals("Edited", updated.title)
+        assertEquals(1, f.repository.notes.first().size)
     }
 
     @Test

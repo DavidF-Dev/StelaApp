@@ -88,6 +88,11 @@
     <string name="editor_delete_dialog_cancel">Cancel</string>
     <string name="editor_timestamps">Created %1$s · Updated %2$s</string>
 
+    <!-- Quick-note popup -->
+    <string name="quick_note_title_new">New note</string>
+    <string name="quick_note_title_edit">Edit note</string>
+    <string name="quick_note_expand_description">Open in full editor</string>
+
     <!-- Settings -->
     <string name="settings_title">Settings</string>
     <string name="settings_section_theme">Theme</string>

@@ -453,12 +453,14 @@ unpinned — would have been constant visual noise rather than a nudge.
 
 Lower priority, kept deferred: an in-app language picker.
 
-**Quick-note popup *(planned — spec 2026-06-11; see [2026-06-11-quick-note-popup.md](2026-06-11-quick-note-popup.md))*:**
+**Quick-note popup *(done — v1.4.0; see [2026-06-11-quick-note-popup.md](2026-06-11-quick-note-popup.md))*:**
 a minimal bottom-sheet editor (emoji · title · description · save, pins on save) that floats over the
-screen from the quick-add notification / body tap, the widget ＋, and the pinned-note Edit action — for
-both new and existing notes. An **Expand** button carries the in-progress fields into the full editor.
-Shares the `EditorViewModel` + extracted `NoteFields`/emoji picker with the full editor to avoid a
-second editor to maintain. A new transparent `QuickNoteActivity`; its own slice, after v1.3.0 ships.
+screen from the quick-add notification / body tap, the widget ＋, and the pinned-note Edit action / body
+tap — for both new and existing notes. An **Expand** button carries the in-progress fields into the full
+editor. Shares the `EditorViewModel` + extracted `NoteFields`/emoji picker with the full editor to avoid
+a second editor to maintain. A new transparent `QuickNoteActivity` hosts a Compose `ModalBottomSheet`;
+the Expand hand-off rides a process-scoped `NoteDraft` (`AppContainer.pendingDraft`) consumed by
+`EditorViewModel`. Behind a secure lock screen the popup is skipped, falling back to the full editor.
 
 **Support purchase ("Supporter" gesture) *(deferred — findings recorded 2026-06-11; see
 [2026-06-11-support-purchase.md](2026-06-11-support-purchase.md))*:** a purely support-based, one-time

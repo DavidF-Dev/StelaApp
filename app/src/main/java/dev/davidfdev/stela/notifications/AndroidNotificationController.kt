@@ -12,6 +12,7 @@ import dev.davidfdev.stela.MainActivity
 import dev.davidfdev.stela.R
 import dev.davidfdev.stela.data.Note
 import dev.davidfdev.stela.data.displayTitle
+import dev.davidfdev.stela.ui.quicknote.QuickNoteActivity
 
 /// The sole class that touches the platform notification system. Builds an ongoing
 /// notification per pinned note with Edit and Remove actions, and creates the
@@ -94,13 +95,9 @@ class AndroidNotificationController(private val context: Context) : Notification
         manager.notify(notificationId(note.id), builder.build())
     }
 
+    // Body tap and the Edit action open the quick-note popup over the screen for this note.
     private fun editIntent(noteId: Long): PendingIntent {
-        val intent = Intent(
-            Intent.ACTION_VIEW,
-            "$DEEP_LINK_BASE/editor/$noteId".toUri(),
-            context,
-            MainActivity::class.java,
-        )
+        val intent = QuickNoteActivity.editNoteIntent(context, noteId)
         return PendingIntent.getActivity(context, notificationId(noteId), intent, PENDING_FLAGS)
     }
 
@@ -124,10 +121,10 @@ class AndroidNotificationController(private val context: Context) : Notification
         return PendingIntent.getBroadcast(context, REASSERT_SERVICE_REQUEST, intent, PENDING_FLAGS)
     }
 
-    // Body tap and the New note action open a fresh editor that pins on save; View notes
-    // opens the list.
+    // Body tap and the New note action open the quick-note popup on a fresh note that pins on save;
+    // View notes opens the list.
     override fun buildQuickAddNotification(): android.app.Notification {
-        val newNote = deepLinkActivityIntent("$DEEP_LINK_BASE/new?pin=true", QUICK_ADD_NEW_REQUEST)
+        val newNote = popupNewNoteIntent()
         return NotificationCompat.Builder(context, CHANNEL_QUICK_ADD)
             .setSmallIcon(R.drawable.ic_stela_pin)
             .setColor(context.getColor(R.color.brand_indigo))
@@ -163,6 +160,11 @@ class AndroidNotificationController(private val context: Context) : Notification
             // Android 14+ lets users swipe ongoing notifications away; re-post on swipe.
             .setDeleteIntent(reassertServiceIntent())
             .build()
+
+    private fun popupNewNoteIntent(): PendingIntent {
+        val intent = QuickNoteActivity.newNoteIntent(context)
+        return PendingIntent.getActivity(context, QUICK_ADD_NEW_REQUEST, intent, PENDING_FLAGS)
+    }
 
     private fun deepLinkActivityIntent(uri: String, requestCode: Int): PendingIntent {
         val intent = Intent(Intent.ACTION_VIEW, uri.toUri(), context, MainActivity::class.java)

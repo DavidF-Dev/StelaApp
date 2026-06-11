@@ -32,6 +32,7 @@ import dev.davidfdev.stela.StelaApp
 import dev.davidfdev.stela.data.Note
 import dev.davidfdev.stela.data.displayTitle
 import dev.davidfdev.stela.notifications.AndroidNotificationController
+import dev.davidfdev.stela.ui.quicknote.QuickNoteActivity
 import kotlinx.coroutines.flow.first
 
 /// The home-screen widget: a quick-add header plus the list of pinned notes. It renders a snapshot
@@ -88,7 +89,8 @@ class StelaWidget : GlanceAppWidget() {
                 style = TextStyle(color = GlanceTheme.colors.primary, fontWeight = FontWeight.Bold, fontSize = 22.sp),
                 modifier = GlanceModifier
                     .padding(horizontal = 8.dp)
-                    .clickable(actionStartActivity(deepLink(context, "/new?pin=true"))),
+                    // The + opens the quick-note popup; the note rows still open the full editor.
+                    .clickable(actionStartActivity(QuickNoteActivity.newNoteIntent(context))),
             )
         }
     }

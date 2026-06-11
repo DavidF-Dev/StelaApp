@@ -1,9 +1,7 @@
 # Quick-note popup (minimal editor over the screen) — implementation plan
 
-> Status: **Planned / deferred** · 2026-06-11 · its own slice (likely v1.4.0). Spec only — not implemented.
->
-> Recommendation: **cut v1.3.0 first**, then build this. It introduces a new editing *surface* and entry
-> point that must stay behaviour-consistent with the full editor; it deserves its own focused slice.
+> Status: **Implemented** · v1.4.0 · 2026-06-11. Built as the plan below; see the "As-built notes" at
+> the end for the few places reality differed.
 
 ## Goal
 
@@ -116,12 +114,15 @@ otherwise.
 - **Pinned-note body tap → popup** (matches its Edit action). *(2026-06-11)*
 - **Secure lock screen → no popup**, fall back to today's full-editor behaviour. *(2026-06-11)*
 
-## Open questions (implementation details to verify)
+## Open questions (resolved during implementation)
 
-1. **Emoji picker layering** in a transparent activity (bottom sheet over the popup sheet) — verify it
-   renders/scrolls correctly from `QuickNoteActivity`.
-2. **VM seeding from intent extras:** confirm `createSavedStateHandle()` in `QuickNoteActivity` picks up
-   `noteId`/`pin` from the intent (may need explicit `defaultViewModelCreationExtras`/args wiring).
+1. **Emoji picker layering** in a transparent activity — **fine.** The View-system `BottomSheetDialog`
+   opens its own window above the Compose `ModalBottomSheet`; it renders, scrolls, searches, and the
+   picked emoji flows back into the popup's Title field. Verified on the emulator.
+2. **VM seeding from intent extras** — **needed explicit wiring.** A bare `createSavedStateHandle()` in
+   an Activity does *not* surface intent extras (unlike a nav back-stack entry, which fills them from
+   route args). `QuickNoteActivity` overrides `defaultViewModelCreationExtras` to put `noteId`/`pin`
+   into `DEFAULT_ARGS_KEY`, which is what `createSavedStateHandle()` reads.
 
 ## Starting points (files)
 
@@ -154,3 +155,33 @@ otherwise.
 the four-surface rewiring are each modest but add up, and the popup must stay behaviour-consistent with
 the editor. Contained by sharing the view-model and UI rather than duplicating them. **Its own slice;
 do after v1.3.0 ships.**
+
+## As-built notes (2026-06-11)
+
+A handful of details differed from the plan above; the structure and decisions otherwise held.
+
+- **`MainActivity`/`StelaNavHost` needed no changes.** Expand reuses the existing editor deep links
+  (`/new?pin=…` and `/editor/{id}`) to bring up `MainActivity`; the draft is consumed by the editor
+  view-model regardless of route, so no new draft-specific navigation was required. A side effect: an
+  Expand launch is classified as a notification deep link, so finishing the full editor ends the task
+  (returns to the prior context) — consistent with the popup's over-the-screen origin.
+- **`NoteDraft` lives in `ui.editor`** (next to the view-model that consumes it); `AppContainer` holds
+  the one-shot `pendingDraft`. The editor's `Factory` reads-and-clears it when constructing the VM.
+- **VM seeding** went through an overridden `defaultViewModelCreationExtras` (see Open question 2),
+  not a custom factory.
+- **`noteLoaded`** became a derived property on `EditorUiState` (`!isEditing || createdAt != null`) so
+  the editor's pin-pop and the shared `NoteFields` auto-focus read one definition.
+- **Transparent theme:** `Theme.Stela.Transparent` (translucent window, transparent background,
+  `backgroundDimEnabled=false` so the system doesn't dim on top of the `ModalBottomSheet`'s own scrim).
+- **Floats over the current app, not the Stela task** *(2026-06-11 tweak)*: `QuickNoteActivity` declares
+  `android:taskAffinity=""` (its own task) + `excludeFromRecents`, so a trigger shows the popup over
+  whatever the user is doing rather than bringing `MainActivity`'s task to the foreground behind it.
+- **Sheet layout** *(2026-06-11 tweak)*: the heading sits on the left with **Expand** (icon-only) and
+  **Save** inline at the top-right, like an app bar (not a bottom button row).
+- **Emoji picker covers the popup** *(decided 2026-06-11)*: tapping the emoji opens the **shared**
+  `EmojiPickerBottomSheet` (a `BottomSheetDialog`) over the popup, like a keyboard — kept deliberately
+  to avoid diverging from the full editor's picker. Floating the popup *above* the picker would mean
+  giving the popup its own inline emoji panel; not done.
+- **Tests:** unit tests cover the draft seeding (new + existing) in `EditorViewModelTest`; an
+  on-device `QuickNotePopupTest` launches `QuickNoteActivity` in-process (it's non-exported, so it
+  can't be started from `adb`) and checks new-note save→pin and existing-note prefill.

@@ -30,7 +30,8 @@ Read it before making architectural decisions; this file is only a quick orienta
 - **`NotePinner`** — the single seam for pin/unpin and archive/unarchive: persists the flag(s), posts/cancels the notification, and reconciles the service (start/stop/swap). UI and the notification actions both route through it.
 - **`PinService`** — foreground service. Runs **iff** (≥1 pinned note) **OR** (quick-add enabled). Shows the quick-add notification, or a minimal "running" line when quick-add is off but notes are pinned; re-asserts pins on start.
 - **`BootReceiver`** — on `BOOT_COMPLETED` or `MY_PACKAGE_REPLACED` (reboot or app update), starts `PinService` to re-pin flagged notes.
-- **UI (Compose)** — NoteList (search · sort/filter · multi-select with select-all · undo-delete · archive) · Archived (restore/delete archived notes; reached from the list overflow) · Editor (emoji picker; pin and archive/restore) · Settings (theme, notification prefs, keep-alive guidance, backup export/import, clear all notes). Talks to the repositories; pin/unpin, archive, and clear via `NotePinner`.
+- **UI (Compose)** — NoteList (search · sort/filter · multi-select with select-all · undo-delete · archive) · Archived (restore/delete archived notes; reached from the list overflow) · Editor (emoji picker; pin and archive/restore) · Settings (theme, notification prefs, keep-alive guidance, backup export/import, clear all notes). Talks to the repositories; pin/unpin, archive, and clear via `NotePinner`. The Editor and the quick-note popup share the extracted `NoteFields` (emoji-leading title + description + auto-focus) and emoji picker, plus one `EditorViewModel`.
+- **Quick-note popup** — `QuickNoteActivity` (transparent, AppCompat) hosts a Compose `ModalBottomSheet` (`QuickNotePopup`): a minimal editor (emoji · title · description · save, **pins on save** for new notes) that floats over the screen. **Expand** carries the unsaved edit into the full editor via a process-scoped `NoteDraft` on `AppContainer` (consumed once by `EditorViewModel`). Behind a secure lock screen it falls back to the full editor.
 
 ## Invariants — do not break
 
@@ -40,7 +41,7 @@ Read it before making architectural decisions; this file is only a quick orienta
 - **`NotificationController` is the sole `NotificationManager` toucher.** Route all notification changes through it.
 - **`PendingIntent`s use `FLAG_IMMUTABLE`** (API 31+).
 - **Notification ID is derived deterministically from `note.id`** so a note always maps to the same notification.
-- **Pinned-note body tap opens the editor** for that note (same as the **Edit** action); **Unpin** removes it from the status bar without deleting; **Archive** unpins and moves it to the Archived screen. (The quick-add notification's body tap opens a new note and pins it on save.)
+- **Pinned-note body tap and the Edit action open the quick-note popup** for that note; **Unpin** removes it from the status bar without deleting; **Archive** unpins and moves it to the Archived screen. The quick-add notification's body tap / New note action and the widget ＋ open the popup on a fresh note that pins on save. (Behind a secure lock screen, every popup trigger falls back to the full editor in `MainActivity`.)
 - **The notification small icon is the single default silhouette** — no icon picker. A per-note **emoji** (v1.1) prefixes the display title in the list and notification (see `displayTitle`); the `iconId` column is now vestigial (the emoji superseded the planned v2 icon set).
 
 ## Persistence reality

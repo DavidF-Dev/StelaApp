@@ -29,19 +29,25 @@ data class EditorUiState(
     val updatedAt: Long? = null,
 ) {
     val canSave: Boolean get() = title.isNotBlank()
+
+    // A new note is "loaded" immediately; an existing note only once its row has been read (createdAt
+    // set). Gates the title auto-focus so an async load doesn't momentarily look blank.
+    val noteLoaded: Boolean get() = !isEditing || createdAt != null
 }
 
 class EditorViewModel(
     private val repository: NoteRepository,
     private val pinner: NotePinner,
     savedStateHandle: SavedStateHandle,
+    draft: NoteDraft? = null,
     private val canPostNotifications: () -> Boolean = { true },
 ) : ViewModel() {
 
-    private val noteId: Long? = savedStateHandle[NOTE_ID_KEY]
+    // A draft (Expand from the popup) carries the note id; otherwise it comes from the edit route.
+    private val noteId: Long? = draft?.noteId ?: savedStateHandle[NOTE_ID_KEY]
 
     // Seeds a new note's pin toggle (its intended state until saved); new-note routes default it to true.
-    private val initialPinned: Boolean = savedStateHandle[PIN_KEY] ?: true
+    private val initialPinned: Boolean = draft?.pinOnSave ?: savedStateHandle[PIN_KEY] ?: true
 
     private val _uiState = MutableStateFlow(
         EditorUiState(isEditing = noteId != null, isPinned = noteId == null && initialPinned),
@@ -58,9 +64,10 @@ class EditorViewModel(
                     loaded = note
                     _uiState.update {
                         it.copy(
-                            title = note.title,
-                            description = note.description,
-                            emoji = note.emoji,
+                            // A draft overlays its unsaved field edits on top of the stored note.
+                            title = draft?.title ?: note.title,
+                            description = draft?.description ?: note.description,
+                            emoji = draft?.emoji ?: note.emoji,
                             isPinned = note.isPinned,
                             isArchived = note.isArchived,
                             createdAt = note.createdAt,
@@ -68,6 +75,11 @@ class EditorViewModel(
                         )
                     }
                 }
+            }
+        } else if (draft != null) {
+            // New, unsaved note expanded from the popup: seed the in-progress fields (it stays a create).
+            _uiState.update {
+                it.copy(title = draft.title, description = draft.description, emoji = draft.emoji)
             }
         }
     }
@@ -165,10 +177,14 @@ class EditorViewModel(
         val Factory = viewModelFactory {
             initializer {
                 val app = this[APPLICATION_KEY] as StelaApp
+                // Consume the one-shot Expand hand-off (if any) so it seeds this editor exactly once.
+                val draft = app.container.pendingDraft
+                app.container.pendingDraft = null
                 EditorViewModel(
                     app.container.noteRepository,
                     app.container.notePinner,
                     createSavedStateHandle(),
+                    draft,
                 ) { canPostNotifications(app) }
             }
         }

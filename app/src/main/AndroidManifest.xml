@@ -28,6 +28,18 @@
             </intent-filter>
         </activity>
 
+        <!--
+          Empty taskAffinity + its own task so the popup floats over whatever the user is doing without
+          bringing the app's MainActivity task to the foreground behind it. excludeFromRecents keeps the
+          transient overlay out of recents.
+        -->
+        <activity
+            android:name=".ui.quicknote.QuickNoteActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.Stela.Transparent" />
+
         <receiver
             android:name=".notifications.NotificationActionReceiver"
             android:exported="false" />
