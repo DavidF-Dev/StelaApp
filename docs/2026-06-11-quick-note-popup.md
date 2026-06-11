@@ -123,6 +123,17 @@ otherwise.
 2. **VM seeding from intent extras:** confirm `createSavedStateHandle()` in `QuickNoteActivity` picks up
    `noteId`/`pin` from the intent (may need explicit `defaultViewModelCreationExtras`/args wiring).
 
+## Starting points (files)
+
+- `app/src/main/java/dev/davidfdev/stela/ui/editor/EditorScreen.kt` — the title/description fields, the
+  private `EmojiPickerBottomSheet`, and the current auto-focus `LaunchedEffect` (Phase 1 extracts these).
+- `.../ui/editor/EditorViewModel.kt` — the shared view-model (Phase 2 adds draft seeding in `init`).
+- `.../di/AppContainer.kt` — where `pendingDraft` (the Expand hand-off) lives.
+- `.../MainActivity.kt` + `.../ui/StelaNavHost.kt` — open the full editor from a draft.
+- `.../notifications/AndroidNotificationController.kt` + `.../ui/widget/StelaWidget.kt` — the
+  PendingIntents/deep links to rewire (Phase 5).
+- `AndroidManifest.xml` + `res/values/themes.xml` — register the transparent `QuickNoteActivity` + theme.
+
 ## Build order (phased)
 
 1. **Extract shared UI** — `NoteFields` + `EmojiPickerBottomSheet` out of `EditorScreen`; switch the
