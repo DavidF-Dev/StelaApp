@@ -196,10 +196,16 @@ A handful of details differed from the plan above; the structure and decisions o
   `sheetGesturesEnabled = false` and `dragHandle = null`, so dragging to scroll a long description can't
   drag the whole sheet away at the scroll extents. A back arrow (left of the heading, like the editor)
   joins scrim-tap and system-back as the dismiss affordances; it slides the sheet down then finishes.
-- **Dismisses the keyboard on exit** *(2026-06-11 tweak)*: every close path (back arrow, Save,
-  Archive/Delete confirm, scrim/system-back, Expand) clears focus + `keyboardController.hide()` first, so
-  the soft keyboard animates away with the popup instead of lingering over the screen behind — matching
-  the editor's `dismissKeyboard`.
+- **Keyboard dismissal on exit** *(2026-06-11 tweak; partial)*: every close path (back arrow, Save,
+  Archive/Delete confirm, scrim/system-back, Expand) clears focus + `keyboardController.hide()`, matching
+  the editor's `dismissKeyboard`. **It only fully helps the back-arrow path**, which hides *before* the
+  ~300 ms sheet slide. The editor stays in a persistent window so its IME animates out smoothly; the
+  popup is a separate-window `ModalBottomSheet` in a transparent activity that gets `finish()`ed, so the
+  window is destroyed rather than navigated away from. On scrim-tap / system-back, `ModalBottomSheet`
+  runs its own hide animation and calls `onDismissRequest` only at the very end — right before `finish()`
+  tears the window down — so there's no time for the IME to animate and the system's window-teardown
+  dismissal is what shows (a brief lingering frame). Accepted as a structural Android limitation rather
+  than chased further (2026-06-11).
 - **Content-overflow safety** *(2026-06-11 tweak)*: the description field grows from its default height
   to double, then scrolls within (`heightIn(min, max = 2×)`) — popup 96→192 dp, editor 200→400 dp; the
   popup's fields also sit in a `verticalScroll` column. The top-anchored actions stay reachable.

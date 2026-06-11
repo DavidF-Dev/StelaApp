@@ -211,9 +211,10 @@ Android forces a foreground service to display its own ongoing notification, so 
   - **Content:** "Tap to create a new note"  *(request read "Tap to create a new
     notification note").*
   - **Body tap opens a fresh editor that pins on save** *(pin-on-save implemented
-    2026-06-09).* Two actions:
-    - **New note** — opens the editor on a fresh note; the note is pinned once saved
-      (via a `pin` flag on the new-note route). Same behaviour as the body tap.
+    2026-06-09; retargeted to the quick-note popup in v1.4.0).* Two actions:
+    - **New note** — opens a fresh note that is pinned once saved. Same behaviour as the
+      body tap. *(Both opened the editor on a `pin`-flagged new-note route through v1.3.x;
+      v1.4.0 points them at the quick-note popup instead — see §12.)*
     - **View notes** — opens the note list.
 - If quick-add is **disabled** in settings but notes are still pinned, the service
   must keep a notification to stay alive → downgrade to a **minimal, silent,
@@ -460,13 +461,16 @@ quick-note popup directly — extending the glanceable, no-app-open entry beyond
 widget. Its own slice; reuses `QuickNoteActivity.newNoteIntent`.
 
 **Quick-note popup *(done — v1.4.0; see [2026-06-11-quick-note-popup.md](2026-06-11-quick-note-popup.md))*:**
-a minimal bottom-sheet editor (emoji · title · description · save, pins on save) that floats over the
-screen from the quick-add notification / body tap, the widget ＋, and the pinned-note Edit action / body
-tap — for both new and existing notes. An **Expand** button carries the in-progress fields into the full
-editor. Shares the `EditorViewModel` + extracted `NoteFields`/emoji picker with the full editor to avoid
-a second editor to maintain. A new transparent `QuickNoteActivity` hosts a Compose `ModalBottomSheet`;
-the Expand hand-off rides a process-scoped `NoteDraft` (`AppContainer.pendingDraft`) consumed by
-`EditorViewModel`. Behind a secure lock screen the popup is skipped, falling back to the full editor.
+a bottom-sheet editor that floats over the screen from the quick-add notification / body tap, the widget
+＋, and the pinned-note Edit action / body tap — for both new and existing notes (new notes pin on save).
+It started minimal but ended up mirroring the full editor's action row (Expand · Share · Pin/Unpin ·
+Archive · Delete · Save; Share/Archive/Delete only for existing notes, with Archive/Delete confirming);
+an **Expand** button carries the in-progress fields into the full editor and lands the user on the list.
+Shares the `EditorViewModel` + extracted `NoteFields` / emoji picker / `NoteEditorActions` with the full
+editor to avoid a second editor to maintain. A new transparent `QuickNoteActivity` (its own task, one
+instance) hosts a Compose `ModalBottomSheet`; the Expand hand-off rides a process-scoped `NoteDraft`
+(`AppContainer.pendingDraft`) consumed by `EditorViewModel`. Behind a secure lock screen the popup is
+skipped, falling back to the full editor.
 
 **Support purchase ("Supporter" gesture) *(deferred — findings recorded 2026-06-11; see
 [2026-06-11-support-purchase.md](2026-06-11-support-purchase.md))*:** a purely support-based, one-time
