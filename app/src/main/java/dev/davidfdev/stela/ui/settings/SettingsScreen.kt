@@ -275,6 +275,8 @@ fun SettingsScreen(
                 headlineContent = { Text(stringResource(R.string.settings_about_title)) },
                 modifier = Modifier.clickable(onClick = onOpenAbout),
             )
+            // Breathing room so the last item can scroll clear of the bottom edge.
+            Spacer(Modifier.height(48.dp))
         }
     }
 

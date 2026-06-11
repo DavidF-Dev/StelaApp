@@ -273,7 +273,8 @@ fun NoteListScreen(
                     state.notes.isEmpty() -> EmptyState(stringResource(R.string.notelist_no_matches))
                     else -> LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(vertical = 8.dp),
+                        // Extra bottom room so the last row's pin button can scroll clear of the FAB.
+                        contentPadding = PaddingValues(top = 8.dp, bottom = 88.dp),
                     ) {
                         items(state.notes, key = { it.id }) { note ->
                             NoteRow(

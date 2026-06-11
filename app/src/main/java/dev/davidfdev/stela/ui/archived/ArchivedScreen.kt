@@ -143,7 +143,8 @@ fun ArchivedScreen(
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(vertical = 8.dp),
+                    // Breathing room so the last row can scroll clear of the bottom edge.
+                    contentPadding = PaddingValues(top = 8.dp, bottom = 48.dp),
                 ) {
                     items(state.notes, key = { it.id }) { note ->
                         ArchivedRow(

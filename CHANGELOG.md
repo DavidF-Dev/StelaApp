@@ -25,6 +25,8 @@ All notable changes to Stela are documented here. This project adheres to
 ### Fixed
 - The keyboard now closes promptly when you leave the note editor, instead of lingering for a moment
   over the next screen.
+- On a full note list, the last note's pin button is no longer hidden behind the New-note button —
+  there's now room to scroll it into view.
 
 ## [1.2.0] - 2026/06/11
 
