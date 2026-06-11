@@ -13,6 +13,7 @@ class NoteQueryTest {
         title: String = "",
         description: String = "",
         isPinned: Boolean = false,
+        isArchived: Boolean = false,
         createdAt: Long = 0,
         updatedAt: Long = 0,
     ) = Note(
@@ -20,6 +21,7 @@ class NoteQueryTest {
         title = title,
         description = description,
         isPinned = isPinned,
+        isArchived = isArchived,
         createdAt = createdAt,
         updatedAt = updatedAt,
     )
@@ -30,6 +32,15 @@ class NoteQueryTest {
     fun filterAll_keepsEveryNote() {
         val notes = listOf(note(1, isPinned = true), note(2))
         assertEquals(setOf(1L, 2L), applyQuery(notes, "", SortOrder.MODIFIED, NoteFilter.ALL).map { it.id }.toSet())
+    }
+
+    @Test
+    fun archivedNotes_areExcluded_fromEveryFilter() {
+        val notes = listOf(note(1), note(2, isArchived = true), note(3, isPinned = true, isArchived = true))
+        // Archived notes live in their own destination and never appear in the main list.
+        assertEquals(listOf(1L), ids(applyQuery(notes, "", SortOrder.MODIFIED, NoteFilter.ALL)))
+        assertEquals(emptyList<Long>(), ids(applyQuery(notes, "", SortOrder.MODIFIED, NoteFilter.PINNED)))
+        assertEquals(listOf(1L), ids(applyQuery(notes, "", SortOrder.MODIFIED, NoteFilter.UNPINNED)))
     }
 
     @Test

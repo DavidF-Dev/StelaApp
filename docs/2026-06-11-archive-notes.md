@@ -1,6 +1,13 @@
 # Archive notes — implementation plan
 
-> Status: **Planned** · 2026-06-11 · targeted at v1.3.0. Spec only — not implemented.
+> Status: **Implemented** · 2026-06-11 (v1.3.0, unreleased) · built in the 8 phases below.
+>
+> **Verification:** `assembleDebug` + `lintDebug` green; JVM unit tests pass (new coverage:
+> `NotePinner` archive/unarchive/pin-unarchives, `applyQuery` archived-exclusion, `BackupCodec`
+> archived round-trip); the `MIGRATION_2_3` instrumented test passes. End-to-end on the emulator:
+> created a pinned note, archived it from the editor (its notification cleared, the action flipped to
+> Restore), it left the main list (onboarding empty state shown), and it appeared on the Archived
+> screen reached from the list overflow.
 
 ## Goal
 
@@ -79,7 +86,8 @@ this so no caller can violate it.
   active anyway). `isSourceEmpty` (the "No notes yet" onboarding state) is computed from the **active**
   subset, so archiving every note shows the empty state rather than "No matching notes."
 - Multi-select gains an **Archive** action (`batchArchive()` → `pinner.archiveAll(selected)`), beside
-  the existing batch pin/unpin and delete.
+  the existing batch pin/unpin and delete. Like batch delete, it shows an **undo** snackbar; undo
+  unarchives and re-pins any notes that were pinned before archiving (archiving had unpinned them).
 - Entry point to the archived destination: an **overflow menu item** ("Archived notes") on the list top
   bar (keeps the existing search / sort-filter / settings icons uncrowded). Open to refinement.
 
@@ -99,6 +107,11 @@ this so no caller can violate it.
 - Add an **Archive / Restore** action (shown only for an existing note, like Delete): "Archive" when
   active → `pinner.archive(loaded)` (sets archived, clears pin); "Restore" when archived →
   `pinner.unarchive(loaded)`.
+- *(Tweak, 2026-06-11)* When the note is archived, a full-width **"Archived" banner** shows between
+  the app bar and the title. The editor's actions (share · pin · archive/restore · delete) moved to a
+  **`BottomAppBar`** with **Save** as its docked FAB, decluttering the top bar (which also keeps it
+  clean for the banner). The `BottomAppBar` respects the nav-gesture insets, so its buttons sit above
+  the home-gesture strip.
 - Pin interaction: toggling **Pin** on an archived note routes through `pinner.pin`, which unarchives
   then pins; the editor reflects `isArchived = false, isPinned = true`. Archiving an active+pinned note
   flips the pin toggle off.

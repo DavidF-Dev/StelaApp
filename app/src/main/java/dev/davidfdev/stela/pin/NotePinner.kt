@@ -25,11 +25,13 @@ class NotePinner(
     suspend fun delete(note: Note) = deleteAll(listOf(note))
 
     /// Pins every note, posting each notification, then reconciles the service once
-    /// for the whole batch.
+    /// for the whole batch. Pinning also unarchives, since a note is never both pinned
+    /// and archived.
     suspend fun pinAll(notes: List<Note>) {
         notes.forEach { note ->
+            repository.setArchived(note.id, false)
             repository.setPinned(note.id, true)
-            controller.pin(note.copy(isPinned = true))
+            controller.pin(note.copy(isPinned = true, isArchived = false))
         }
         reconcileService()
     }
@@ -41,6 +43,33 @@ class NotePinner(
             controller.unpin(id)
         }
         reconcileService()
+    }
+
+    /// Archives a note: the reversible alternative to delete. See [archiveAll].
+    suspend fun archive(note: Note) = archiveAll(listOf(note))
+
+    /// Restores a note from the archive. See [unarchiveAll].
+    suspend fun unarchive(note: Note) = unarchiveAll(listOf(note))
+
+    /// Archives every note: unpins and cancels the notification of any that were pinned,
+    /// then sets the archive flag, and reconciles the service once for the batch. Archived
+    /// notes are hidden from the list and can never be pinned (pinning restores them first,
+    /// see [pinAll]).
+    suspend fun archiveAll(notes: List<Note>) {
+        notes.forEach { note ->
+            if (note.isPinned) {
+                repository.setPinned(note.id, false)
+                controller.unpin(note.id)
+            }
+            repository.setArchived(note.id, true)
+        }
+        reconcileService()
+    }
+
+    /// Restores every note from the archive (the inverse of [archiveAll]). They return
+    /// unpinned, so there is no notification to post or service change to make.
+    suspend fun unarchiveAll(notes: List<Note>) {
+        notes.forEach { note -> repository.setArchived(note.id, false) }
     }
 
     /// Deletes every note, cancelling the notifications of pinned ones, then

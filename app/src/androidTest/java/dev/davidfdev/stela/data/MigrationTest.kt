@@ -38,6 +38,28 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun migrate2To3_addsUnarchivedFlag_andPreservesRows() {
+        helper.createDatabase(DB_NAME, 2).apply {
+            execSQL(
+                "INSERT INTO notes (title, description, iconId, isPinned, createdAt, updatedAt, emoji) " +
+                    "VALUES ('Old note', 'body', 'default', 1, 1000, 2000, '📌')",
+            )
+            close()
+        }
+
+        val db = helper.runMigrationsAndValidate(DB_NAME, 3, true, StelaDatabase.MIGRATION_2_3)
+
+        db.query("SELECT title, isPinned, emoji, isArchived FROM notes").use { cursor ->
+            assertEquals(1, cursor.count)
+            cursor.moveToFirst()
+            assertEquals("Old note", cursor.getString(0))
+            assertEquals(1, cursor.getInt(1))
+            assertEquals("📌", cursor.getString(2))
+            assertEquals(0, cursor.getInt(3))
+        }
+    }
+
     private companion object {
         const val DB_NAME = "migration-test.db"
     }

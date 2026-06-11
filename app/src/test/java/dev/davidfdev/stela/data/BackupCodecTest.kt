@@ -13,6 +13,7 @@ class BackupCodecTest {
         description: String = "D",
         emoji: String = "",
         isPinned: Boolean = false,
+        isArchived: Boolean = false,
         createdAt: Long = 100,
         updatedAt: Long = 200,
     ) = Note(
@@ -21,6 +22,7 @@ class BackupCodecTest {
         description = description,
         emoji = emoji,
         isPinned = isPinned,
+        isArchived = isArchived,
         createdAt = createdAt,
         updatedAt = updatedAt,
     )
@@ -53,7 +55,17 @@ class BackupCodecTest {
     @Test
     fun encode_writesVersionAndIsValidJson() {
         val text = BackupCodec.encode(listOf(note()))
-        assertTrue(text.contains("\"version\": 1"))
+        assertTrue(text.contains("\"version\": 2"))
+    }
+
+    @Test
+    fun encodeThenDecode_preservesArchivedFlag() {
+        // Unlike pin state, the archive flag survives a round-trip so archived notes import archived.
+        val decoded = BackupCodec.decode(
+            BackupCodec.encode(listOf(note(title = "Kept", isArchived = true), note(title = "Live"))),
+        ).getOrThrow()
+
+        assertEquals(listOf(true, false), decoded.map { it.isArchived })
     }
 
     @Test

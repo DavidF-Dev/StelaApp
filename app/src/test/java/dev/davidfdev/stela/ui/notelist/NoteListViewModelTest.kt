@@ -244,6 +244,60 @@ class NoteListViewModelTest {
     }
 
     @Test
+    fun batchArchive_hidesFromList_emitsArchivedEvent_andClearsSelection() = runTest(dispatcher) {
+        val repository = NoteRepository(FakeNoteDao()) { 1_000L }
+        val a = repository.create(title = "A", description = "")
+        repository.create(title = "B", description = "")
+        val viewModel = viewModel(repository)
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        val events = mutableListOf<NoteListEvent>()
+        backgroundScope.launch { viewModel.events.collect { events += it } }
+        advanceUntilIdle()
+
+        viewModel.toggleSelection(a)
+        advanceUntilIdle()
+        viewModel.batchArchive()
+        advanceUntilIdle()
+
+        // Archived note leaves the list (archived notes have their own destination).
+        assertEquals(listOf("B"), viewModel.uiState.value.notes.map { it.title })
+        assertTrue(repository.getById(a)!!.isArchived)
+        assertEquals(listOf(NoteListEvent.NotesArchived(1)), events)
+        assertFalse(viewModel.uiState.value.inSelectionMode)
+    }
+
+    @Test
+    fun undoArchive_unarchivesBatch_andRepinsPreviouslyPinned() = runTest(dispatcher) {
+        val repository = NoteRepository(FakeNoteDao()) { 1_000L }
+        val a = repository.create(title = "A", description = "")
+        val b = repository.create(title = "B", description = "")
+        repository.setPinned(a, true)
+        val controller = FakeNotificationController()
+        val viewModel = viewModel(repository, controller)
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        advanceUntilIdle()
+
+        viewModel.toggleSelection(a)
+        viewModel.toggleSelection(b)
+        advanceUntilIdle()
+        viewModel.batchArchive()
+        advanceUntilIdle()
+        // Both archived (and the pinned one unpinned by archiving), so the list is empty.
+        assertTrue(viewModel.uiState.value.notes.isEmpty())
+        assertFalse(repository.getById(a)!!.isPinned)
+
+        viewModel.undoArchive()
+        advanceUntilIdle()
+
+        // Both return to the list; the previously-pinned one is pinned again and re-posted.
+        assertEquals(setOf("A", "B"), viewModel.uiState.value.notes.map { it.title }.toSet())
+        assertFalse(repository.getById(a)!!.isArchived)
+        assertTrue(repository.getById(a)!!.isPinned)
+        assertFalse(repository.getById(b)!!.isPinned)
+        assertEquals(listOf(a), controller.pinned.map { it.id })
+    }
+
+    @Test
     fun onSearchChange_narrowsToMatchingNotes() = runTest(dispatcher) {
         val repository = NoteRepository(FakeNoteDao()) { 1_000L }
         repository.create(title = "Grocery list", description = "")

@@ -25,7 +25,7 @@ class AppContainer(context: Context) {
 
     private val database: StelaDatabase =
         Room.databaseBuilder(context, StelaDatabase::class.java, DATABASE_NAME)
-            .addMigrations(StelaDatabase.MIGRATION_1_2)
+            .addMigrations(StelaDatabase.MIGRATION_1_2, StelaDatabase.MIGRATION_2_3)
             .build()
 
     val noteRepository: NoteRepository = NoteRepository(database.noteDao())

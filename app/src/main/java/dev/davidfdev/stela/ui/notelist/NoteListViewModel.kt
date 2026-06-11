@@ -26,6 +26,9 @@ import kotlinx.coroutines.launch
 sealed interface NoteListEvent {
     /// [count] notes were just deleted; the UI offers an undo.
     data class NotesDeleted(val count: Int) : NoteListEvent
+
+    /// [count] notes were just archived; the UI offers an undo.
+    data class NotesArchived(val count: Int) : NoteListEvent
 }
 
 data class NoteListUiState(
@@ -62,6 +65,8 @@ class NoteListViewModel(
     val events = eventsChannel.receiveAsFlow()
     // The last batch deleted, held so an Undo can restore it.
     private var recentlyDeleted: List<Note> = emptyList()
+    // The last batch archived (pre-archive snapshots), held so an Undo can restore pin state too.
+    private var recentlyArchived: List<Note> = emptyList()
 
     val uiState: StateFlow<NoteListUiState> =
         combine(repository.notes, selectedIds, searchQuery, settingsRepository.settings) { source, selected, search, settings ->
@@ -74,7 +79,8 @@ class NoteListViewModel(
                 sortOrder = settings.sortOrder,
                 sortReversed = settings.sortReversed,
                 noteFilter = settings.noteFilter,
-                isSourceEmpty = source.isEmpty(),
+                // Onboarding empties on no active notes — archived-only still shows "no notes yet".
+                isSourceEmpty = source.none { !it.isArchived },
             )
         }.stateIn(
             scope = viewModelScope,
@@ -139,6 +145,31 @@ class NoteListViewModel(
                 pinner.unpinAll(selected.map { it.id })
             }
             clearSelection()
+        }
+    }
+
+    /// Archives every selected note (the reversible alternative to delete), then exits
+    /// selection mode and offers an undo. They move to the archived destination, not the trash.
+    fun batchArchive() {
+        val archived = selectedNotes()
+        viewModelScope.launch {
+            pinner.archiveAll(archived)
+            recentlyArchived = archived
+            clearSelection()
+            eventsChannel.send(NoteListEvent.NotesArchived(archived.size))
+        }
+    }
+
+    /// Restores the most recently archived batch to its prior state: unarchives every note and
+    /// re-pins the ones that were pinned before archiving (archiving had unpinned them).
+    fun undoArchive() {
+        val toRestore = recentlyArchived
+        recentlyArchived = emptyList()
+        if (toRestore.isEmpty()) return
+        viewModelScope.launch {
+            pinner.unarchiveAll(toRestore)
+            val wasPinned = toRestore.filter { it.isPinned }
+            if (wasPinned.isNotEmpty()) pinner.pinAll(wasPinned)
         }
     }
 

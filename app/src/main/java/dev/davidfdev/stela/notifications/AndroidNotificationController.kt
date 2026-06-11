@@ -83,6 +83,7 @@ class AndroidNotificationController(private val context: Context) : Notification
             .setDeleteIntent(if (swipeToUnpin) unpinIntent(note.id) else reassertIntent(note.id))
             .addAction(0, context.getString(R.string.notification_action_edit), editIntent(note.id))
             .addAction(0, context.getString(R.string.notification_action_unpin), unpinIntent(note.id))
+            .addAction(0, context.getString(R.string.notification_action_archive), archiveIntent(note.id))
         if (note.description.isNotBlank()) {
             builder.setContentText(note.description)
                 .setStyle(NotificationCompat.BigTextStyle().bigText(note.description))
@@ -105,6 +106,11 @@ class AndroidNotificationController(private val context: Context) : Notification
 
     private fun unpinIntent(noteId: Long): PendingIntent {
         val intent = NotificationActionReceiver.unpinIntent(context, noteId)
+        return PendingIntent.getBroadcast(context, notificationId(noteId), intent, PENDING_FLAGS)
+    }
+
+    private fun archiveIntent(noteId: Long): PendingIntent {
+        val intent = NotificationActionReceiver.archiveIntent(context, noteId)
         return PendingIntent.getBroadcast(context, notificationId(noteId), intent, PENDING_FLAGS)
     }
 

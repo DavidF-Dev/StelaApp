@@ -172,6 +172,77 @@ class NotePinnerTest {
     }
 
     @Test
+    fun archive_pinnedNote_unpins_cancelsNotification_andSetsArchived() = runTest {
+        val f = Fixture(quickAddEnabled = false)
+        val id = f.repository.create(title = "A", description = "")
+        f.pinner.pin(f.repository.getById(id)!!)
+
+        f.pinner.archive(f.repository.getById(id)!!)
+
+        val note = f.repository.getById(id)!!
+        assertTrue(note.isArchived)
+        assertFalse(note.isPinned)
+        assertEquals(listOf(id), f.controller.unpinned)
+        // Last pinned note archived with quick-add off: the service stops.
+        assertEquals(1, f.service.stopCount)
+    }
+
+    @Test
+    fun archive_unpinnedNote_leavesNotificationsUntouched() = runTest {
+        val f = Fixture()
+        val id = f.repository.create(title = "A", description = "")
+
+        f.pinner.archive(f.repository.getById(id)!!)
+
+        assertTrue(f.repository.getById(id)!!.isArchived)
+        assertTrue(f.controller.unpinned.isEmpty())
+    }
+
+    @Test
+    fun archiveAll_cancelsPinnedOnly_andReconcilesOnce() = runTest {
+        val f = Fixture(quickAddEnabled = false)
+        val a = f.repository.create(title = "A", description = "")
+        val b = f.repository.create(title = "B", description = "")
+        f.pinner.pin(f.repository.getById(a)!!)
+        val stopsBefore = f.service.stopCount
+
+        f.pinner.archiveAll(listOf(f.repository.getById(a)!!, f.repository.getById(b)!!))
+
+        assertTrue(f.repository.getById(a)!!.isArchived)
+        assertTrue(f.repository.getById(b)!!.isArchived)
+        assertEquals(listOf(a), f.controller.unpinned)
+        assertEquals(stopsBefore + 1, f.service.stopCount)
+    }
+
+    @Test
+    fun unarchive_clearsFlag_withoutRepostingOrServiceChange() = runTest {
+        val f = Fixture(quickAddEnabled = false)
+        val id = f.repository.create(title = "A", description = "")
+        f.pinner.archive(f.repository.getById(id)!!)
+        val startsBefore = f.service.startCount
+
+        f.pinner.unarchive(f.repository.getById(id)!!)
+
+        assertFalse(f.repository.getById(id)!!.isArchived)
+        assertTrue(f.controller.pinned.isEmpty())
+        assertEquals(startsBefore, f.service.startCount)
+    }
+
+    @Test
+    fun pin_archivedNote_unarchivesAndPins() = runTest {
+        val f = Fixture()
+        val id = f.repository.create(title = "A", description = "")
+        f.pinner.archive(f.repository.getById(id)!!)
+
+        f.pinner.pin(f.repository.getById(id)!!)
+
+        val note = f.repository.getById(id)!!
+        assertTrue(note.isPinned)
+        assertFalse(note.isArchived)
+        assertEquals(listOf(id), f.controller.pinned.map { it.id })
+    }
+
+    @Test
     fun refresh_reposts_onlyWhenPinned() = runTest {
         val f = Fixture()
         val id = f.repository.create(title = "A", description = "")

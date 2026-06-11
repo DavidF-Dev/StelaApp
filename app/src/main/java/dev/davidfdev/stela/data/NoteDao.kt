@@ -21,6 +21,11 @@ interface NoteDao {
     @Query("UPDATE notes SET isPinned = :isPinned WHERE id = :id")
     suspend fun setPinned(id: Long, isPinned: Boolean)
 
+    /// Flips only the archive flag. Archiving is not a content edit, so this deliberately
+    /// leaves updatedAt untouched and the list order unchanged.
+    @Query("UPDATE notes SET isArchived = :isArchived WHERE id = :id")
+    suspend fun setArchived(id: Long, isArchived: Boolean)
+
     @Query("SELECT COUNT(*) FROM notes WHERE isPinned = 1")
     suspend fun countPinned(): Int
 

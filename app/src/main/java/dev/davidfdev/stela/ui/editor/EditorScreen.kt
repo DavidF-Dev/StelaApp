@@ -6,27 +6,36 @@ import android.view.View
 import android.view.WindowManager
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Archive
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Unarchive
 import androidx.compose.material.icons.outlined.Mood
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
@@ -41,6 +50,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
@@ -93,6 +103,7 @@ fun EditorRoute(
         onDescriptionChange = viewModel::onDescriptionChange,
         onEmojiChange = viewModel::onEmojiChange,
         onTogglePin = { if (state.isPinned) viewModel.unpin() else gate { viewModel.pin() } },
+        onToggleArchive = { if (state.isArchived) viewModel.unarchive() else viewModel.archive() },
         onShare = { shareNote(context, displayTitle(state.emoji, state.title), state.description) },
         onSave = { viewModel.save(onDone) },
         onDelete = { viewModel.delete(onDone) },
@@ -109,6 +120,7 @@ fun EditorScreen(
     onDescriptionChange: (String) -> Unit,
     onEmojiChange: (String) -> Unit,
     onTogglePin: () -> Unit,
+    onToggleArchive: () -> Unit,
     onShare: () -> Unit,
     onSave: () -> Unit,
     onDelete: () -> Unit,
@@ -129,11 +141,17 @@ fun EditorScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
+            )
+        },
+        bottomBar = {
+            BottomAppBar(
                 actions = {
-                    if (state.title.isNotBlank() || state.description.isNotBlank()) {
-                        IconButton(onClick = onShare) {
-                            Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.action_share))
-                        }
+                    // Disabled (greyed) rather than hidden when empty, so it doesn't pop in and out.
+                    IconButton(
+                        onClick = onShare,
+                        enabled = state.title.isNotBlank() || state.description.isNotBlank(),
+                    ) {
+                        Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.action_share))
                     }
                     IconButton(onClick = onTogglePin) {
                         if (state.isPinned) {
@@ -143,12 +161,37 @@ fun EditorScreen(
                         }
                     }
                     if (state.isEditing) {
+                        IconButton(onClick = onToggleArchive) {
+                            if (state.isArchived) {
+                                Icon(Icons.Filled.Unarchive, contentDescription = stringResource(R.string.action_restore))
+                            } else {
+                                Icon(Icons.Filled.Archive, contentDescription = stringResource(R.string.action_archive))
+                            }
+                        }
                         IconButton(onClick = { showDeleteDialog = true }) {
                             Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete))
                         }
                     }
-                    TextButton(onClick = onSave, enabled = state.canSave) {
-                        Text(stringResource(R.string.editor_save))
+                },
+                floatingActionButton = {
+                    // FloatingActionButton has no enabled flag: mute it and no-op until the note has a title.
+                    FloatingActionButton(
+                        onClick = { if (state.canSave) onSave() },
+                        containerColor = if (state.canSave) {
+                            MaterialTheme.colorScheme.primaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.surfaceVariant
+                        },
+                    ) {
+                        Icon(
+                            Icons.Filled.Check,
+                            contentDescription = stringResource(R.string.editor_save),
+                            tint = if (state.canSave) {
+                                MaterialTheme.colorScheme.onPrimaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            },
+                        )
                     }
                 },
             )
@@ -158,51 +201,57 @@ fun EditorScreen(
         Column(
             modifier = Modifier
                 .padding(padding)
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
+                .fillMaxSize(),
         ) {
-            OutlinedTextField(
-                value = state.title,
-                onValueChange = onTitleChange,
-                label = { Text(stringResource(R.string.editor_label_title)) },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                leadingIcon = {
-                    IconButton(onClick = { showEmojiPicker = true }) {
-                        if (state.emoji.isBlank()) {
-                            Icon(Icons.Outlined.Mood, contentDescription = stringResource(R.string.editor_add_emoji))
-                        } else {
-                            Text(state.emoji, style = MaterialTheme.typography.titleLarge)
-                        }
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-            )
-            OutlinedTextField(
-                value = state.description,
-                onValueChange = onDescriptionChange,
-                label = { Text(stringResource(R.string.editor_label_description)) },
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+            if (state.isArchived) ArchivedBanner()
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 12.dp)
-                    .height(200.dp),
-            )
-
-            val created = state.createdAt
-            val updated = state.updatedAt
-            if (created != null && updated != null) {
-                Text(
-                    text = stringResource(
-                        R.string.editor_timestamps,
-                        TimeFormatter.absolute(created),
-                        TimeFormatter.absolute(updated),
-                    ),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 12.dp),
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
+            ) {
+                OutlinedTextField(
+                    value = state.title,
+                    onValueChange = onTitleChange,
+                    label = { Text(stringResource(R.string.editor_label_title)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                    leadingIcon = {
+                        IconButton(onClick = { showEmojiPicker = true }) {
+                            if (state.emoji.isBlank()) {
+                                Icon(Icons.Outlined.Mood, contentDescription = stringResource(R.string.editor_add_emoji))
+                            } else {
+                                Text(state.emoji, style = MaterialTheme.typography.titleLarge)
+                            }
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
                 )
+                OutlinedTextField(
+                    value = state.description,
+                    onValueChange = onDescriptionChange,
+                    label = { Text(stringResource(R.string.editor_label_description)) },
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp)
+                        .height(200.dp),
+                )
+
+                val created = state.createdAt
+                val updated = state.updatedAt
+                if (created != null && updated != null) {
+                    Text(
+                        text = stringResource(
+                            R.string.editor_timestamps,
+                            TimeFormatter.absolute(created),
+                            TimeFormatter.absolute(updated),
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 12.dp),
+                    )
+                }
             }
         }
     }
@@ -237,6 +286,30 @@ fun EditorScreen(
             },
             onDismiss = { showEmojiPicker = false },
         )
+    }
+}
+
+/// A full-width strip below the app bar marking the note as archived (it is otherwise edited
+/// like any other). Restore lives in the bottom action bar.
+@Composable
+private fun ArchivedBanner() {
+    Surface(color = MaterialTheme.colorScheme.secondaryContainer, modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                Icons.Filled.Archive,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+            Spacer(Modifier.width(12.dp))
+            Text(
+                text = stringResource(R.string.editor_archived_banner),
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
     }
 }
 

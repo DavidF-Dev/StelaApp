@@ -18,6 +18,8 @@ data class NoteBackup(
     val createdAt: Long,
     val updatedAt: Long,
     val isPinned: Boolean = false,
+    val isArchived: Boolean = false,
 )
 
-const val BACKUP_VERSION = 1
+// v2 adds isArchived; v1 files lack it and decode as not archived.
+const val BACKUP_VERSION = 2

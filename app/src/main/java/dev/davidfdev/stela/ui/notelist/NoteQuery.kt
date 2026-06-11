@@ -4,10 +4,11 @@ import dev.davidfdev.stela.data.Note
 import dev.davidfdev.stela.settings.NoteFilter
 import dev.davidfdev.stela.settings.SortOrder
 
-/// Derives the displayed note list in one in-memory pass: filter by pin state, keep
-/// notes whose title or description contains the trimmed query (case-insensitive),
-/// then sort (the sort's default direction, reversed when [reversed] is set). Pure so
-/// search/filter/sort stay consistent and stay unit-testable.
+/// Derives the displayed note list in one in-memory pass: drop archived notes (they live
+/// in their own destination), filter by pin state, keep notes whose title or description
+/// contains the trimmed query (case-insensitive), then sort (the sort's default direction,
+/// reversed when [reversed] is set). Pure so search/filter/sort stay consistent and
+/// stay unit-testable.
 fun applyQuery(
     notes: List<Note>,
     search: String,
@@ -15,10 +16,11 @@ fun applyQuery(
     filter: NoteFilter,
     reversed: Boolean = false,
 ): List<Note> {
+    val active = notes.filterNot { it.isArchived }
     val filtered = when (filter) {
-        NoteFilter.ALL -> notes
-        NoteFilter.PINNED -> notes.filter { it.isPinned }
-        NoteFilter.UNPINNED -> notes.filter { !it.isPinned }
+        NoteFilter.ALL -> active
+        NoteFilter.PINNED -> active.filter { it.isPinned }
+        NoteFilter.UNPINNED -> active.filter { !it.isPinned }
     }
     val query = search.trim()
     val matched = if (query.isEmpty()) {

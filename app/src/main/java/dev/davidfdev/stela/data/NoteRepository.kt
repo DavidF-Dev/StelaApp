@@ -42,6 +42,10 @@ class NoteRepository(
     /// edit and must not reorder the list.
     suspend fun setPinned(noteId: Long, isPinned: Boolean) = dao.setPinned(noteId, isPinned)
 
+    /// Sets a note's archive flag without bumping updatedAt — archiving is not a content
+    /// edit and must not reorder the list.
+    suspend fun setArchived(noteId: Long, isArchived: Boolean) = dao.setArchived(noteId, isArchived)
+
     suspend fun countPinned(): Int = dao.countPinned()
 
     suspend fun delete(note: Note) = dao.delete(note)

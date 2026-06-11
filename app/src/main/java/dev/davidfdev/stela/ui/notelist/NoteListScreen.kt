@@ -17,10 +17,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Deselect
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SelectAll
@@ -30,6 +32,8 @@ import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.outlined.RadioButtonUnchecked
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -90,6 +94,7 @@ fun NoteListRoute(
     onAddNote: () -> Unit,
     onOpenNote: (Long) -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenArchived: () -> Unit,
     viewModel: NoteListViewModel = viewModel(factory = NoteListViewModel.Factory),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -124,6 +129,18 @@ fun NoteListRoute(
                     )
                     if (result == SnackbarResult.ActionPerformed) viewModel.undoDelete()
                 }
+
+                is NoteListEvent.NotesArchived -> {
+                    val message = context.resources.getQuantityString(
+                        R.plurals.notelist_archived_count, event.count, event.count,
+                    )
+                    val result = snackbarHostState.showSnackbar(
+                        message = message,
+                        actionLabel = undoLabel,
+                        duration = SnackbarDuration.Long,
+                    )
+                    if (result == SnackbarResult.ActionPerformed) viewModel.undoArchive()
+                }
             }
         }
     }
@@ -146,11 +163,13 @@ fun NoteListRoute(
         onAddNote = onAddNote,
         onOpenNote = onOpenNote,
         onOpenSettings = onOpenSettings,
+        onOpenArchived = onOpenArchived,
         onTogglePin = onTogglePin,
         onToggleSelection = viewModel::toggleSelection,
         onClearSelection = viewModel::clearSelection,
         onToggleSelectAll = viewModel::toggleSelectAll,
         onBatchTogglePin = onBatchTogglePin,
+        onBatchArchive = viewModel::batchArchive,
         onBatchDelete = viewModel::batchDelete,
         onSearchChange = viewModel::onSearchChange,
         onSortChange = viewModel::onSortChange,
@@ -169,11 +188,13 @@ fun NoteListScreen(
     onAddNote: () -> Unit,
     onOpenNote: (Long) -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenArchived: () -> Unit,
     onTogglePin: (Note) -> Unit,
     onToggleSelection: (Long) -> Unit,
     onClearSelection: () -> Unit,
     onToggleSelectAll: () -> Unit,
     onBatchTogglePin: () -> Unit,
+    onBatchArchive: () -> Unit,
     onBatchDelete: () -> Unit,
     onSearchChange: (String) -> Unit,
     onSortChange: (SortOrder) -> Unit,
@@ -205,6 +226,7 @@ fun NoteListScreen(
                     onClose = onClearSelection,
                     onToggleSelectAll = onToggleSelectAll,
                     onTogglePin = onBatchTogglePin,
+                    onArchive = onBatchArchive,
                     onDelete = { showDeleteConfirm = true },
                 )
             } else {
@@ -215,6 +237,7 @@ fun NoteListScreen(
                     onCloseSearch = closeSearch,
                     onSearchChange = onSearchChange,
                     onOpenSortFilter = { showSortFilter = true },
+                    onOpenArchived = onOpenArchived,
                     onOpenSettings = onOpenSettings,
                 )
             }
@@ -312,6 +335,7 @@ private fun SelectionTopBar(
     onClose: () -> Unit,
     onToggleSelectAll: () -> Unit,
     onTogglePin: () -> Unit,
+    onArchive: () -> Unit,
     onDelete: () -> Unit,
 ) {
     TopAppBar(
@@ -338,6 +362,9 @@ private fun SelectionTopBar(
                 } else {
                     Icon(Icons.Filled.PushPin, contentDescription = stringResource(R.string.action_unpin))
                 }
+            }
+            IconButton(onClick = onArchive) {
+                Icon(Icons.Filled.Archive, contentDescription = stringResource(R.string.action_archive))
             }
             IconButton(onClick = onDelete) {
                 Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete))
@@ -442,6 +469,7 @@ private fun NoteListTopBar(
     onCloseSearch: () -> Unit,
     onSearchChange: (String) -> Unit,
     onOpenSortFilter: () -> Unit,
+    onOpenArchived: () -> Unit,
     onOpenSettings: () -> Unit,
 ) {
     if (searchActive) {
@@ -494,6 +522,25 @@ private fun NoteListTopBar(
                 IconButton(onClick = onOpenSettings) {
                     Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.action_settings))
                 }
+                OverflowMenu(onOpenArchived = onOpenArchived)
+            },
+        )
+    }
+}
+
+@Composable
+private fun OverflowMenu(onOpenArchived: () -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    IconButton(onClick = { expanded = true }) {
+        Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.action_more))
+    }
+    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.notelist_archived)) },
+            leadingIcon = { Icon(Icons.Filled.Archive, contentDescription = null) },
+            onClick = {
+                expanded = false
+                onOpenArchived()
             },
         )
     }

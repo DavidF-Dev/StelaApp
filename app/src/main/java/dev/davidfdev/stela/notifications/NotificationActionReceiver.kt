@@ -25,6 +25,13 @@ class NotificationActionReceiver : BroadcastReceiver() {
                 runAsync { container.notePinner.unpin(noteId) }
             }
 
+            ACTION_ARCHIVE -> {
+                val noteId = intent.noteId() ?: return
+                runAsync {
+                    container.noteRepository.getById(noteId)?.let { container.notePinner.archive(it) }
+                }
+            }
+
             ACTION_REASSERT -> {
                 val noteId = intent.noteId() ?: return
                 runAsync {
@@ -61,6 +68,7 @@ class NotificationActionReceiver : BroadcastReceiver() {
 
     companion object {
         private const val ACTION_UNPIN = "dev.davidfdev.stela.action.UNPIN"
+        private const val ACTION_ARCHIVE = "dev.davidfdev.stela.action.ARCHIVE"
         private const val ACTION_REASSERT = "dev.davidfdev.stela.action.REASSERT"
         private const val ACTION_REASSERT_SERVICE = "dev.davidfdev.stela.action.REASSERT_SERVICE"
         private const val EXTRA_NOTE_ID = "noteId"
@@ -68,6 +76,9 @@ class NotificationActionReceiver : BroadcastReceiver() {
 
         fun unpinIntent(context: Context, noteId: Long): Intent =
             actionIntent(context, ACTION_UNPIN, noteId)
+
+        fun archiveIntent(context: Context, noteId: Long): Intent =
+            actionIntent(context, ACTION_ARCHIVE, noteId)
 
         fun reassertIntent(context: Context, noteId: Long): Intent =
             actionIntent(context, ACTION_REASSERT, noteId)

@@ -5,7 +5,17 @@ All notable changes to Stela are documented here. This project adheres to
 
 ## [1.3.0] - unreleased
 
-Empty.
+### Added
+- Archive notes: a reversible way to set a note aside without deleting it. Archive from the
+  pinned notification, the editor, or by selecting notes in the list (with an undo). Archived
+  notes are hidden from the main list, can't be pinned, and live in their own "Archived notes"
+  screen (reachable from the list's overflow menu) where you can restore or delete them. They're
+  kept in backups.
+
+### Changed
+- The note editor's actions (share, pin, archive, delete) moved from the top bar to a bottom action
+  bar, with Save as a button alongside them — leaving the top bar uncluttered. An archived note now
+  shows an "Archived" banner at the top of the editor.
 
 ## [1.2.0] - 2026/06/11
 

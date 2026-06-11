@@ -24,6 +24,7 @@ data class EditorUiState(
     val emoji: String = "",
     val isEditing: Boolean = false,
     val isPinned: Boolean = false,
+    val isArchived: Boolean = false,
     val createdAt: Long? = null,
     val updatedAt: Long? = null,
 ) {
@@ -61,6 +62,7 @@ class EditorViewModel(
                             description = note.description,
                             emoji = note.emoji,
                             isPinned = note.isPinned,
+                            isArchived = note.isArchived,
                             createdAt = note.createdAt,
                             updatedAt = note.updatedAt,
                         )
@@ -83,9 +85,10 @@ class EditorViewModel(
             return
         }
         viewModelScope.launch {
+            // Pinning an archived note restores it first; reflect both flags.
             pinner.pin(note)
-            loaded = note.copy(isPinned = true)
-            _uiState.update { it.copy(isPinned = true) }
+            loaded = note.copy(isPinned = true, isArchived = false)
+            _uiState.update { it.copy(isPinned = true, isArchived = false) }
         }
     }
 
@@ -98,6 +101,27 @@ class EditorViewModel(
             pinner.unpin(note.id)
             loaded = note.copy(isPinned = false)
             _uiState.update { it.copy(isPinned = false) }
+        }
+    }
+
+    /// Archives an existing note (reversible; unpins it). A no-op for an unsaved note,
+    /// mirroring delete.
+    fun archive() {
+        val note = loaded ?: return
+        viewModelScope.launch {
+            pinner.archive(note)
+            loaded = note.copy(isArchived = true, isPinned = false)
+            _uiState.update { it.copy(isArchived = true, isPinned = false) }
+        }
+    }
+
+    /// Restores an existing note from the archive.
+    fun unarchive() {
+        val note = loaded ?: return
+        viewModelScope.launch {
+            pinner.unarchive(note)
+            loaded = note.copy(isArchived = false)
+            _uiState.update { it.copy(isArchived = false) }
         }
     }
 

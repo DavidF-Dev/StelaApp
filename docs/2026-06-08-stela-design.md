@@ -190,7 +190,8 @@ data class Note(
 - Title = the note title; **content line = the note description when present**, falling
   back to the **"Tap to edit or unpin"** hint only when the description is empty (so a
   title-only note still has a useful, action-pointing line). *(Implemented 2026-06-09.)*
-- Actions: **Edit** (opens editor) · **Unpin** (the note is kept, not deleted). Swiping the
+- Actions: **Edit** (opens editor) · **Unpin** (the note is kept, not deleted) · **Archive**
+  (unpins and moves the note to the Archived screen — reversible; *2026-06-11*). Swiping the
   notification also unpins it when **"Swipe to unpin"** is enabled; otherwise it self-heals.
   *(Unpin rename + swipe-to-unpin: 2026-06-10.)*
 - **Tapping the body opens the editor** for that note. *(Implemented 2026-06-09; was a
@@ -422,7 +423,7 @@ implement); all keep the no-`INTERNET` invariant.
    the project moved to Kotlin 2.3 (see the toolchain upgrade below). A considered fallback — a toggle
    to the soft keyboard so the user searches via their keyboard's own emoji panel — was kept in reserve
    (clunkier: there is no API to open the keyboard directly in emoji mode).
-6. **Archive notes** *(planned — v1.3.0; see [2026-06-11-archive-notes.md](2026-06-11-archive-notes.md))* —
+6. **Archive notes** *(done — v1.3.0 (unreleased); see [2026-06-11-archive-notes.md](2026-06-11-archive-notes.md))* —
    a reversible way to clear a note without deleting it. **Archive** (available from the notification,
    editor, and multi-select) unpins and hides the note; permanent **Delete** stays in-app with its undo
    snackbar. Archived notes get their own destination (not a filter chip), stay editable, and are kept
