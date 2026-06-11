@@ -1,6 +1,6 @@
 # Archive notes — implementation plan
 
-> Status: **Implemented** · 2026-06-11 (v1.3.0, unreleased) · built in the 8 phases below.
+> Status: **Implemented** · 2026-06-11 (v1.3.0) · built in the 8 phases below.
 >
 > **Verification:** `assembleDebug` + `lintDebug` green; JVM unit tests pass (new coverage:
 > `NotePinner` archive/unarchive/pin-unarchives, `applyQuery` archived-exclusion, `BackupCodec`

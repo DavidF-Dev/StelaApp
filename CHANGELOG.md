@@ -3,7 +3,7 @@
 All notable changes to Stela are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
-## [1.3.0] - unreleased
+## [1.3.0] - 2026/06/11
 
 ### Added
 - Archive notes: a reversible way to set a note aside without deleting it. Archive from the

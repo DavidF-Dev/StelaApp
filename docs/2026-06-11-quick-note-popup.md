@@ -90,11 +90,19 @@ Gate on the existing `noteLoaded` signal so an existing note's async load doesn'
 | Quick-add **body tap** | `MainActivity` `/new?pin=true` | `QuickNoteActivity` (new, pin) |
 | Widget **＋** | `MainActivity` `/new?pin=true` | `QuickNoteActivity` (new, pin) |
 | Pinned-note **Edit** action | `MainActivity` `/editor/{id}` | `QuickNoteActivity` (note id) |
-| Pinned-note **body tap** | `MainActivity` `/editor/{id}` | *(open question — see below)* |
+| Pinned-note **body tap** | `MainActivity` `/editor/{id}` | `QuickNoteActivity` (note id) |
 | **Expand** (from popup) | — | `MainActivity` full editor, from draft |
 
 `AndroidNotificationController` and `StelaWidget` build the new intents; `MainActivity` gains a path to
-open the editor from a `pendingDraft`.
+open the editor from a `pendingDraft`. The pinned-note **body tap** matches its **Edit** action (both →
+popup) — consistent, and Expand still reaches the full editor.
+
+**Secure-lock-screen fallback:** when the device is on a **secure** lock screen, the popup is *not*
+shown — the trigger falls back to **today's behaviour**, opening the full **Editor screen** in
+`MainActivity` (new note for the quick-add/widget triggers, `/editor/{id}` for the pinned-note triggers).
+So each PendingIntent decides popup-vs-editor by querying lock state (`KeyguardManager.isKeyguardLocked`
+/ `isDeviceSecure`) at fire time; everything works as before behind a secure lock, and gets the popup
+otherwise.
 
 ## Invariants honoured
 
@@ -103,15 +111,16 @@ open the editor from a `pendingDraft`.
 - A note is never both archived and pinned (the popup never archives; pinning is unchanged).
 - Dismissing the popup discards unsaved content (same as the editor's back = no save).
 
-## Open questions / decisions to settle before building
+## Resolved decisions
 
-1. **Pinned-note body tap:** keep it → full editor (so "Edit action = quick popup", "body tap = open
-   fully"), or also → popup for consistency? They do the same thing today. *Recommendation: also → popup*
-   (consistent; Expand still reaches the full editor), but worth confirming.
-2. **Lock screen:** suppress the popup over a secure lock screen, or allow it for a brand-new empty note?
-3. **Emoji picker layering** in a transparent activity (bottom sheet over the popup sheet) — verify it
+- **Pinned-note body tap → popup** (matches its Edit action). *(2026-06-11)*
+- **Secure lock screen → no popup**, fall back to today's full-editor behaviour. *(2026-06-11)*
+
+## Open questions (implementation details to verify)
+
+1. **Emoji picker layering** in a transparent activity (bottom sheet over the popup sheet) — verify it
    renders/scrolls correctly from `QuickNoteActivity`.
-4. **VM seeding from intent extras:** confirm `createSavedStateHandle()` in `QuickNoteActivity` picks up
+2. **VM seeding from intent extras:** confirm `createSavedStateHandle()` in `QuickNoteActivity` picks up
    `noteId`/`pin` from the intent (may need explicit `defaultViewModelCreationExtras`/args wiring).
 
 ## Build order (phased)

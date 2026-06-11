@@ -385,6 +385,13 @@ and 5 below (**undo-delete**, **JSON export/import**, the **home-screen widget**
 **emoji-picker search**), the **new-note pin toggle**, and a **branded splash screen**. Only item 4
 (scheduled/timed pins) remains, deferred to a later version. See [CHANGELOG.md](../CHANGELOG.md).
 
+**v1.3.0 (released 2026/06/11):** the **Archive notes** feature (archive from the notification, editor,
+and multi-select; a dedicated Archived screen; undo; kept in backups; schema v3) and a **Clear notes**
+action in Settings (confirm + undo), plus editor polish — the **pin attention pop** on opening an
+unpinned note, the title heading hidden when editing, Share hidden on new notes, destructive (red)
+delete confirmations, prompt keyboard dismissal on exit, auto-focusing a new note's empty title, and
+extra bottom scroll room so the FAB no longer hides the last row's pin. See [CHANGELOG.md](../CHANGELOG.md).
+
 **Planned features (prioritized, 2026-06-10):** each is its own slice (spec → plan →
 implement); all keep the no-`INTERNET` invariant.
 1. **Undo-delete** *(done — v1.2.0)* — deleting from the list shows an "Undo" snackbar that
@@ -425,7 +432,7 @@ implement); all keep the no-`INTERNET` invariant.
    the project moved to Kotlin 2.3 (see the toolchain upgrade below). A considered fallback — a toggle
    to the soft keyboard so the user searches via their keyboard's own emoji panel — was kept in reserve
    (clunkier: there is no API to open the keyboard directly in emoji mode).
-6. **Archive notes** *(done — v1.3.0 (unreleased); see [2026-06-11-archive-notes.md](2026-06-11-archive-notes.md))* —
+6. **Archive notes** *(done — v1.3.0; see [2026-06-11-archive-notes.md](2026-06-11-archive-notes.md))* —
    a reversible way to clear a note without deleting it. **Archive** (available from the notification,
    editor, and multi-select) unpins and hides the note; permanent **Delete** stays in-app with its undo
    snackbar. Archived notes get their own destination (not a filter chip), stay editable, and are kept
