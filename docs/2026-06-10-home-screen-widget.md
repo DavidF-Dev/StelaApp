@@ -40,7 +40,7 @@ links — so no business logic is duplicated on the new render surface.
 | `gradle/libs.versions.toml` + `app/build.gradle.kts` | `androidx.glance:glance-appwidget` (1.1.1, latest stable). The default `GlanceTheme` follows system day/night, so `glance-material3` wasn't needed. |
 | `ui/widget/StelaWidget.kt` | `GlanceAppWidget`: loads pinned notes in `provideGlance`, renders header + list/empty state, wires deep-link actions. |
 | `ui/widget/StelaWidgetReceiver.kt` | `GlanceAppWidgetReceiver` — the manifest-registered `<receiver>`. |
-| `res/xml/stela_widget_info.xml` | `appwidget-provider` metadata: resizable, `updatePeriodMillis=0` (event-driven), preview, min size. |
+| `res/xml/stela_widget_info.xml` | `appwidget-provider` metadata: resizable, `updatePeriodMillis=0` (event-driven), preview, min size, picker `description` (Android 12+). |
 | `AndroidManifest.xml` | `<receiver>` for the receiver + `APPWIDGET_UPDATE` filter + widget-info meta-data. |
 | `StelaApp.kt` | observe the pinned-notes subset (`distinctUntilChanged` on id + displayTitle) → `StelaWidget().updateAll(context)`. |
 
