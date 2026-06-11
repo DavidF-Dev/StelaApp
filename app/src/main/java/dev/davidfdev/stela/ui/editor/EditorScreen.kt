@@ -141,18 +141,21 @@ fun EditorScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
-            )
-        },
-        bottomBar = {
-            BottomAppBar(
                 actions = {
-                    // Disabled (greyed) rather than hidden when empty, so it doesn't pop in and out.
+                    // Share is a read-only export (not a note-state change like pin/archive/delete),
+                    // so it sits in the top bar; disabled (greyed) rather than hidden when empty.
                     IconButton(
                         onClick = onShare,
                         enabled = state.title.isNotBlank() || state.description.isNotBlank(),
                     ) {
                         Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.action_share))
                     }
+                },
+            )
+        },
+        bottomBar = {
+            BottomAppBar(
+                actions = {
                     IconButton(onClick = onTogglePin) {
                         if (state.isPinned) {
                             Icon(Icons.Filled.PushPin, contentDescription = stringResource(R.string.action_unpin))

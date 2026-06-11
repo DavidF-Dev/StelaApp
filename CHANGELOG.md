@@ -13,9 +13,9 @@ All notable changes to Stela are documented here. This project adheres to
   kept in backups.
 
 ### Changed
-- The note editor's actions (share, pin, archive, delete) moved from the top bar to a bottom action
-  bar, with Save as a button alongside them — leaving the top bar uncluttered. An archived note now
-  shows an "Archived" banner at the top of the editor.
+- The note editor's note-state actions (pin, archive, delete) moved from the top bar to a bottom
+  action bar, with Save alongside them; Share stays in the top bar. An archived note now shows an
+  "Archived" banner at the top of the editor.
 
 ## [1.2.0] - 2026/06/11
 
