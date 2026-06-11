@@ -422,7 +422,12 @@ implement); all keep the no-`INTERNET` invariant.
    to the soft keyboard so the user searches via their keyboard's own emoji panel — was kept in reserve
    (clunkier: there is no API to open the keyboard directly in emoji mode).
 
-Lower priority, kept deferred: a branded splash screen and an in-app language picker.
+**Branded splash screen *(specced — 2026-06-11; see [2026-06-11-splash-screen.md](2026-06-11-splash-screen.md))*:**
+a small polish slice using AndroidX `core-splashscreen` to show the Stela icon on the indigo brand
+colour at cold start — consistently across API 26+ (the platform draws one only from API 31), static,
+with no artificial delay. Reuses the brand colour and the launcher foreground; no `INTERNET`.
+
+Lower priority, kept deferred: an in-app language picker.
 
 **Kotlin toolchain upgrade *(done — 2026-06-10)*:** bumped Kotlin **2.1.0 → 2.3.21**. It cascaded
 through a matched set: **KSP 2.1.0-1.0.29 → 2.3.9** (KSP dropped the `<kotlin>-<ksp>` scheme at 2.3),
