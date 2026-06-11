@@ -22,6 +22,7 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
@@ -38,6 +39,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -63,6 +65,7 @@ fun SettingsRoute(
     viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val noteCount by viewModel.noteCount.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -90,16 +93,27 @@ fun SettingsRoute(
     val exportDone = stringResource(R.string.snackbar_export_done)
     val exportFailed = stringResource(R.string.snackbar_export_failed)
     val importFailed = stringResource(R.string.snackbar_import_failed)
+    val undoLabel = stringResource(R.string.action_undo)
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
-            val message = when (event) {
-                BackupEvent.Exported -> exportDone
-                is BackupEvent.Imported ->
-                    context.resources.getQuantityString(R.plurals.snackbar_import_done, event.count, event.count)
-                BackupEvent.ExportFailed -> exportFailed
-                BackupEvent.ImportFailed -> importFailed
+            when (event) {
+                BackupEvent.Exported -> snackbarHostState.showSnackbar(exportDone)
+                is BackupEvent.Imported -> snackbarHostState.showSnackbar(
+                    context.resources.getQuantityString(R.plurals.snackbar_import_done, event.count, event.count),
+                )
+                BackupEvent.ExportFailed -> snackbarHostState.showSnackbar(exportFailed)
+                BackupEvent.ImportFailed -> snackbarHostState.showSnackbar(importFailed)
+                is BackupEvent.Cleared -> {
+                    val result = snackbarHostState.showSnackbar(
+                        message = context.resources.getQuantityString(
+                            R.plurals.snackbar_notes_cleared, event.count, event.count,
+                        ),
+                        actionLabel = undoLabel,
+                        duration = SnackbarDuration.Long,
+                    )
+                    if (result == SnackbarResult.ActionPerformed) viewModel.undoClear()
+                }
             }
-            snackbarHostState.showSnackbar(message)
         }
     }
 
@@ -113,6 +127,7 @@ fun SettingsRoute(
 
     SettingsScreen(
         state = state,
+        noteCount = noteCount,
         snackbarHostState = snackbarHostState,
         batteryExempt = batteryExempt,
         autostartAvailable = autostartAvailable,
@@ -128,6 +143,7 @@ fun SettingsRoute(
         onOpenAutostart = { autostartIntent?.let { intent -> runCatching { context.startActivity(intent) } } },
         onExport = { exportLauncher.launch("stela-backup-${LocalDate.now()}.json") },
         onImport = { importLauncher.launch(arrayOf("application/json")) },
+        onClearNotes = viewModel::clearAllNotes,
         onOpenAbout = onOpenAbout,
         onBack = onBack,
     )
@@ -137,6 +153,7 @@ fun SettingsRoute(
 @Composable
 fun SettingsScreen(
     state: Settings,
+    noteCount: Int,
     snackbarHostState: SnackbarHostState,
     batteryExempt: Boolean,
     autostartAvailable: Boolean,
@@ -148,10 +165,12 @@ fun SettingsScreen(
     onOpenAutostart: () -> Unit,
     onExport: () -> Unit,
     onImport: () -> Unit,
+    onClearNotes: () -> Unit,
     onOpenAbout: () -> Unit,
     onBack: () -> Unit,
 ) {
     var oemDialog by remember { mutableStateOf<OemSettingsDialog?>(null) }
+    var showClearConfirm by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -234,6 +253,22 @@ fun SettingsScreen(
                 supportingContent = { Text(stringResource(R.string.settings_import_summary)) },
                 modifier = Modifier.clickable(onClick = onImport),
             )
+            // Destructive: error-coloured, and disabled (greyed, non-clickable) when there is nothing to clear.
+            val clearEnabled = noteCount > 0
+            ListItem(
+                headlineContent = {
+                    Text(
+                        stringResource(R.string.settings_clear_title),
+                        color = if (clearEnabled) {
+                            MaterialTheme.colorScheme.error
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        },
+                    )
+                },
+                supportingContent = { Text(stringResource(R.string.settings_clear_summary)) },
+                modifier = if (clearEnabled) Modifier.clickable { showClearConfirm = true } else Modifier,
+            )
 
             SectionHeader(stringResource(R.string.settings_section_about))
             ListItem(
@@ -257,6 +292,27 @@ fun SettingsScreen(
             onDismiss = { oemDialog = null },
         )
         null -> Unit
+    }
+
+    if (showClearConfirm) {
+        AlertDialog(
+            onDismissRequest = { showClearConfirm = false },
+            title = { Text(pluralStringResource(R.plurals.clear_dialog_title, noteCount, noteCount)) },
+            text = { Text(stringResource(R.string.clear_dialog_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showClearConfirm = false
+                        onClearNotes()
+                    },
+                ) {
+                    Text(stringResource(R.string.clear_dialog_confirm), color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showClearConfirm = false }) { Text(stringResource(R.string.action_cancel)) }
+            },
+        )
     }
 }
 

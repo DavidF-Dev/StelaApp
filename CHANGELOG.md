@@ -11,6 +11,8 @@ All notable changes to Stela are documented here. This project adheres to
   notes are hidden from the main list, can't be pinned, and live in their own "Archived notes"
   screen (reachable from the list's overflow menu) where you can restore or delete them. They're
   kept in backups.
+- Clear notes: a "Clear notes" option in Settings → Backup permanently deletes all notes, including
+  archived, behind a confirmation dialog and with an undo. Your settings are kept.
 
 ### Changed
 - The note editor's title heading is now hidden while editing a note, to give its action row more room

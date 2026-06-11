@@ -30,7 +30,7 @@ Read it before making architectural decisions; this file is only a quick orienta
 - **`NotePinner`** — the single seam for pin/unpin and archive/unarchive: persists the flag(s), posts/cancels the notification, and reconciles the service (start/stop/swap). UI and the notification actions both route through it.
 - **`PinService`** — foreground service. Runs **iff** (≥1 pinned note) **OR** (quick-add enabled). Shows the quick-add notification, or a minimal "running" line when quick-add is off but notes are pinned; re-asserts pins on start.
 - **`BootReceiver`** — on `BOOT_COMPLETED` or `MY_PACKAGE_REPLACED` (reboot or app update), starts `PinService` to re-pin flagged notes.
-- **UI (Compose)** — NoteList (search · sort/filter · multi-select with select-all · undo-delete · archive) · Archived (restore/delete archived notes; reached from the list overflow) · Editor (emoji picker; pin and archive/restore) · Settings (theme, notification prefs, keep-alive guidance, backup export/import). Talks to the repositories; pin/unpin and archive via `NotePinner`.
+- **UI (Compose)** — NoteList (search · sort/filter · multi-select with select-all · undo-delete · archive) · Archived (restore/delete archived notes; reached from the list overflow) · Editor (emoji picker; pin and archive/restore) · Settings (theme, notification prefs, keep-alive guidance, backup export/import, clear all notes). Talks to the repositories; pin/unpin, archive, and clear via `NotePinner`.
 
 ## Invariants — do not break
 

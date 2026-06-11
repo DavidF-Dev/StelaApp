@@ -10,7 +10,9 @@ import dev.davidfdev.stela.StelaApp
 import dev.davidfdev.stela.data.AndroidBackupIo
 import dev.davidfdev.stela.data.BackupCodec
 import dev.davidfdev.stela.data.BackupIo
+import dev.davidfdev.stela.data.Note
 import dev.davidfdev.stela.data.NoteRepository
+import dev.davidfdev.stela.pin.NotePinner
 import dev.davidfdev.stela.settings.Settings
 import dev.davidfdev.stela.settings.SettingsRepository
 import dev.davidfdev.stela.settings.ThemeMode
@@ -18,29 +20,41 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-/// One-shot outcomes of an export/import, surfaced to the UI as a snackbar.
+/// One-shot outcomes of a backup or clear action, surfaced to the UI as a snackbar.
 sealed interface BackupEvent {
     data object Exported : BackupEvent
     data class Imported(val count: Int) : BackupEvent
     data object ExportFailed : BackupEvent
     data object ImportFailed : BackupEvent
+
+    /// All notes were cleared; the UI offers an undo.
+    data class Cleared(val count: Int) : BackupEvent
 }
 
 class SettingsViewModel(
     private val repository: SettingsRepository,
     private val noteRepository: NoteRepository,
+    private val notePinner: NotePinner,
     private val backupIo: BackupIo,
 ) : ViewModel() {
 
     val uiState: StateFlow<Settings> = repository.settings
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), Settings())
 
+    /// Total note count (active + archived), so the clear-confirm dialog can show it.
+    val noteCount: StateFlow<Int> = noteRepository.notes
+        .map { it.size }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), 0)
+
     private val eventsChannel = Channel<BackupEvent>(Channel.BUFFERED)
     val events = eventsChannel.receiveAsFlow()
+    // The last cleared batch (pre-delete snapshots), held so an Undo can restore it.
+    private var recentlyCleared: List<Note> = emptyList()
 
     /// Writes all notes as JSON to the picked document Uri.
     fun export(uri: Uri) {
@@ -69,6 +83,29 @@ class SettingsViewModel(
         }
     }
 
+    /// Permanently deletes every note, including archived, via the pin seam — so pinned
+    /// notifications are cancelled and the service reconciles. Holds the batch so [undoClear]
+    /// can restore it. Settings are left untouched. A no-op when there are no notes.
+    fun clearAllNotes() {
+        viewModelScope.launch {
+            val cleared = noteRepository.notes.first()
+            if (cleared.isEmpty()) return@launch
+            recentlyCleared = cleared
+            notePinner.deleteAll(cleared)
+            eventsChannel.send(BackupEvent.Cleared(cleared.size))
+        }
+    }
+
+    /// Restores the most recently cleared batch (the inverse of [clearAllNotes]): re-pins the
+    /// ones that were pinned and keeps archived ones archived.
+    fun undoClear() {
+        val toRestore = recentlyCleared
+        recentlyCleared = emptyList()
+        if (toRestore.isNotEmpty()) {
+            viewModelScope.launch { notePinner.restore(toRestore) }
+        }
+    }
+
     fun setThemeMode(mode: ThemeMode) {
         viewModelScope.launch { repository.setThemeMode(mode) }
     }
@@ -94,6 +131,7 @@ class SettingsViewModel(
                 SettingsViewModel(
                     app.container.settingsRepository,
                     app.container.noteRepository,
+                    app.container.notePinner,
                     AndroidBackupIo(app.contentResolver),
                 )
             }

@@ -122,6 +122,18 @@
         <item quantity="one">Imported %d note</item>
         <item quantity="other">Imported %d notes</item>
     </plurals>
+    <string name="settings_clear_title">Clear notes</string>
+    <string name="settings_clear_summary">Delete all notes, including archived</string>
+    <plurals name="clear_dialog_title">
+        <item quantity="one">Delete your note?</item>
+        <item quantity="other">Delete all %d notes?</item>
+    </plurals>
+    <string name="clear_dialog_message">All your notes, including archived ones, will be permanently deleted.</string>
+    <string name="clear_dialog_confirm">Delete all</string>
+    <plurals name="snackbar_notes_cleared">
+        <item quantity="one">Note deleted</item>
+        <item quantity="other">All %d notes deleted</item>
+    </plurals>
 
     <string name="settings_section_about">About</string>
     <string name="settings_about_title">About Stela</string>

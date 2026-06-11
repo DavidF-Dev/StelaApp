@@ -397,7 +397,9 @@ implement); all keep the no-`INTERNET` invariant.
    `BackupCodec` keep the file format decoupled from the Room entity; the `BackupIo` seam
    wraps the `ContentResolver`. Import **appends** (each note gets a fresh id, so it never
    overwrites existing notes) and brings notes in **unpinned**. Settings → Backup → Export /
-   Import. See CHANGELOG.
+   Import. See CHANGELOG. *(v1.3.0 adds a **Clear notes** action to the same section: deletes every
+   note including archived via `NotePinner.deleteAll`, behind a confirm dialog and with an undo
+   snackbar; settings are untouched.)*
 3. **Home-screen widget** *(done — v1.2.0; see [2026-06-10-home-screen-widget.md](2026-06-10-home-screen-widget.md))* —
    a Jetpack Glance widget extending the glanceable, no-app-open spirit onto the home screen: a
    quick-add **＋** plus a scrollable list of **pinned notes** (tap → editor), one combined widget,
