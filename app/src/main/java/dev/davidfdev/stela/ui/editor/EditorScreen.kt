@@ -59,6 +59,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
@@ -156,8 +158,17 @@ fun EditorScreen(
         }
     }
 
+    // Dismiss the keyboard before leaving so it animates away in sync, rather than lingering over the
+    // next screen while the system catches up; called on every exit path (back, save, delete).
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+    val dismissKeyboard: () -> Unit = {
+        focusManager.clearFocus()
+        keyboardController?.hide()
+    }
+
     // Route system back through the same exit as the back arrow so a cold notification launch finishes the task.
-    BackHandler(onBack = onBack)
+    BackHandler { dismissKeyboard(); onBack() }
 
     Scaffold(
         topBar = {
@@ -168,7 +179,7 @@ fun EditorScreen(
                     if (!state.isEditing) Text(stringResource(R.string.editor_title_new))
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = { dismissKeyboard(); onBack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
@@ -204,7 +215,7 @@ fun EditorScreen(
                             Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete))
                         }
                     }
-                    TextButton(onClick = onSave, enabled = state.canSave) {
+                    TextButton(onClick = { dismissKeyboard(); onSave() }, enabled = state.canSave) {
                         Text(stringResource(R.string.editor_save))
                     }
                 },
@@ -278,6 +289,7 @@ fun EditorScreen(
             confirmButton = {
                 TextButton(onClick = {
                     showDeleteDialog = false
+                    dismissKeyboard()
                     onDelete()
                 }) { Text(stringResource(R.string.editor_delete_dialog_confirm), color = MaterialTheme.colorScheme.error) }
             },

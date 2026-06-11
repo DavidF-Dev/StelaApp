@@ -20,6 +20,11 @@ All notable changes to Stela are documented here. This project adheres to
   (shown only for existing notes). An archived note shows an "Archived" banner at the top of the editor.
 - Opening an unpinned note briefly "pops" the pin button to draw attention to it (so it's easy to pin).
   Respects the system's reduce-animations setting.
+- Delete confirmation buttons are now shown in the destructive (red) colour.
+
+### Fixed
+- The keyboard now closes promptly when you leave the note editor, instead of lingering for a moment
+  over the next screen.
 
 ## [1.2.0] - 2026/06/11
 
