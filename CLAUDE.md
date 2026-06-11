@@ -66,6 +66,10 @@ repo root (set `$ProgressPreference = 'SilentlyContinue'` first to avoid slow do
 - `connectedDebugAndroidTest` uninstalls the app afterward; `adb install -r` the debug
   APK to drive it manually. Grant notifications with `adb shell pm grant
   dev.davidfdev.stela android.permission.POST_NOTIFICATIONS`.
+- To build and install on a connected **physical device** (release by default; emulators are
+  ignored), use `powershell -File scripts/install-device.ps1` — it confirms before installing
+  and then launches the app. Pass `-DebugBuild`, `-NoBuild` (install the existing APK),
+  `-Reinstall`, `-NoLaunch`, or `-Force`; see its `-?` help.
 - The Gradle distribution is cached locally (the in-wrapper download was slow).
 
 ## Conventions
