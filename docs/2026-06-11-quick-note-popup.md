@@ -160,13 +160,15 @@ do after v1.3.0 ships.**
 
 A handful of details differed from the plan above; the structure and decisions otherwise held.
 
-- **`MainActivity`/`StelaNavHost` needed no changes.** Expand reuses the existing editor deep links
-  (`/new?pin=…` and `/editor/{id}`) to bring up `MainActivity`; the draft is consumed by the editor
-  view-model regardless of route, so no new draft-specific navigation was required. A side effect: an
-  Expand launch is classified as a notification deep link, so finishing the full editor ends the task
-  (returns to the prior context) — consistent with the popup's over-the-screen origin.
 - **`NoteDraft` lives in `ui.editor`** (next to the view-model that consumes it); `AppContainer` holds
   the one-shot `pendingDraft`. The editor's `Factory` reads-and-clears it when constructing the VM.
+- **Expand → editor lands on the list, not home** *(revised 2026-06-11)*: the Expand intent carries
+  `MainActivity.EXTRA_FROM_POPUP_EXPAND`. The editor deep link's synthesised back stack is just
+  `[Editor]` (no list under it), so on done the editor *navigates* to the list (clearing the stack via
+  `popUpTo(graph.id)`) — a third `onEditorDone` mode (`goToListOnEditorDone`) alongside finish/pop, made
+  one-shot so it governs only the expanded editor. The Expand intent also needs `FLAG_ACTIVITY_NEW_TASK`
+  so `MainActivity` lands in the app's task, not the popup's empty-affinity task (which would tangle the
+  two activities together). The user entered the app via the popup, so they end up on their note list.
 - **VM seeding** went through an overridden `defaultViewModelCreationExtras` (see Open question 2),
   not a custom factory.
 - **`noteLoaded`** became a derived property on `EditorUiState` (`!isEditing || createdAt != null`) so
@@ -176,8 +178,23 @@ A handful of details differed from the plan above; the structure and decisions o
 - **Floats over the current app, not the Stela task** *(2026-06-11 tweak)*: `QuickNoteActivity` declares
   `android:taskAffinity=""` (its own task) + `excludeFromRecents`, so a trigger shows the popup over
   whatever the user is doing rather than bringing `MainActivity`'s task to the foreground behind it.
-- **Sheet layout** *(2026-06-11 tweak)*: the heading sits on the left with **Expand** (icon-only) and
-  **Save** inline at the top-right, like an app bar (not a bottom button row).
+- **One popup at a time** *(2026-06-11 tweak)*: `android:launchMode="singleTask"` — a fresh trigger lands
+  in `onNewIntent` on the single instance, which `setIntent`s and bumps an `intentVersion` that re-keys
+  the `EditorViewModel` (`viewModel(key = "quicknote-$version")`), re-seeding from the new intent and
+  discarding the old popup's content. Structurally prevents two popups stacking.
+- **Action row mirrors the editor** *(2026-06-11 tweak)*: extracted `RowScope.NoteEditorActions`
+  (Expand · Share · Pin/Unpin · Archive · Delete · Save) shared by the editor's app bar and the popup.
+  Share/Archive/Delete show only for an existing note; Pin/Unpin shows for new notes too. The popup
+  confirms Archive/Delete with `AlertDialog`s (works fine over the `ModalBottomSheet`) and finishes after;
+  Unpin toggles in place without closing. Pin routes through the same `POST_NOTIFICATIONS` gate +
+  snackbar as the editor. The "Edit note" heading was dropped (existing notes show none, like the
+  editor); "New note" stays. `EditorViewModel.archive` gained an `onComplete` so finishing the popup
+  doesn't cancel the archive mid-flight.
+- **The pinned notification dropped its Archive action** *(2026-06-11)* — it now carries Edit + Unpin
+  only; archiving is reachable from the editor and the popup.
+- **Content-overflow safety** *(2026-06-11 tweak)*: the description field grows from its default height
+  to double, then scrolls within (`heightIn(min, max = 2×)`) — popup 96→192 dp, editor 200→400 dp; the
+  popup's fields also sit in a `verticalScroll` column. The top-anchored actions stay reachable.
 - **Emoji picker covers the popup** *(decided 2026-06-11)*: tapping the emoji opens the **shared**
   `EmojiPickerBottomSheet` (a `BottomSheetDialog`) over the popup, like a keyboard — kept deliberately
   to avoid diverging from the full editor's picker. Floating the popup *above* the picker would mean

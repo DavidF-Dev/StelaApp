@@ -41,6 +41,10 @@ class MainActivity : AppCompatActivity() {
     // Cold-started from a notification: finishing the editor returns home, not to an unvisited list.
     private val finishOnEditorDone = mutableStateOf(false)
 
+    // Expanded from the popup: finishing the editor lands the user on the list (they entered the app via
+    // the popup), rather than finishing the task. Takes precedence over finishOnEditorDone.
+    private val goToListOnEditorDone = mutableStateOf(false)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         // Must precede super.onCreate so the splash theme is swapped for the app theme before the first frame.
         installSplashScreen()
@@ -48,10 +52,15 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         val container = (application as StelaApp).container
 
-        finishOnEditorDone.value = if (savedInstanceState != null) {
-            savedInstanceState.getBoolean(KEY_FINISH_ON_EDITOR_DONE)
+        if (savedInstanceState != null) {
+            finishOnEditorDone.value = savedInstanceState.getBoolean(KEY_FINISH_ON_EDITOR_DONE)
+            goToListOnEditorDone.value = savedInstanceState.getBoolean(KEY_GO_TO_LIST_ON_EDITOR_DONE)
         } else {
-            isNotificationDeepLink(intent.action, intent.data?.scheme)
+            val fromExpand = intent.getBooleanExtra(EXTRA_FROM_POPUP_EXPAND, false)
+            // Expand from the popup uses the editor deep link but is in-app navigation: send the editor
+            // to the list on done rather than finishing the task as a cold notification entry would.
+            finishOnEditorDone.value = isNotificationDeepLink(intent.action, intent.data?.scheme) && !fromExpand
+            goToListOnEditorDone.value = fromExpand
         }
         setContent {
             val settings by container.settingsRepository.settings.collectAsStateWithLifecycle(initialValue = Settings())
@@ -77,6 +86,8 @@ class MainActivity : AppCompatActivity() {
                     StelaNavHost(
                         navController = controller,
                         finishOnEditorDone = finishOnEditorDone.value,
+                        goToListOnEditorDone = goToListOnEditorDone.value,
+                        onGoToListConsumed = { goToListOnEditorDone.value = false },
                         onFinish = { finish() },
                     )
                 }
@@ -87,6 +98,7 @@ class MainActivity : AppCompatActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putBoolean(KEY_FINISH_ON_EDITOR_DONE, finishOnEditorDone.value)
+        outState.putBoolean(KEY_GO_TO_LIST_ON_EDITOR_DONE, goToListOnEditorDone.value)
     }
 
     /// The launch intent's deep link is handled by NavHost automatically; a singleTop
@@ -94,13 +106,20 @@ class MainActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        // Warm re-delivery: the app was already open, so finishing the editor pops rather than ends the task.
+        // Warm re-delivery: the app was already open, so finishing the editor pops rather than ends the
+        // task — unless it came from the popup's Expand, which lands the user on the list.
+        goToListOnEditorDone.value = intent.getBooleanExtra(EXTRA_FROM_POPUP_EXPAND, false)
         finishOnEditorDone.value = false
         navController?.handleDeepLink(intent)
     }
 
-    private companion object {
-        const val KEY_FINISH_ON_EDITOR_DONE = "finish_on_editor_done"
+    companion object {
+        /// Marks an editor deep link as coming from the popup's Expand (in-app), so the editor pops to
+        /// the list on completion rather than finishing the task.
+        const val EXTRA_FROM_POPUP_EXPAND = "dev.davidfdev.stela.extra.FROM_POPUP_EXPAND"
+
+        private const val KEY_FINISH_ON_EDITOR_DONE = "finish_on_editor_done"
+        private const val KEY_GO_TO_LIST_ON_EDITOR_DONE = "go_to_list_on_editor_done"
     }
 }
 

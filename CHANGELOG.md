@@ -6,17 +6,24 @@ All notable changes to Stela are documented here. This project adheres to
 ## [1.4.0] - unreleased
 
 ### Added
-- Quick-note popup: a lightweight editor that floats over whatever is on screen — emoji, title,
-  description, and Save — for jotting a note without bringing the whole app forward. It opens from
-  the quick-add notification (the New note action or tapping its body) and the home-screen widget's
-  ＋ (a new note, pinned on save), and from a pinned note's Edit action or tapping its body (that
-  note). An Expand button carries whatever you've typed into the full editor. Behind a secure lock
-  screen the popup is skipped and the full editor opens as before.
+- Quick-note popup: a lightweight editor that floats over whatever is on screen for jotting or quickly
+  editing a note without bringing the whole app forward. It opens from the quick-add notification (the
+  New note action or tapping its body) and the home-screen widget's ＋ (a new note, pinned on save), and
+  from a pinned note's Edit action or tapping its body (that note). For an existing note it offers the
+  same actions as the full editor — Share, Pin/Unpin, Archive, Delete — with Archive and Delete asking
+  for confirmation first. An Expand button carries whatever you've typed into the full editor and leaves
+  you on your note list. Behind a secure lock screen the popup is skipped and the full editor opens as
+  before. The popup floats over your current app (it doesn't pull Stela to the foreground), and a second
+  trigger reuses the one popup rather than stacking another.
 
 ### Changed
+- The pinned-note notification's Archive action was removed — it now has just Edit and Unpin. You can
+  still archive a note from the editor or the quick-note popup.
 - The note editor's title auto-focus is now driven by whether the title is empty: a blank title (a
   new note, or an expanded popup left empty) focuses the title and opens the keyboard; a note that
   already has a title does not. (Previously only brand-new notes auto-focused.)
+- The editor's description field now grows with your text up to a larger height and then scrolls,
+  instead of staying a fixed size.
 
 ## [1.3.0] - 2026/06/11
 

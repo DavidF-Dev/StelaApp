@@ -31,13 +31,15 @@
         <!--
           Empty taskAffinity + its own task so the popup floats over whatever the user is doing without
           bringing the app's MainActivity task to the foreground behind it. excludeFromRecents keeps the
-          transient overlay out of recents.
+          transient overlay out of recents; singleTask means a fresh trigger reuses the one instance
+          (via onNewIntent) instead of stacking a second popup.
         -->
         <activity
             android:name=".ui.quicknote.QuickNoteActivity"
             android:exported="false"
             android:excludeFromRecents="true"
             android:taskAffinity=""
+            android:launchMode="singleTask"
             android:theme="@style/Theme.Stela.Transparent" />
 
         <receiver

@@ -190,12 +190,13 @@ data class Note(
 - Title = the note title; **content line = the note description when present**, falling
   back to the **"Tap to edit or unpin"** hint only when the description is empty (so a
   title-only note still has a useful, action-pointing line). *(Implemented 2026-06-09.)*
-- Actions: **Edit** (opens editor) · **Unpin** (the note is kept, not deleted) · **Archive**
-  (unpins and moves the note to the Archived screen — reversible; *2026-06-11*). Swiping the
-  notification also unpins it when **"Swipe to unpin"** is enabled; otherwise it self-heals.
-  *(Unpin rename + swipe-to-unpin: 2026-06-10.)*
-- **Tapping the body opens the editor** for that note. *(Implemented 2026-06-09; was a
-  no-op in the original spec.)*
+- Actions: **Edit** (opens the quick-note popup) · **Unpin** (the note is kept, not deleted). Swiping
+  the notification also unpins it when **"Swipe to unpin"** is enabled; otherwise it self-heals.
+  *(Unpin rename + swipe-to-unpin: 2026-06-10.)* (An **Archive** action shipped 2026-06-11 then was
+  **removed** the same day — archiving stays reachable from the editor and the popup, keeping the
+  notification to two actions.)
+- **Tapping the body opens the quick-note popup** for that note. *(Body tap implemented 2026-06-09;
+  retargeted from the editor to the popup with the v1.4.0 quick-note popup.)*
 
 ---
 
@@ -452,6 +453,11 @@ a short settle delay, for unpinned notes only; **skipped when the system animati
 unpinned — would have been constant visual noise rather than a nudge.
 
 Lower priority, kept deferred: an in-app language picker.
+
+**Quick-note launcher shortcut / Quick Settings tile *(planned — queued 2026-06-11)*:** a static app
+**shortcut** ("New quick note") on the launcher icon, and/or a **Quick Settings tile**, that open the
+quick-note popup directly — extending the glanceable, no-app-open entry beyond the notification and
+widget. Its own slice; reuses `QuickNoteActivity.newNoteIntent`.
 
 **Quick-note popup *(done — v1.4.0; see [2026-06-11-quick-note-popup.md](2026-06-11-quick-note-popup.md))*:**
 a minimal bottom-sheet editor (emoji · title · description · save, pins on save) that floats over the

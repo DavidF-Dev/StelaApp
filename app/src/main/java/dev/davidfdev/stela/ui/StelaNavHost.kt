@@ -32,10 +32,24 @@ object Routes {
 fun StelaNavHost(
     navController: NavHostController = rememberNavController(),
     finishOnEditorDone: Boolean = false,
+    goToListOnEditorDone: Boolean = false,
+    onGoToListConsumed: () -> Unit = {},
     onFinish: () -> Unit = {},
 ) {
     val onEditorDone: () -> Unit = {
-        if (finishOnEditorDone) onFinish() else navController.popBackStack()
+        when {
+            // Expanded from the popup: the editor deep link's back stack has no list under it, so land on
+            // the list explicitly (clearing the stack) rather than popping into nothing. One-shot — it
+            // governs only the expanded editor, not later in-app navigation.
+            goToListOnEditorDone -> {
+                onGoToListConsumed()
+                navController.navigate(Routes.LIST) {
+                    popUpTo(navController.graph.id) { inclusive = true }
+                }
+            }
+            finishOnEditorDone -> onFinish()
+            else -> navController.popBackStack()
+        }
     }
     NavHost(navController = navController, startDestination = Routes.LIST) {
         composable(

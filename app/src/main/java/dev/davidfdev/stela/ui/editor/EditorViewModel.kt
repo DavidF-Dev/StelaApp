@@ -117,13 +117,15 @@ class EditorViewModel(
     }
 
     /// Archives an existing note (reversible; unpins it). A no-op for an unsaved note,
-    /// mirroring delete.
-    fun archive() {
-        val note = loaded ?: return
+    /// mirroring delete. [onComplete] runs once the archive has persisted, so a caller that
+    /// finishes its host afterwards doesn't cancel the work mid-flight.
+    fun archive(onComplete: () -> Unit = {}) {
+        val note = loaded ?: run { onComplete(); return }
         viewModelScope.launch {
             pinner.archive(note)
             loaded = note.copy(isArchived = true, isPinned = false)
             _uiState.update { it.copy(isArchived = true, isPinned = false) }
+            onComplete()
         }
     }
 

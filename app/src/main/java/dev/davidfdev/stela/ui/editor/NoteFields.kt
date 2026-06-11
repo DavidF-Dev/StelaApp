@@ -5,16 +5,25 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Archive
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.OpenInFull
+import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Unarchive
 import androidx.compose.material.icons.outlined.Mood
+import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -112,6 +121,57 @@ internal fun NoteFields(
             },
             onDismiss = { showEmojiPicker = false },
         )
+    }
+}
+
+/// The shared editor action cluster — Expand · Share · Pin/Unpin · Archive · Delete · Save — used by
+/// both the full editor's app bar and the quick-note popup so the two stay in lockstep. Share, Archive,
+/// and Delete show only for an existing note (`isEditing`); the surface decides what each callback does
+/// (e.g. the popup confirms Archive/Delete and the editor toggles Archive directly). [onExpand] is null
+/// for the full editor (no Expand there); [pinModifier] lets the editor apply its pin "pop".
+@Composable
+internal fun RowScope.NoteEditorActions(
+    state: EditorUiState,
+    onShare: () -> Unit,
+    onTogglePin: () -> Unit,
+    onArchive: () -> Unit,
+    onDelete: () -> Unit,
+    onSave: () -> Unit,
+    onExpand: (() -> Unit)? = null,
+    pinModifier: Modifier = Modifier,
+) {
+    onExpand?.let { expand ->
+        IconButton(onClick = expand) {
+            Icon(Icons.Filled.OpenInFull, contentDescription = stringResource(R.string.quick_note_expand_description))
+        }
+    }
+    if (state.isEditing) {
+        // Greyed when an existing note has no content to share.
+        IconButton(onClick = onShare, enabled = state.title.isNotBlank() || state.description.isNotBlank()) {
+            Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.action_share))
+        }
+    }
+    IconButton(onClick = onTogglePin, modifier = pinModifier) {
+        if (state.isPinned) {
+            Icon(Icons.Filled.PushPin, contentDescription = stringResource(R.string.action_unpin))
+        } else {
+            Icon(Icons.Outlined.PushPin, contentDescription = stringResource(R.string.action_pin))
+        }
+    }
+    if (state.isEditing) {
+        IconButton(onClick = onArchive) {
+            if (state.isArchived) {
+                Icon(Icons.Filled.Unarchive, contentDescription = stringResource(R.string.action_restore))
+            } else {
+                Icon(Icons.Filled.Archive, contentDescription = stringResource(R.string.action_archive))
+            }
+        }
+        IconButton(onClick = onDelete) {
+            Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete))
+        }
+    }
+    TextButton(onClick = onSave, enabled = state.canSave) {
+        Text(stringResource(R.string.editor_save))
     }
 }
 

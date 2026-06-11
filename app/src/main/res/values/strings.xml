@@ -86,11 +86,13 @@
     <string name="editor_delete_dialog_message">This note will be permanently deleted.</string>
     <string name="editor_delete_dialog_confirm">Delete</string>
     <string name="editor_delete_dialog_cancel">Cancel</string>
+    <string name="editor_archive_dialog_title">Archive note?</string>
+    <string name="editor_archive_dialog_message">This note will be unpinned and moved to the archive. You can restore it later.</string>
+    <string name="editor_archive_dialog_confirm">Archive</string>
     <string name="editor_timestamps">Created %1$s · Updated %2$s</string>
 
     <!-- Quick-note popup -->
     <string name="quick_note_title_new">New note</string>
-    <string name="quick_note_title_edit">Edit note</string>
     <string name="quick_note_expand_description">Open in full editor</string>
 
     <!-- Settings -->

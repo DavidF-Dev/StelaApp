@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -19,11 +19,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Archive
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.PushPin
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.Unarchive
-import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -165,40 +160,16 @@ fun EditorScreen(
                     }
                 },
                 actions = {
-                    if (state.isEditing) {
-                        // Share is hidden on a brand-new note; greyed when an existing note has no content.
-                        IconButton(
-                            onClick = onShare,
-                            enabled = state.title.isNotBlank() || state.description.isNotBlank(),
-                        ) {
-                            Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.action_share))
-                        }
-                    }
-                    IconButton(
-                        onClick = onTogglePin,
-                        modifier = Modifier.graphicsLayer { scaleX = pinPop.value; scaleY = pinPop.value },
-                    ) {
-                        if (state.isPinned) {
-                            Icon(Icons.Filled.PushPin, contentDescription = stringResource(R.string.action_unpin))
-                        } else {
-                            Icon(Icons.Outlined.PushPin, contentDescription = stringResource(R.string.action_pin))
-                        }
-                    }
-                    if (state.isEditing) {
-                        IconButton(onClick = onToggleArchive) {
-                            if (state.isArchived) {
-                                Icon(Icons.Filled.Unarchive, contentDescription = stringResource(R.string.action_restore))
-                            } else {
-                                Icon(Icons.Filled.Archive, contentDescription = stringResource(R.string.action_archive))
-                            }
-                        }
-                        IconButton(onClick = { showDeleteDialog = true }) {
-                            Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete))
-                        }
-                    }
-                    TextButton(onClick = { dismissKeyboard(); onSave() }, enabled = state.canSave) {
-                        Text(stringResource(R.string.editor_save))
-                    }
+                    // Share is hidden on a brand-new note; greyed when an existing note has no content.
+                    NoteEditorActions(
+                        state = state,
+                        onShare = onShare,
+                        onTogglePin = onTogglePin,
+                        onArchive = onToggleArchive,
+                        onDelete = { showDeleteDialog = true },
+                        onSave = { dismissKeyboard(); onSave() },
+                        pinModifier = Modifier.graphicsLayer { scaleX = pinPop.value; scaleY = pinPop.value },
+                    )
                 },
             )
         },
@@ -224,7 +195,8 @@ fun EditorScreen(
                     onTitleChange = onTitleChange,
                     onDescriptionChange = onDescriptionChange,
                     onEmojiChange = onEmojiChange,
-                    descriptionModifier = Modifier.height(200.dp),
+                    // Grows with content from the default height up to double, then scrolls within.
+                    descriptionModifier = Modifier.heightIn(min = 200.dp, max = 400.dp),
                 )
 
                 val created = state.createdAt
