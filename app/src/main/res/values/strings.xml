@@ -77,7 +77,6 @@
     <!-- Editor -->
     <string name="editor_title_new">New note</string>
     <string name="editor_archived_banner">Archived</string>
-    <string name="editor_title_edit">Edit note</string>
     <string name="editor_save">Save</string>
     <string name="editor_label_title">Title</string>
     <string name="editor_label_description">Description</string>

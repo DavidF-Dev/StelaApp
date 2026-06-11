@@ -19,7 +19,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Archive
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Share
@@ -27,9 +26,7 @@ import androidx.compose.material.icons.filled.Unarchive
 import androidx.compose.material.icons.outlined.Mood
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -135,27 +132,26 @@ fun EditorScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(if (state.isEditing) R.string.editor_title_edit else R.string.editor_title_new)) },
+                // Heading only for a new note, which has room (just Pin + Save); an existing note's
+                // full action row (Share/Pin/Archive/Delete/Save) needs the width, so it shows none.
+                title = {
+                    if (!state.isEditing) Text(stringResource(R.string.editor_title_new))
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
                 actions = {
-                    // Share is a read-only export (not a note-state change like pin/archive/delete),
-                    // so it sits in the top bar; disabled (greyed) rather than hidden when empty.
-                    IconButton(
-                        onClick = onShare,
-                        enabled = state.title.isNotBlank() || state.description.isNotBlank(),
-                    ) {
-                        Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.action_share))
+                    if (state.isEditing) {
+                        // Share is hidden on a brand-new note; greyed when an existing note has no content.
+                        IconButton(
+                            onClick = onShare,
+                            enabled = state.title.isNotBlank() || state.description.isNotBlank(),
+                        ) {
+                            Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.action_share))
+                        }
                     }
-                },
-            )
-        },
-        bottomBar = {
-            BottomAppBar(
-                actions = {
                     IconButton(onClick = onTogglePin) {
                         if (state.isPinned) {
                             Icon(Icons.Filled.PushPin, contentDescription = stringResource(R.string.action_unpin))
@@ -175,26 +171,8 @@ fun EditorScreen(
                             Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete))
                         }
                     }
-                },
-                floatingActionButton = {
-                    // FloatingActionButton has no enabled flag: mute it and no-op until the note has a title.
-                    FloatingActionButton(
-                        onClick = { if (state.canSave) onSave() },
-                        containerColor = if (state.canSave) {
-                            MaterialTheme.colorScheme.primaryContainer
-                        } else {
-                            MaterialTheme.colorScheme.surfaceVariant
-                        },
-                    ) {
-                        Icon(
-                            Icons.Filled.Check,
-                            contentDescription = stringResource(R.string.editor_save),
-                            tint = if (state.canSave) {
-                                MaterialTheme.colorScheme.onPrimaryContainer
-                            } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                            },
-                        )
+                    TextButton(onClick = onSave, enabled = state.canSave) {
+                        Text(stringResource(R.string.editor_save))
                     }
                 },
             )

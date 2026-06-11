@@ -107,12 +107,12 @@ this so no caller can violate it.
 - Add an **Archive / Restore** action (shown only for an existing note, like Delete): "Archive" when
   active → `pinner.archive(loaded)` (sets archived, clears pin); "Restore" when archived →
   `pinner.unarchive(loaded)`.
-- *(Tweak, 2026-06-11)* When the note is archived, a full-width **"Archived" banner** shows between
-  the app bar and the title. The editor's **note-state** actions (pin · archive/restore · delete) moved
-  to a **`BottomAppBar`** with **Save** as its docked FAB, decluttering the top bar (which also keeps it
-  clean for the banner). **Share** stays in the top bar — it's a read-only export, not a state change.
-  The `BottomAppBar` respects the nav-gesture insets (buttons sit above the home-gesture strip) but does
-  **not** lift above the IME, so a docked keyboard covers it while typing.
+- *(Tweaks, 2026-06-11)* When the note is archived, a full-width **"Archived" banner** shows between
+  the app bar and the title. The editor's **heading** is kept for a **new note** (which has room — just
+  Pin + Save) but dropped when **editing**, so an existing note's full action row — Share · Pin ·
+  Archive/Restore · Delete · Save — fits across the top bar. (A `BottomAppBar` layout was tried and
+  reverted: it was covered by the keyboard while typing.) **Share** is hidden on a brand-new note —
+  shown only for an existing note (and greyed there when the note has no content).
 - Pin interaction: toggling **Pin** on an archived note routes through `pinner.pin`, which unarchives
   then pins; the editor reflects `isArchived = false, isPinned = true`. Archiving an active+pinned note
   flips the pin toggle off.
