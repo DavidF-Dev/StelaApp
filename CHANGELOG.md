@@ -16,6 +16,8 @@ All notable changes to Stela are documented here. This project adheres to
   note (defaulting to pinned) and the note is pinned as soon as you save it.
 - Home-screen widget: a quick-add ＋ plus a glanceable list of your pinned notes; tap a note to open
   it. Add it from your launcher's widget picker. Fully offline.
+- A brief branded splash screen on launch: the Stela icon on the app's indigo, shown consistently
+  across Android versions.
 
 ### Fixed
 - The emoji picker now scrolls and its category labels are legible. It is hosted in a

@@ -22,6 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -41,6 +42,8 @@ class MainActivity : AppCompatActivity() {
     private val finishOnEditorDone = mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Must precede super.onCreate so the splash theme is swapped for the app theme before the first frame.
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val container = (application as StelaApp).container

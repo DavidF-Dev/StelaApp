@@ -1,8 +1,13 @@
 # Branded splash screen (AndroidX core-splashscreen) — Plan
 
-> Status: **Planned** · 2026-06-11 · a small polish slice (the deferred "branded splash screen").
+> Status: **Implemented** · 2026-06-11 (v1.2.0) · a small polish slice (the deferred "branded splash screen").
 >
-> Not yet implemented. Spec only.
+> **Verification:** `assembleDebug` + `lintDebug` green. Installed and cold-launched on the API 36
+> emulator: the app starts cleanly through the new `Theme.Stela.Splash` launch theme and hands off to
+> the app theme with no glitch (the note list renders normally). The splash frame itself is too brief to
+> race with an `adb` screenshot — which is the intended behaviour, since there is no keep-on-screen gate
+> and nothing slow to wait for. The **API 26–30 backport path** is provided by core-splashscreen and is
+> not covered by the API 36 emulator.
 
 **Goal:** Replace the incidental cold-start surface with a deliberate, on-brand one — the Stela
 icon on the **indigo brand colour** — consistently across every supported API level, with **no
