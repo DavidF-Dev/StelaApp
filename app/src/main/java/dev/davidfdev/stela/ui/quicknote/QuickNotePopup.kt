@@ -9,8 +9,12 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SnackbarHost
@@ -80,17 +84,28 @@ internal fun QuickNotePopup(
         scope.launch { sheetState.hide() }.invokeOnCompletion { onFinished() }
     }
 
-    ModalBottomSheet(onDismissRequest = onFinished, sheetState = sheetState) {
+    ModalBottomSheet(
+        onDismissRequest = onFinished,
+        sheetState = sheetState,
+        // No drag handle, and dragging the sheet is disabled, so dragging to scroll a long description
+        // can't drag the whole popup away (scrim tap, system back, and the back button still dismiss).
+        sheetGesturesEnabled = false,
+        dragHandle = null,
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
-                .padding(bottom = 16.dp)
+                // Top padding stands in for the now-removed drag handle's spacing.
+                .padding(top = 8.dp, bottom = 16.dp)
                 .imePadding(),
         ) {
-            // Heading (new notes only, mirroring the editor) on the left; the shared action cluster on
-            // the right, led by Expand.
+            // Back arrow + heading (new notes only, mirroring the editor) on the left; the shared action
+            // cluster on the right, led by Expand.
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = hideThenFinish) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
+                }
                 if (!state.isEditing) {
                     Text(
                         text = stringResource(R.string.quick_note_title_new),

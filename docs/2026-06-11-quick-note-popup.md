@@ -192,6 +192,10 @@ A handful of details differed from the plan above; the structure and decisions o
   doesn't cancel the archive mid-flight.
 - **The pinned notification dropped its Archive action** *(2026-06-11)* — it now carries Edit + Unpin
   only; archiving is reachable from the editor and the popup.
+- **Not draggable; back arrow instead of a handle** *(2026-06-11 tweak)*: the `ModalBottomSheet` sets
+  `sheetGesturesEnabled = false` and `dragHandle = null`, so dragging to scroll a long description can't
+  drag the whole sheet away at the scroll extents. A back arrow (left of the heading, like the editor)
+  joins scrim-tap and system-back as the dismiss affordances; it slides the sheet down then finishes.
 - **Content-overflow safety** *(2026-06-11 tweak)*: the description field grows from its default height
   to double, then scrolls within (`heightIn(min, max = 2×)`) — popup 96→192 dp, editor 200→400 dp; the
   popup's fields also sit in a `verticalScroll` column. The top-anchored actions stay reachable.
