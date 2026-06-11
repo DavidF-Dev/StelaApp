@@ -129,6 +129,11 @@
     <string name="action_view_source">View source</string>
     <string name="about_source_url" translatable="false">https://github.com/DavidF-Dev/StelaApp</string>
 
+    <!-- Home-screen widget -->
+    <string name="widget_label">Stela notes</string>
+    <string name="widget_add" translatable="false">＋</string>
+    <string name="widget_empty">No pinned notes</string>
+
     <!-- Theme options -->
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>

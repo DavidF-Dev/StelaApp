@@ -396,9 +396,12 @@ implement); all keep the no-`INTERNET` invariant.
    wraps the `ContentResolver`. Import **appends** (each note gets a fresh id, so it never
    overwrites existing notes) and brings notes in **unpinned**. Settings → Backup → Export /
    Import. See CHANGELOG.
-3. **Home-screen widget** — a quick-add / pinned-notes widget (Jetpack Glance), extending the
-   glanceable, no-app-open spirit onto the home screen. Medium effort (a separate render
-   surface).
+3. **Home-screen widget** *(done — v1.2.0; see [2026-06-10-home-screen-widget.md](2026-06-10-home-screen-widget.md))* —
+   a Jetpack Glance widget extending the glanceable, no-app-open spirit onto the home screen: a
+   quick-add **＋** plus a scrollable list of **pinned notes** (tap → editor), one combined widget,
+   theme follows system. Reads `NoteRepository` and reuses the existing deep links (`/new?pin=true`,
+   `/list`, `/editor/{id}`) — no duplicated logic; refresh is event-driven via a `StelaApp` observer →
+   `updateAll`. Medium effort (a separate render surface).
 4. **Advanced note settings (scheduled/timed pins)** — pin a note as a notification at a
    chosen time (`AlarmManager` + exact-alarm permission). A natural extension of "pin as
    notification" and the largest; a deliberate step toward reminder territory, so confirm

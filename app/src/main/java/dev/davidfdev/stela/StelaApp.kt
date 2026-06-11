@@ -1,9 +1,12 @@
 package dev.davidfdev.stela
 
 import android.app.Application
+import androidx.glance.appwidget.updateAll
 import com.vanniktech.emoji.EmojiManager
 import com.vanniktech.emoji.google.GoogleEmojiProvider
+import dev.davidfdev.stela.data.displayTitle
 import dev.davidfdev.stela.di.AppContainer
+import dev.davidfdev.stela.ui.widget.StelaWidget
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -26,6 +29,21 @@ class StelaApp : Application() {
         container = AppContainer(this)
         observePinnedNotificationPreferences()
         observeQuickAddPreference()
+        observePinnedNotesForWidget()
+    }
+
+    /// Re-renders the home-screen widget whenever the pinned-notes set it shows changes (pin/unpin, a
+    /// pinned note's title or emoji edit, delete). Keyed on id + display title so unrelated edits don't
+    /// redraw it. Fires on the first emission too, not just changes: a widget can show a stale snapshot
+    /// after the process was killed, and creating a pinned note from the widget cold-starts this process
+    /// with the note already present in that first emission — skipping it would never update the widget.
+    private fun observePinnedNotesForWidget() {
+        scope.launch {
+            container.noteRepository.notes
+                .map { notes -> notes.filter { it.isPinned }.map { it.id to it.displayTitle } }
+                .distinctUntilChanged()
+                .collect { StelaWidget().updateAll(this@StelaApp) }
+        }
     }
 
     /// Starts/stops/swaps the service whenever the quick-add preference changes (and

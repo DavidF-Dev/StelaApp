@@ -14,6 +14,8 @@ All notable changes to Stela are documented here. This project adheres to
   emoji by name. Stays fully offline.
 - New notes can now be pinned straight from the editor: the pin toggle is shown while creating a
   note (defaulting to pinned) and the note is pinned as soon as you save it.
+- Home-screen widget: a quick-add ＋ plus a glanceable list of your pinned notes; tap a note to open
+  it. Add it from your launcher's widget picker. Fully offline.
 
 ### Fixed
 - The emoji picker now scrolls and its category labels are legible. It is hosted in a
