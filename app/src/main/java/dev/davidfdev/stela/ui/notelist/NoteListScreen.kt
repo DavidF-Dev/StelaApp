@@ -315,7 +315,7 @@ fun NoteListScreen(
                 TextButton(onClick = {
                     showDeleteConfirm = false
                     onBatchDelete()
-                }) { Text(stringResource(R.string.action_delete)) }
+                }) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirm = false }) {

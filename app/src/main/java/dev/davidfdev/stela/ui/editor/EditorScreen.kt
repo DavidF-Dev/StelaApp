@@ -279,7 +279,7 @@ fun EditorScreen(
                 TextButton(onClick = {
                     showDeleteDialog = false
                     onDelete()
-                }) { Text(stringResource(R.string.editor_delete_dialog_confirm)) }
+                }) { Text(stringResource(R.string.editor_delete_dialog_confirm), color = MaterialTheme.colorScheme.error) }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.editor_delete_dialog_cancel)) }

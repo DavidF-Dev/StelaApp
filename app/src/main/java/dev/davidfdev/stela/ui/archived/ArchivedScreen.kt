@@ -245,7 +245,7 @@ private fun DeleteConfirmDialog(count: Int, onConfirm: () -> Unit, onDismiss: ()
         title = { Text(pluralStringResource(R.plurals.notelist_delete_dialog_title, count, count)) },
         text = { Text(pluralStringResource(R.plurals.notelist_delete_dialog_message, count, count)) },
         confirmButton = {
-            TextButton(onClick = onConfirm) { Text(stringResource(R.string.action_delete)) }
+            TextButton(onClick = onConfirm) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
