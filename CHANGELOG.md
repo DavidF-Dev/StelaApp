@@ -21,6 +21,8 @@ All notable changes to Stela are documented here. This project adheres to
 - Opening an unpinned note briefly "pops" the pin button to draw attention to it (so it's easy to pin).
   Respects the system's reduce-animations setting.
 - Delete confirmation buttons are now shown in the destructive (red) colour.
+- Creating a new note now focuses the title and opens the keyboard automatically, so you can start
+  typing straight away. (Opening an existing note is unchanged — it won't pop the keyboard.)
 
 ### Fixed
 - The keyboard now closes promptly when you leave the note editor, instead of lingering for a moment

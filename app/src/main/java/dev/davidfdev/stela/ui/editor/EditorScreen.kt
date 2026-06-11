@@ -55,6 +55,8 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
@@ -167,6 +169,16 @@ fun EditorScreen(
         keyboardController?.hide()
     }
 
+    // Auto-focus the title and raise the keyboard only when creating a new note, so the user can type
+    // straight away; opening an existing note must not steal focus or pop the keyboard.
+    val titleFocusRequester = remember { FocusRequester() }
+    LaunchedEffect(Unit) {
+        if (!state.isEditing) {
+            titleFocusRequester.requestFocus()
+            keyboardController?.show()
+        }
+    }
+
     // Route system back through the same exit as the back arrow so a cold notification launch finishes the task.
     BackHandler { dismissKeyboard(); onBack() }
 
@@ -250,7 +262,7 @@ fun EditorScreen(
                             }
                         }
                     },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().focusRequester(titleFocusRequester),
                 )
                 OutlinedTextField(
                     value = state.description,
