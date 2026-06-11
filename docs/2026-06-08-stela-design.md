@@ -430,6 +430,13 @@ with no artificial delay. Reuses the brand colour and the launcher foreground; n
 
 Lower priority, kept deferred: an in-app language picker.
 
+**Support purchase ("Supporter" gesture) *(deferred — findings recorded 2026-06-11; see
+[2026-06-11-support-purchase.md](2026-06-11-support-purchase.md))*:** a purely support-based, one-time
+non-consumable purchase that locks no features. Gated on adopting Google Play as a channel (itself a
+later goal) and on confirming it doesn't compromise the `no INTERNET permission` invariant. Likely
+channel-split: an external donation link on the FOSS/GitHub builds, Play Billing on a future `play`
+flavour. Not scheduled.
+
 **Kotlin toolchain upgrade *(done — 2026-06-10)*:** bumped Kotlin **2.1.0 → 2.3.21**. It cascaded
 through a matched set: **KSP 2.1.0-1.0.29 → 2.3.9** (KSP dropped the `<kotlin>-<ksp>` scheme at 2.3),
 which required **AGP 8.9.2 → 8.10.1** (KSP 2.3 needs AGP ≥ 8.10), **Room 2.6.1 → 2.8.4** (2.6.1's KSP
