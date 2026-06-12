@@ -404,7 +404,13 @@ implement); all keep the no-`INTERNET` invariant.
    restores the notes (re-pinning any that were pinned), via a `NotePinner.restore` seam that
    re-inserts each note as it was (preserving id/timestamps, so the same notification
    re-posts). The confirm dialogs were kept in all cases; the editor's single delete keeps its
-   confirm dialog without an undo (cross-screen — a possible follow-up).
+   confirm dialog without an undo. **Decision (2026-06-12): not implementing editor-delete undo** —
+   the restore itself is trivial (`NotePinner.restore` already exists), but the editor leaves the
+   screen on delete and is reached from surfaces that finish *out of the app* (notification, pinned-note
+   Edit, quick-note popup, widget), so an undo snackbar can only be hosted for the in-app list→editor
+   case. That partial coverage isn't worth the cross-VM hand-off plumbing, and the confirm dialog already
+   guards the action. Could revisit later if the in-app case alone proves worth it (sketch: a shared
+   `AppContainer` channel feeding the list's existing `undoDelete` snackbar).
 2. **JSON export/import** *(done — v1.2.0)* — back up and restore all notes to a file via the
    Storage Access Framework (offline, no `INTERNET`). A versioned `NotesBackup` DTO + a pure
    `BackupCodec` keep the file format decoupled from the Room entity; the `BackupIo` seam
