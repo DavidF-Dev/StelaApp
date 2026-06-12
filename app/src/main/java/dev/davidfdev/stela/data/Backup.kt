@@ -19,7 +19,9 @@ data class NoteBackup(
     val updatedAt: Long,
     val isPinned: Boolean = false,
     val isArchived: Boolean = false,
+    val pinAt: Long? = null,
+    val unpinAt: Long? = null,
 )
 
-// v2 adds isArchived; v1 files lack it and decode as not archived.
-const val BACKUP_VERSION = 2
+// v3 adds the schedule times; v2 and earlier files lack them and decode as unscheduled.
+const val BACKUP_VERSION = 3

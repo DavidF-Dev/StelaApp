@@ -26,6 +26,11 @@ interface NoteDao {
     @Query("UPDATE notes SET isArchived = :isArchived WHERE id = :id")
     suspend fun setArchived(id: Long, isArchived: Boolean)
 
+    /// Sets a note's auto-pin / auto-unpin times (null clears). Scheduling is not a content edit,
+    /// so this leaves updatedAt untouched and the list order unchanged.
+    @Query("UPDATE notes SET pinAt = :pinAt, unpinAt = :unpinAt WHERE id = :id")
+    suspend fun setSchedule(id: Long, pinAt: Long?, unpinAt: Long?)
+
     @Query("SELECT COUNT(*) FROM notes WHERE isPinned = 1")
     suspend fun countPinned(): Int
 

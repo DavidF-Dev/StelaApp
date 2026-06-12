@@ -40,6 +40,10 @@ class FakeNoteDao : NoteDao {
         rows.value = rows.value.map { if (it.id == id) it.copy(isArchived = isArchived) else it }
     }
 
+    override suspend fun setSchedule(id: Long, pinAt: Long?, unpinAt: Long?) {
+        rows.value = rows.value.map { if (it.id == id) it.copy(pinAt = pinAt, unpinAt = unpinAt) else it }
+    }
+
     override suspend fun countPinned(): Int = rows.value.count { it.isPinned }
 
     override suspend fun delete(note: Note) {

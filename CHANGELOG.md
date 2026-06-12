@@ -5,7 +5,10 @@ All notable changes to Stela are documented here. This project adheres to
 
 ## [1.5.0] - unreleased
 
-Empty.
+### Added
+- Scheduled pins: a new **Advanced** section in the note editor lets you set a note to **pin at** a chosen
+  time and/or **unpin at** a later time (a temporary pin). Timing is approximate (no exact-alarm permission
+  is needed) and best-effort across reboots and battery saving. Editor only — not the quick-note popup.
 
 ## [1.4.0] - 2026/06/12
 

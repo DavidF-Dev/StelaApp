@@ -106,6 +106,8 @@ fun EditorRoute(
         onTitleChange = viewModel::onTitleChange,
         onDescriptionChange = viewModel::onDescriptionChange,
         onEmojiChange = viewModel::onEmojiChange,
+        onPinAtChange = viewModel::onPinAtChange,
+        onUnpinAtChange = viewModel::onUnpinAtChange,
         onTogglePin = { if (state.isPinned) viewModel.unpin() else gate { viewModel.pin() } },
         onToggleArchive = { if (state.isArchived) viewModel.unarchive() else viewModel.archive() },
         onShare = { shareNote(context, displayTitle(state.emoji, state.title), state.description) },
@@ -123,6 +125,8 @@ fun EditorScreen(
     onTitleChange: (String) -> Unit,
     onDescriptionChange: (String) -> Unit,
     onEmojiChange: (String) -> Unit,
+    onPinAtChange: (Long?) -> Unit,
+    onUnpinAtChange: (Long?) -> Unit,
     onTogglePin: () -> Unit,
     onToggleArchive: () -> Unit,
     onShare: () -> Unit,
@@ -235,7 +239,14 @@ fun EditorScreen(
                 AdvancedSection(
                     expanded = advancedExpanded,
                     onToggle = { advancedExpanded = it },
-                )
+                ) {
+                    ScheduleControls(
+                        pinAt = state.pinAt,
+                        unpinAt = state.unpinAt,
+                        onPinAtChange = onPinAtChange,
+                        onUnpinAtChange = onUnpinAtChange,
+                    )
+                }
             }
         }
     }
@@ -259,11 +270,15 @@ fun EditorScreen(
     }
 }
 
-/// A collapsible "Advanced" area for editor-only note features, collapsed by default. Empty for now —
-/// it is the container later advanced controls drop into. Editor-only by virtue of living here rather
-/// than in the popup-shared `NoteFields`.
+/// A collapsible "Advanced" area for editor-only note features, collapsed by default. Holds [content]
+/// (the scheduling controls). Editor-only by virtue of living here rather than in the popup-shared
+/// `NoteFields`.
 @Composable
-private fun AdvancedSection(expanded: Boolean, onToggle: (Boolean) -> Unit) {
+private fun AdvancedSection(
+    expanded: Boolean,
+    onToggle: (Boolean) -> Unit,
+    content: @Composable () -> Unit,
+) {
     val chevronRotation by animateFloatAsState(if (expanded) 180f else 0f, label = "advancedChevron")
     val expandedLabel = stringResource(R.string.state_expanded)
     val collapsedLabel = stringResource(R.string.state_collapsed)
@@ -298,7 +313,7 @@ private fun AdvancedSection(expanded: Boolean, onToggle: (Boolean) -> Unit) {
             enter = expandVertically(),
             exit = shrinkVertically(),
         ) {
-            Box(modifier = Modifier.testTag(ADVANCED_CONTENT_TEST_TAG))
+            Box(modifier = Modifier.testTag(ADVANCED_CONTENT_TEST_TAG)) { content() }
         }
     }
 }

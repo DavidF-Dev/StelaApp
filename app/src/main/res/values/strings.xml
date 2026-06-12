@@ -94,6 +94,16 @@
     <string name="editor_timestamps">Created %1$s · Updated %2$s</string>
     <string name="editor_advanced">Advanced</string>
 
+    <!-- Editor — scheduled pins -->
+    <string name="schedule_pin_at">Pin at</string>
+    <string name="schedule_unpin_at">Unpin at</string>
+    <string name="schedule_not_set">Not set</string>
+    <string name="schedule_set">Set</string>
+    <string name="schedule_change">Change</string>
+    <string name="schedule_clear">Clear</string>
+    <string name="schedule_next">Next</string>
+    <string name="schedule_done">Done</string>
+
     <!-- Quick-note popup -->
     <string name="quick_note_title_new">New note</string>
     <string name="quick_note_expand_description">Open in full editor</string>

@@ -9,7 +9,9 @@ import dev.davidfdev.stela.data.NoteRepository
 import dev.davidfdev.stela.data.StelaDatabase
 import dev.davidfdev.stela.notifications.AndroidNotificationController
 import dev.davidfdev.stela.notifications.NotificationController
+import dev.davidfdev.stela.pin.AlarmPinScheduler
 import dev.davidfdev.stela.pin.NotePinner
+import dev.davidfdev.stela.pin.PinScheduler
 import dev.davidfdev.stela.pin.PinServiceController
 import dev.davidfdev.stela.pin.ServiceController
 import dev.davidfdev.stela.settings.DataStoreSettingsRepository
@@ -26,7 +28,11 @@ class AppContainer(context: Context) {
 
     private val database: StelaDatabase =
         Room.databaseBuilder(context, StelaDatabase::class.java, DATABASE_NAME)
-            .addMigrations(StelaDatabase.MIGRATION_1_2, StelaDatabase.MIGRATION_2_3)
+            .addMigrations(
+                StelaDatabase.MIGRATION_1_2,
+                StelaDatabase.MIGRATION_2_3,
+                StelaDatabase.MIGRATION_3_4,
+            )
             .build()
 
     val noteRepository: NoteRepository = NoteRepository(database.noteDao())
@@ -37,8 +43,10 @@ class AppContainer(context: Context) {
 
     val serviceController: ServiceController = PinServiceController(context)
 
+    val pinScheduler: PinScheduler = AlarmPinScheduler(context)
+
     val notePinner: NotePinner =
-        NotePinner(noteRepository, notificationController, serviceController, settingsRepository)
+        NotePinner(noteRepository, notificationController, serviceController, settingsRepository, pinScheduler)
 
     /// One-shot hand-off from the quick-note popup's Expand to the full editor: the popup writes the
     /// in-progress edit here, the editor's view-model reads and clears it on creation.

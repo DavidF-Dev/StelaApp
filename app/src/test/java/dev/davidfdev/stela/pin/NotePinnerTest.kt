@@ -13,12 +13,13 @@ import org.junit.Test
 
 class NotePinnerTest {
 
-    private class Fixture(quickAddEnabled: Boolean = true) {
+    private class Fixture(quickAddEnabled: Boolean = true, now: Long = 1_000L) {
         val repository = NoteRepository(FakeNoteDao()) { 1_000L }
         val controller = FakeNotificationController()
         val service = FakeServiceController()
         val settings = FakeSettingsRepository(Settings(quickAddEnabled = quickAddEnabled))
-        val pinner = NotePinner(repository, controller, service, settings)
+        val scheduler = FakePinScheduler()
+        val pinner = NotePinner(repository, controller, service, settings, scheduler) { now }
     }
 
     @Test
@@ -253,5 +254,68 @@ class NotePinnerTest {
 
         f.pinner.refresh(note.copy(isPinned = true))
         assertEquals(listOf(id), f.controller.refreshed.map { it.id })
+    }
+
+    @Test
+    fun applySchedule_futurePinAt_armsAlarmWithoutPinningNow() = runTest {
+        val f = Fixture(now = 1_000L)
+        val id = f.repository.create(title = "A", description = "")
+
+        f.pinner.applySchedule(id, pinAt = 2_000L, unpinAt = null)
+
+        assertFalse(f.repository.getById(id)!!.isPinned)
+        assertEquals(2_000L, f.repository.getById(id)!!.pinAt)
+        assertEquals(2_000L, f.scheduler.scheduledPins[id])
+    }
+
+    @Test
+    fun applySchedule_pastPinAt_pinsNowAndClearsTheTime() = runTest {
+        val f = Fixture(now = 1_000L)
+        val id = f.repository.create(title = "A", description = "")
+
+        f.pinner.applySchedule(id, pinAt = 500L, unpinAt = null)
+
+        assertTrue(f.repository.getById(id)!!.isPinned)
+        assertEquals(null, f.repository.getById(id)!!.pinAt)
+        assertEquals(listOf(id), f.controller.pinned.map { it.id })
+        assertFalse(f.scheduler.scheduledPins.containsKey(id))
+    }
+
+    @Test
+    fun applySchedule_futureUnpinAt_armsUnpinAlarm() = runTest {
+        val f = Fixture(now = 1_000L)
+        val id = f.repository.create(title = "A", description = "")
+        f.pinner.pin(f.repository.getById(id)!!)
+
+        f.pinner.applySchedule(id, pinAt = null, unpinAt = 2_000L)
+
+        assertTrue(f.repository.getById(id)!!.isPinned)
+        assertEquals(2_000L, f.scheduler.scheduledUnpins[id])
+    }
+
+    @Test
+    fun archive_dropsScheduleAndCancelsAlarms() = runTest {
+        val f = Fixture(now = 1_000L)
+        val id = f.repository.create(title = "A", description = "")
+        f.pinner.applySchedule(id, pinAt = 2_000L, unpinAt = null)
+
+        f.pinner.archive(f.repository.getById(id)!!)
+
+        val note = f.repository.getById(id)!!
+        assertTrue(note.isArchived)
+        assertEquals(null, note.pinAt)
+        assertTrue(id in f.scheduler.cancelledPins)
+    }
+
+    @Test
+    fun reconcileAll_firesPastDuePin() = runTest {
+        val f = Fixture(now = 1_000L)
+        val id = f.repository.create(title = "A", description = "")
+        f.repository.setSchedule(id, pinAt = 500L, unpinAt = null)
+
+        f.pinner.reconcileAll()
+
+        assertTrue(f.repository.getById(id)!!.isPinned)
+        assertEquals(null, f.repository.getById(id)!!.pinAt)
     }
 }

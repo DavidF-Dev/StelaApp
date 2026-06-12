@@ -30,6 +30,13 @@ class StelaApp : Application() {
         observePinnedNotificationPreferences()
         observeQuickAddPreference()
         observePinnedNotesForWidget()
+        reconcileSchedules()
+    }
+
+    /// Snaps scheduled notes to their correct current state on launch (firing past-due transitions and
+    /// re-arming future alarms), covering alarms missed while the process was dead or under Doze.
+    private fun reconcileSchedules() {
+        scope.launch { container.notePinner.reconcileAll() }
     }
 
     /// Re-renders the home-screen widget whenever the pinned-notes set it shows changes (pin/unpin, a

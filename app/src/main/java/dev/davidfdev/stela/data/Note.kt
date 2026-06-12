@@ -16,6 +16,8 @@ data class Note(
     val updatedAt: Long,
     val emoji: String = "",
     val isArchived: Boolean = false,
+    val pinAt: Long? = null,
+    val unpinAt: Long? = null,
 ) {
     companion object {
         // Defaulted so a future icon set can be added without a schema migration.

@@ -29,6 +29,8 @@ class AdvancedSectionTest {
                     onTitleChange = {},
                     onDescriptionChange = {},
                     onEmojiChange = {},
+                    onPinAtChange = {},
+                    onUnpinAtChange = {},
                     onTogglePin = {},
                     onToggleArchive = {},
                     onShare = {},

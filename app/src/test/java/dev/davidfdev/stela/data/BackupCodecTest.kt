@@ -16,6 +16,8 @@ class BackupCodecTest {
         isArchived: Boolean = false,
         createdAt: Long = 100,
         updatedAt: Long = 200,
+        pinAt: Long? = null,
+        unpinAt: Long? = null,
     ) = Note(
         id = id,
         title = title,
@@ -25,6 +27,8 @@ class BackupCodecTest {
         isArchived = isArchived,
         createdAt = createdAt,
         updatedAt = updatedAt,
+        pinAt = pinAt,
+        unpinAt = unpinAt,
     )
 
     @Test
@@ -53,9 +57,20 @@ class BackupCodecTest {
     }
 
     @Test
+    fun decode_dropsSchedule() {
+        // Schedules export for forward-compatibility but, like pin state, drop on import (notes arrive inert).
+        val decoded = BackupCodec.decode(
+            BackupCodec.encode(listOf(note(pinAt = 1_000, unpinAt = 2_000))),
+        ).getOrThrow()
+
+        assertEquals(null, decoded.single().pinAt)
+        assertEquals(null, decoded.single().unpinAt)
+    }
+
+    @Test
     fun encode_writesVersionAndIsValidJson() {
         val text = BackupCodec.encode(listOf(note()))
-        assertTrue(text.contains("\"version\": 2"))
+        assertTrue(text.contains("\"version\": 3"))
     }
 
     @Test

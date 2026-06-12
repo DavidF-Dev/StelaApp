@@ -46,6 +46,11 @@ class NoteRepository(
     /// edit and must not reorder the list.
     suspend fun setArchived(noteId: Long, isArchived: Boolean) = dao.setArchived(noteId, isArchived)
 
+    /// Sets a note's auto-pin / auto-unpin times (null clears) without bumping updatedAt —
+    /// scheduling is not a content edit and must not reorder the list.
+    suspend fun setSchedule(noteId: Long, pinAt: Long?, unpinAt: Long?) =
+        dao.setSchedule(noteId, pinAt, unpinAt)
+
     suspend fun countPinned(): Int = dao.countPinned()
 
     suspend fun delete(note: Note) = dao.delete(note)

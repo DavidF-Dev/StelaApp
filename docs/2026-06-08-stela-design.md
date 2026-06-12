@@ -435,12 +435,14 @@ implement); all keep the no-`INTERNET` invariant.
    `/list`, `/editor/{id}`) — no duplicated logic; refresh is event-driven via a `StelaApp` observer →
    `updateAll`. Medium effort (a separate render surface).
 4. **Advanced note settings (scheduled/timed pins)** — pin a note as a notification at a
-   chosen time (`AlarmManager` + exact-alarm permission). A natural extension of "pin as
-   notification" and the largest; a deliberate step toward reminder territory, so confirm
-   scope before building. *Sliced for v1.5.0; built incrementally inside an editor-only **"Advanced"**
-   collapsible area.* **Slice 1 *(done — see [2026-06-12-advanced-section.md](2026-06-12-advanced-section.md))*:**
-   the collapsible "Advanced" container in the full editor (not the popup), collapsed by default, empty for
-   now — the home that the scheduling controls drop into next.
+   chosen time. A natural extension of "pin as notification"; a deliberate step toward reminder territory.
+   Built incrementally for v1.5.0 inside an editor-only **"Advanced"** collapsible area, with **inexact**
+   alarms (no exact-alarm permission) plus a reconcile-on-boot/app-start safety net.
+   - **Slice 1 *(done — see [2026-06-12-advanced-section.md](2026-06-12-advanced-section.md))*:** the
+     collapsible "Advanced" container in the full editor (not the popup), collapsed by default.
+   - **Slice 2 *(done — see [2026-06-12-scheduled-pins.md](2026-06-12-scheduled-pins.md))*:** **pin-at** and
+     **unpin-at** controls (schema v4; `PinScheduler` as the sole `AlarmManager` toucher; `PinSchedule`
+     reconcile; backup v3 with schedules dropped on import).
 5. **Emoji-picker search** *(done — v1.2.0; see [2026-06-10-emoji-search-vanniktech.md](2026-06-10-emoji-search-vanniktech.md))* —
    the AndroidX `EmojiPickerView` had no search and exposed no way to add one, so it was replaced with
    **vanniktech/Emoji**'s standalone `EmojiView` (search on by default, matches emoji by shortcode),

@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [Note::class], version = 3, exportSchema = true)
+@Database(entities = [Note::class], version = 4, exportSchema = true)
 abstract class StelaDatabase : RoomDatabase() {
     abstract fun noteDao(): NoteDao
 
@@ -21,6 +21,14 @@ abstract class StelaDatabase : RoomDatabase() {
         val MIGRATION_2_3 = object : Migration(2, 3) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE notes ADD COLUMN isArchived INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        // v4 adds the nullable auto-pin / auto-unpin times; existing rows have neither.
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE notes ADD COLUMN pinAt INTEGER")
+                db.execSQL("ALTER TABLE notes ADD COLUMN unpinAt INTEGER")
             }
         }
     }

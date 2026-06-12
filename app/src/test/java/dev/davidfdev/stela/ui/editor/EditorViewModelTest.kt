@@ -267,6 +267,22 @@ class EditorViewModelTest {
     }
 
     @Test
+    fun newNote_save_withFuturePinAt_persistsTheSchedule() = runTest(dispatcher) {
+        val f = Fixture()
+        val viewModel = f.viewModel(initialPinned = false)
+        val future = System.currentTimeMillis() + 86_400_000L
+
+        viewModel.onTitleChange("Later")
+        viewModel.onPinAtChange(future)
+        viewModel.save { }
+        advanceUntilIdle()
+
+        val note = f.repository.notes.first().single()
+        assertEquals(future, note.pinAt)
+        assertFalse(note.isPinned)
+    }
+
+    @Test
     fun savingPinnedNote_refreshesItsNotification() = runTest(dispatcher) {
         val f = Fixture()
         val id = f.repository.create(title = "Pinned", description = "")

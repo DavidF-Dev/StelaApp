@@ -60,6 +60,27 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun migrate3To4_addsNullScheduleTimes_andPreservesRows() {
+        helper.createDatabase(DB_NAME, 3).apply {
+            execSQL(
+                "INSERT INTO notes (title, description, iconId, isPinned, createdAt, updatedAt, emoji, isArchived) " +
+                    "VALUES ('Old note', 'body', 'default', 1, 1000, 2000, '📌', 0)",
+            )
+            close()
+        }
+
+        val db = helper.runMigrationsAndValidate(DB_NAME, 4, true, StelaDatabase.MIGRATION_3_4)
+
+        db.query("SELECT title, pinAt, unpinAt FROM notes").use { cursor ->
+            assertEquals(1, cursor.count)
+            cursor.moveToFirst()
+            assertEquals("Old note", cursor.getString(0))
+            assertEquals(true, cursor.isNull(1))
+            assertEquals(true, cursor.isNull(2))
+        }
+    }
+
     private companion object {
         const val DB_NAME = "migration-test.db"
     }

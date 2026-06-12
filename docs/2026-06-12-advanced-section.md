@@ -3,7 +3,8 @@
 > Status: **Implemented** · 2026-06-12 · v1.5.0. Built as planned; see the "As-built notes" at the end.
 > The first slice of the **Advanced note features** (design doc §12 planned-feature #4, scheduled/timed
 > pins). This slice builds **only the collapsible container, with no contents** — the home that later
-> advanced controls drop into.
+> advanced controls drop into. Its first content (the scheduled-pin controls) landed next; see
+> [2026-06-12-scheduled-pins.md](2026-06-12-scheduled-pins.md).
 
 ## Goal
 

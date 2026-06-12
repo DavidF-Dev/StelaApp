@@ -27,6 +27,8 @@ data class EditorUiState(
     val isArchived: Boolean = false,
     val createdAt: Long? = null,
     val updatedAt: Long? = null,
+    val pinAt: Long? = null,
+    val unpinAt: Long? = null,
 ) {
     val canSave: Boolean get() = title.isNotBlank()
 
@@ -72,6 +74,8 @@ class EditorViewModel(
                             isArchived = note.isArchived,
                             createdAt = note.createdAt,
                             updatedAt = note.updatedAt,
+                            pinAt = note.pinAt,
+                            unpinAt = note.unpinAt,
                         )
                     }
                 }
@@ -89,6 +93,10 @@ class EditorViewModel(
     fun onDescriptionChange(value: String) = _uiState.update { it.copy(description = value) }
 
     fun onEmojiChange(value: String) = _uiState.update { it.copy(emoji = value) }
+
+    fun onPinAtChange(value: Long?) = _uiState.update { it.copy(pinAt = value) }
+
+    fun onUnpinAtChange(value: Long?) = _uiState.update { it.copy(unpinAt = value) }
 
     fun pin() {
         // New note (not yet persisted): record the intent; it is pinned on save, not live.
@@ -147,6 +155,7 @@ class EditorViewModel(
                 val id = repository.create(state.title, state.description, emoji = state.emoji)
                 // Mirror the other pin entry points: only pin when notifications can post.
                 if (state.isPinned && canPostNotifications()) repository.getById(id)?.let { pinner.pin(it) }
+                pinner.applySchedule(id, state.pinAt, state.unpinAt)
             } else {
                 val updated = existing.copy(
                     title = state.title,
@@ -155,6 +164,7 @@ class EditorViewModel(
                 )
                 repository.update(updated)
                 pinner.refresh(updated)
+                pinner.applySchedule(existing.id, state.pinAt, state.unpinAt)
             }
             onComplete()
         }

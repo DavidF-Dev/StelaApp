@@ -1,9 +1,9 @@
 # Scheduled pins + auto-unpin (timed pinning) — implementation plan
 
-> Status: **Planned** · 2026-06-12 · targets v1.5.0. The first real controls inside the editor-only
-> **"Advanced"** area (see [2026-06-12-advanced-section.md](2026-06-12-advanced-section.md)). Design doc
-> §12 planned-feature #4. Steps deliberately into light reminder territory, kept honest by the app's
-> persistence ethos.
+> Status: **Implemented** · 2026-06-12 · v1.5.0. Built as planned (decisions and as-built notes at the
+> end). The first real controls inside the editor-only **"Advanced"** area (see
+> [2026-06-12-advanced-section.md](2026-06-12-advanced-section.md)). Design doc §12 planned-feature #4.
+> Steps deliberately into light reminder territory, kept honest by the app's persistence ethos.
 
 ## Goal
 
@@ -26,20 +26,26 @@ Either or both can be set. Together they define a window: "pin at 3pm, unpin at 
 - **Auto-unpin literally unpins** (least destructive); following the Removal Preference is a possible later
   enhancement (open question Q6).
 
-## The interval model (the key mental model)
+## The model (two independent one-shot timers + reconcile)
 
-Treat `pinAt` / `unpinAt` as defining the note's *intended pinned interval*, and make the system
-**reconcile to the correct current state** rather than relying on alarms firing exactly. For "now":
+Each time is an **independent one-shot transition** that fires and then clears itself:
 
-| now vs schedule | intended state |
+- **`pinAt` fires:** if the note is unpinned → pin it; if already pinned → **no-op**. Clear `pinAt`.
+- **`unpinAt` fires:** if the note is pinned → unpin it; if already unpinned → **no-op**. Clear `unpinAt`.
+
+No context-sensitive coupling between them or the manual Pin toggle — they're just timers (decision Q2/Q3).
+
+A **reconcile pass** makes this robust to missed alarms (Doze, process kill, **reboot** — none guarantee
+delivery) by computing the note's correct *current* state from the schedule and **snapping to it** (Q5):
+
+| now vs schedule | reconciled state |
 |---|---|
-| `now < pinAt` | unpinned; a pin alarm is scheduled |
-| `pinAt ≤ now < unpinAt` | pinned; an unpin alarm is scheduled |
-| `now ≥ unpinAt` | unpinned; both times cleared |
+| `now < pinAt` | leave as-is; schedule the pin alarm |
+| `pinAt ≤ now < unpinAt` | ensure **pinned**; clear `pinAt`; schedule the unpin alarm |
+| `now ≥ unpinAt` (whole window past) | ensure **unpinned**; clear both times |
 
-This makes missed alarms (Doze, process kill, **reboot** — none of which guarantee delivery) self-correct:
-a reconcile pass computes the right state and fixes it, instead of depending on a fired broadcast.
-Inexact alarms are then just the *prompt* mechanism, with reconcile as the safety net.
+So a long-missed window simply lands on the correct end state (e.g. past `unpinAt` → never pins, both
+cleared) with no churn. Inexact alarms are the *prompt*; reconcile is the safety net.
 
 ## Data model
 
@@ -69,10 +75,16 @@ Mirror the "single toucher" pattern (`NotificationController` is the sole `Notif
 - **`PinAlarmReceiver`** (manifest `exported="false"`, `goAsync` pattern like `NotificationActionReceiver`)
   — on fire, looks up the note and routes through `NotePinner` (pin or unpin), then clears the spent time
   field. Robust to a cold process start.
-- **`NotePinner` integration** — `NotePinner` stays the single pin/unpin/archive/delete seam and gains
-  schedule-clearing: manual **pin** clears `pinAt`, manual **unpin** clears `unpinAt`, **archive**/**delete**
-  cancel *both* alarms and clear both fields (a note can't be archived+pinned, so it can't be
-  archived+scheduled-to-pin either). `PinScheduler` is the AlarmManager wrapper it delegates to.
+- **`NotePinner` integration** — `NotePinner` stays the single pin/unpin/archive/delete seam.
+  - **Manual pin/unpin leave the schedule alone** — the timers simply no-op if they later fire into the
+    state already reached (the Q2/Q3 simplification; no cancel-on-manual-toggle logic).
+  - **archive** clears both times **and** cancels both alarms (a note can't be archived+pinned, so an
+    archived note must never be auto-pinned — preserves the core invariant). Archiving therefore drops a
+    note's schedule.
+  - **delete/deleteAll** cancel both alarms (the row's times go with it).
+  - **restore** (undo-delete) re-inserts and **reconciles** the note, so any future times reschedule.
+  - **Save** persists the chosen times then reconciles the note (fire-now-if-past, else schedule).
+  - `PinScheduler` is the AlarmManager wrapper it delegates to; the reconcile decision is a pure function.
 - **Reconcile pass** — `reconcileSchedules()` applies the interval-model table above across all notes:
   fires past-due transitions and (re)schedules future ones. Run it:
   - on **boot / app-update** — extend `BootReceiver` (alarms don't survive reboot), and
@@ -95,13 +107,12 @@ Inside the (now non-empty) Advanced section in `EditorScreen`:
 
 - **"Pin at"** row — empty → a "Set" affordance opening a **date picker → time picker** (Material3
   `DatePickerDialog` + `TimePicker`); set → shows the formatted time with a **clear** (×). Constrained to
-  the future.
-- **"Unpin at"** row — same pattern; constrained to after `pinAt` (if set) and the future.
+  the future. **Always shown** (no hiding based on pin state — Q2/Q3).
+- **"Unpin at"** row — same pattern; constrained to after `pinAt` (if set) and the future. Always shown.
 - **State** lives in `EditorUiState` (`pinAt`/`unpinAt`) + `EditorViewModel`, seeded from the loaded note.
 - **Applied on Save** (recommended — Q1): the times are note data; Save persists them and (re)runs the
   scheduler for this note. For a **new** note, scheduling happens after the note is created (it needs an
   id), consistent with pin-on-save. Existing notes also apply on Save (atomic, avoids half-applied state).
-- **Honest copy** — "around this time" / a one-line note that timing is approximate and best-effort.
 
 ## Reliability framing (set expectations honestly)
 
@@ -137,7 +148,7 @@ logic (in the scheduler or a small coordinator), `ui/editor/` schedule-picker co
 1. **Data + scheduler infra (no UI).** Schema v4 + migration + DAO; `PinScheduler` + `PinAlarmReceiver`;
    `NotePinner` schedule-clearing; reconcile pass + boot/app-start hooks. Unit-test the interval/reconcile
    logic over a fake scheduler; instrumented migration test. *This is the bulk and the risk.*
-2. **Advanced UI controls.** Pin-at / unpin-at pickers wired to the VM, applied on Save; honest copy.
+2. **Advanced UI controls.** Pin-at / unpin-at pickers wired to the VM, applied on Save.
 3. **Backup + polish.** `pinAt`/`unpinAt` in the backup format; optional list/widget "scheduled" indicator
    (Q7); optional time-change reconcile (Q9).
 
@@ -156,32 +167,51 @@ where the complexity sits: the alarm/PendingIntent plumbing, the reconcile corre
 path. Contained by the interval model (reconcile is a pure function) and by reusing the existing seams
 (`NotePinner`, the `goAsync` receiver pattern, `BootReceiver`). The UI is a normal picker slice.
 
-## Open design questions
+## Resolved decisions (2026-06-12)
 
-1. **Apply-on-save vs live.** Recommend schedule edits apply **on Save** (they're note data; atomic; works
-   uniformly for new and existing notes). Live-apply for existing notes is the alternative — accept the
-   recommendation, or prefer live?
-2. **Pin toggle ↔ scheduled state.** While `pinAt` is set (future), the note is unpinned now, so the
-   headline **Pin** toggle reads "unpinned". Tapping Pin should pin now **and cancel `pinAt`** (recommended).
-   Where do we surface "Scheduled for 3pm" — only in Advanced, or also a hint near the pin toggle?
-3. **Meaningless combinations.** `pinAt` on an already-pinned note is moot; `unpinAt` only matters for a
-   note that is or will be pinned. Do we **disable/hide** pin-at when the note is already pinned, and only
-   offer unpin-at then? (Recommended — context-sensitive controls.)
-4. **Validation strictness.** Require `now < pinAt < unpinAt`? How hard should the pickers enforce it
-   (clamp, disable invalid, or warn)? Recommend constraining the pickers (future-only; unpin-at min =
-   pinAt).
-5. **Catch-up semantics on reopen/boot.** Confirm the **interval model**: if the device was off across
-   `pinAt`, reconcile pins on next run (if still before `unpinAt`); if it's already past `unpinAt`, it
-   **never pins** and both clear. Agree, or do you want a missed pin to still fire late?
-6. **What does "unpin at" do — and what about import?** (a) Auto-unpin = literally **unpin** (recommended),
-   or follow the Removal Preference (could archive/delete)? (b) On **import**, do we keep schedules
-   (reschedule future ones) or **drop them** so imported notes arrive inert/unpinned (recommended, matches
-   today's "import appends unpinned")?
-7. **List / widget indicator.** Show a "scheduled" marker (e.g. a clock) on a note that's set to pin
-   later? Recommend **defer** to a polish slice; Advanced is the source of truth for v1.
-8. **Picker UX.** Two-step Material3 **date → time** dialogs (recommended/standard), or hunt for a combined
-   date-time control?
-9. **Time/zone changes.** Also reconcile on `ACTION_TIME_CHANGED` / `ACTION_TIMEZONE_CHANGED`, or rely on
-   boot + app-start reconcile only? Recommend the latter for v1 (simpler); add the receiver if drift bites.
-10. **Exact-alarm escape hatch.** Confirm we're committing to inexact-only (no settings toggle to opt into
-    exact alarms). Recommended — keeps the permission story clean.
+1. **Apply on Save.** Schedule edits are note data; Save persists them then reconciles the note. Uniform
+   for new and existing notes.
+2/3. **No context-sensitive controls.** Both pickers always show. `pinAt` and `unpinAt` are independent
+   one-shot timers: firing into an already-reached state is a **no-op** (pin-at when already pinned → no-op;
+   unpin-at when already unpinned → no-op). No special pin-toggle coupling, no hiding/disabling.
+4. **Validation:** pickers constrain to the future; unpin-at's minimum is `pinAt` when one is set.
+5. **Reconcile snaps to the correct current state** (the table above). A window entirely in the past lands
+   unpinned and clears both — a long-missed pin does **not** fire late.
+6. **(a)** "Unpin at" **literally unpins** (does not follow the Removal Preference). **(b)** On **import**,
+   schedules are **dropped** (imported notes arrive inert/unpinned, matching today's import); may revisit.
+7. **List/widget indicator — deferred** to a later polish slice; Advanced is the v1 source of truth.
+8. **Picker UX:** two-step Material3 **date → time** dialogs.
+9. **Time/zone-change reconcile — deferred**; rely on boot + app-start reconcile for v1.
+10. **Inexact-only**, no exact-alarm opt-in. Keeps the permission story clean.
+
+## As-built notes (2026-06-12)
+
+Built across the three planned slices; specifics where reality differed or is worth recording:
+
+- **`PinSchedule`** is the pure reconcile decision (an `object`, like `ServiceLifecycle`): given
+  `(isPinned, isArchived, pinAt, unpinAt, now)` it returns the target pin state and the surviving times.
+  Fired transitions apply in time order, so a whole window in the past lands unpinned with no churn.
+- **`PinScheduler`** (interface) + **`AlarmPinScheduler`** (the sole `AlarmManager` toucher) +
+  **`NoopPinScheduler`** (the default, for code paths/tests that don't arm alarms). Alarm request code =
+  `notificationId(noteId)` (= `noteId.toInt()`); pin vs unpin differ by intent action, so they're distinct
+  PendingIntents. `FLAG_IMMUTABLE`.
+- **`PinAlarmReceiver`** (manifest `exported="false"`, `goAsync`) pins/unpins via `NotePinner` and clears
+  the spent time. **`NotePinner`** gained `applySchedule` (Save), `reconcileAll` (boot/app start), a private
+  `reconcile`, and schedule-clearing on archive/delete/restore; manual pin/unpin leave the timers alone
+  (they no-op on fire). A `now: () -> Long` was injected for testability.
+- **Reconcile hooks:** `BootReceiver` (alarms don't survive reboot) and `StelaApp.onCreate` both call
+  `reconcileAll`.
+- **Data:** `Note.pinAt` / `Note.unpinAt` (nullable), schema **v4** (`MIGRATION_3_4`), `NoteDao.setSchedule`.
+  Backup format **v3**: times export but, like pin state, **drop on import** (notes arrive inert).
+- **UI:** `ScheduleControls` (a new file) renders the Pin-at / Unpin-at rows and a two-step Material3
+  **date → time** picker; it's the content slot of the now-generic `AdvancedSection`. State lives in
+  `EditorUiState` (`pinAt`/`unpinAt`), applied on Save via `pinner.applySchedule`. The date picker disables
+  past days; a same-day earlier time is allowed and simply fires at once (a past time = pin now). Strings
+  externalised.
+- **Tests:** `PinScheduleTest` (the pure decision, table-driven), `NotePinnerTest` additions (apply/arm,
+  past-pin fires, archive cancels, reconcile), an `EditorViewModelTest` schedule-persistence case, a
+  `BackupCodecTest` drop-on-import case, and the 3→4 `MigrationTest`. Full picker interaction is covered by
+  the manual matrix, not instrumented.
+- **Verified (2026-06-12):** `assembleDebug`, `testDebugUnitTest` (125), `lintDebug` (0 errors), and all
+  **40** instrumented tests green; emulator check of the editor's date→time picker flow (future-only days,
+  set/clear/change).
