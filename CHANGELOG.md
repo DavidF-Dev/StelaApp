@@ -13,6 +13,12 @@ All notable changes to Stela are documented here. This project adheres to
   pick **30 minutes / 1 hour / 3 hours / 1 day** or a custom duration. The return time appears as the
   note's "Pin at", so you can change or cancel it there.
 
+### Changed
+- Opening a note from its notification (or the widget / Quick Settings tile) while Stela is already on
+  screen now opens the full editor in the app, instead of floating the quick-note popup over it. This
+  avoids two editors being open for the same note at once. The popup still appears when you trigger it
+  from another app.
+
 ## [1.4.0] - 2026/06/12
 
 ### Added

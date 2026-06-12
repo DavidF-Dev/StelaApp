@@ -101,6 +101,18 @@ class MainActivity : AppCompatActivity() {
         outState.putBoolean(KEY_GO_TO_LIST_ON_EDITOR_DONE, goToListOnEditorDone.value)
     }
 
+    // The popup routes into this open app instead of floating over it. Started (not resumed) is the signal:
+    // the transparent popup pauses this activity but leaves it started, so it reads visible at that moment.
+    override fun onStart() {
+        super.onStart()
+        (application as StelaApp).container.isMainActivityVisible = true
+    }
+
+    override fun onStop() {
+        super.onStop()
+        (application as StelaApp).container.isMainActivityVisible = false
+    }
+
     /// The launch intent's deep link is handled by NavHost automatically; a singleTop
     /// re-delivery (e.g. tapping Edit while the app is open) arrives here instead.
     override fun onNewIntent(intent: Intent) {

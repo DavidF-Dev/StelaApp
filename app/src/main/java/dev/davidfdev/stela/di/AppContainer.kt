@@ -53,6 +53,12 @@ class AppContainer(context: Context) {
     @Volatile
     var pendingDraft: NoteDraft? = null
 
+    /// Whether the main UI is currently on-screen (started). The quick-note popup reads this to route a
+    /// notification/widget trigger into the open app instead of floating over it (which would open a second
+    /// editor for the same note). Set from the activity's onStart/onStop.
+    @Volatile
+    var isMainActivityVisible: Boolean = false
+
     private companion object {
         const val DATABASE_NAME = "stela.db"
     }

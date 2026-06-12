@@ -47,6 +47,14 @@ class QuickNoteActivity : AppCompatActivity() {
             return
         }
 
+        // The app is already on-screen: route into it rather than float a popup over our own UI, which
+        // would open a second editor for the same note. The popup exists to float over *other* apps.
+        if (container.isMainActivityVisible) {
+            startActivity(fullEditorIntent(currentNoteId(), currentPinOnSave()))
+            finish()
+            return
+        }
+
         setContent {
             val settings by container.settingsRepository.settings
                 .collectAsStateWithLifecycle(initialValue = Settings())

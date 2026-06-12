@@ -218,6 +218,13 @@ A handful of details differed from the plan above; the structure and decisions o
   `EmojiPickerBottomSheet` (a `BottomSheetDialog`) over the popup, like a keyboard — kept deliberately
   to avoid diverging from the full editor's picker. Floating the popup *above* the picker would mean
   giving the popup its own inline emoji panel; not done.
+- **Routes in-app when Stela is foreground** *(2026-06-12 tweak)*: a trigger no longer floats the popup
+  over `MainActivity` when it's already on-screen — that left two live editors for one note (last save
+  wins). `MainActivity` publishes its started state to `AppContainer.isMainActivityVisible` (onStart/onStop;
+  *started*, not resumed — the transparent popup pauses but doesn't stop it), and `QuickNoteActivity.onCreate`
+  forwards to the full editor via the existing `fullEditorIntent` hand-off (the keyguard-fallback path) when
+  the flag is set. The popup is reserved for floating over *other* apps. See
+  [2026-06-12-foreground-popup-routing.md](2026-06-12-foreground-popup-routing.md).
 - **Tests:** unit tests cover the draft seeding (new + existing) in `EditorViewModelTest`; an
   on-device `QuickNotePopupTest` launches `QuickNoteActivity` in-process (it's non-exported, so it
   can't be started from `adb`) and checks new-note save→pin and existing-note prefill.
