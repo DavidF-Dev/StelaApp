@@ -26,7 +26,34 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity>
+
+        <!--
+          No-UI trampoline for the "New quick note" launcher shortcut. Exported (the launcher is another
+          app) but only forwards to the non-exported QuickNoteActivity on a fresh note, so the edit-by-id
+          path is never externally reachable. Its own empty-affinity task + noHistory keep it invisible.
+        -->
+        <activity
+            android:name=".ui.shortcut.NewNoteShortcutActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.Stela.Transparent" />
+
+        <service
+            android:name=".ui.tile.QuickNoteTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_stela_pin"
+            android:label="@string/qs_tile_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
 
         <!--
           Empty taskAffinity + its own task so the popup floats over whatever the user is doing without

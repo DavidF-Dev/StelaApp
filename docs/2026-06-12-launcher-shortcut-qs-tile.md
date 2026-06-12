@@ -1,7 +1,8 @@
 # Launcher app shortcuts + Quick Settings tile — implementation plan
 
-> Status: **Planned** · 2026-06-12. Its own slice. Extends the glanceable, no-app-open entry (notification
-> · widget) onto the launcher icon and the Quick Settings panel. Reuses `QuickNoteActivity.newNoteIntent`.
+> Status: **Implemented** · 2026-06-12. Built as the plan below; see the "As-built notes" at the end for
+> the few places reality differed. Extends the glanceable, no-app-open entry (notification · widget) onto
+> the launcher icon and the Quick Settings panel. Reuses `QuickNoteActivity.newNoteIntent`.
 
 ## Goal
 
@@ -170,5 +171,41 @@ reusing `newNoteIntent` and the existing deep links.
 - Icons — **reuse** `ic_stela_pin`.
 
 **Minor, deferrable to implementation:**
-- Shortcut icon polish — a flat `ic_stela_pin` works; a small adaptive/branded shortcut icon is a nicety.
+- Shortcut icon — resolved to the adaptive `@mipmap/ic_launcher` (a flat `ic_stela_pin` renders blank,
+  see As-built); distinct per-shortcut glyphs remain an optional nicety.
 - Whether to lift the deep-link base into a shared string resource vs a commented literal in `shortcuts.xml`.
+
+## As-built notes (2026-06-12)
+
+The structure and decisions held; the few specifics:
+
+- **Deep-link sync** resolved as a **commented literal** in `shortcuts.xml` (`stela://stela/list`) rather
+  than a shared resource — lifting the base out of `DEEP_LINK_BASE` (a Kotlin const used by string
+  concatenation in several places) would have been more churn than the one-line coupling warrants. The
+  comment flags that it must track `DEEP_LINK_BASE`.
+- **Trampoline is a plain `Activity`**, not AppCompat — it draws nothing and `finish()`es in `onCreate`,
+  so it needs no Compose/AppCompat host. The transparent theme just avoids a flash. It forwards
+  `newNoteIntent` with `FLAG_ACTIVITY_NEW_TASK` so the popup lands in its own task, not atop the trampoline.
+- **No `applicationId` suffix** across build types, so the `targetPackage="dev.davidfdev.stela"` literal in
+  `shortcuts.xml` is correct for debug and release alike.
+- **Tile `onClick`** carries `@SuppressLint("StartActivityAndCollapseDeprecated")`: the deprecated
+  `Intent` overload is reached only on the pre-34 branch (the `PendingIntent` overload doesn't exist
+  below 34), but lint flags the call site regardless. The 34+ path uses `FLAG_IMMUTABLE` (project invariant).
+- **Add-tile prompt** lives in the Settings **Notifications** section, just below the quick-add toggle,
+  rendered only on API ≥ 33. A small `requestAddQuickNoteTile` helper + an `AddTileResult` enum keep the
+  `StatusBarManager` result codes out of the composable; the row shows an "added" / "already added" snackbar.
+- **Shortcut icon — not the tint-mask silhouette** *(fixed 2026-06-12)*: `ic_stela_pin` is a white-on-
+  transparent alpha mask meant to be *tinted* (notification small icon). Launchers don't tint shortcut
+  icons — they drop the drawable onto a white circle, so the white pin rendered invisible (blank white
+  circles). Switched the shortcut `android:icon` to **`@mipmap/ic_launcher`** (the adaptive app icon:
+  indigo background + the same white pin foreground, already sized for the safe zone), which carries its
+  own background and renders correctly. Both shortcuts share it (labels differentiate them); distinct
+  per-shortcut glyphs remain an optional polish.
+- **Tests:** an instrumented `NewNoteShortcutActivityTest` launches the exported trampoline and asserts the
+  popup's Title field appears (proving the forward), finishing the leftover popup in `@After`. The tile
+  service and shortcuts XML are otherwise covered by the manual matrix.
+- **Verified (2026-06-12):** `assembleDebug`, `testDebugUnitTest`, `assembleDebugAndroidTest`, `lintDebug`
+  (0 errors), and the trampoline instrumented test all green. On the Pixel_8 (API 36) emulator: both static
+  shortcuts register with the right labels; the new-note shortcut's trampoline resumes `QuickNoteActivity`;
+  the view-notes shortcut's deep link resumes `MainActivity`; and a `cmd statusbar click-tile` launches the
+  popup via the **34+ `startActivityAndCollapse(PendingIntent)`** branch.

@@ -459,10 +459,15 @@ unpinned — would have been constant visual noise rather than a nudge.
 
 Lower priority, kept deferred: an in-app language picker.
 
-**Quick-note launcher shortcut / Quick Settings tile *(planned — queued 2026-06-11)*:** a static app
-**shortcut** ("New quick note") on the launcher icon, and/or a **Quick Settings tile**, that open the
-quick-note popup directly — extending the glanceable, no-app-open entry beyond the notification and
-widget. Its own slice; reuses `QuickNoteActivity.newNoteIntent`.
+**Quick-note launcher shortcut / Quick Settings tile *(done — 2026-06-12; see
+[2026-06-12-launcher-shortcut-qs-tile.md](2026-06-12-launcher-shortcut-qs-tile.md))*:** two static launcher
+**shortcuts** — "New quick note" (→ quick-note popup) and "View notes" (→ list) — plus a **Quick Settings
+tile** ("New quick note" → popup, with an API 33+ in-app *add-tile* prompt in Settings). Extends the
+glanceable, no-app-open entry beyond the notification and widget. The popup-bound surfaces reuse
+`QuickNoteActivity.newNoteIntent`; the tile (in-process) and notification/widget (`PendingIntent`s) reach
+the **non-exported** `QuickNoteActivity` directly, so only the launcher shortcut needs an exported entry —
+a thin no-UI `NewNoteShortcutActivity` trampoline (new-note only, so the edit-by-id path stays internal).
+"View notes" reuses the existing `…/list` deep link through `MainActivity`.
 
 **Action-row overflow · Removal Preference · Tooltips *(2026-06-12; all three done; see
 [2026-06-12-action-overflow-removal-tooltips.md](2026-06-12-action-overflow-removal-tooltips.md))*:**

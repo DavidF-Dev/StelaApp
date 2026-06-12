@@ -163,6 +163,19 @@
     <string name="action_view_source">View source</string>
     <string name="about_source_url" translatable="false">https://github.com/DavidF-Dev/StelaApp</string>
 
+    <!-- Launcher app shortcuts -->
+    <string name="shortcut_new_note_short">New note</string>
+    <string name="shortcut_new_note_long">New quick note</string>
+    <string name="shortcut_view_notes_short">View notes</string>
+    <string name="shortcut_view_notes_long">View all notes</string>
+
+    <!-- Quick Settings tile -->
+    <string name="qs_tile_label">New quick note</string>
+    <string name="settings_add_tile_title">Add Quick Settings tile</string>
+    <string name="settings_add_tile_summary">Add a tile to jot a quick note from the Quick Settings panel.</string>
+    <string name="snackbar_tile_added">Tile added</string>
+    <string name="snackbar_tile_already_added">Tile already added</string>
+
     <!-- Home-screen widget -->
     <string name="widget_label">Stela notes</string>
     <string name="widget_description">Quick-add and view your pinned notes</string>

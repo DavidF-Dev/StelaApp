@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Declared first so the launcher renders it farther from the icon than "New quick note" below. -->
+    <shortcut
+        android:shortcutId="view_notes"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_view_notes_short"
+        android:shortcutLongLabel="@string/shortcut_view_notes_long">
+        <!-- Literal mirror of the list navDeepLink; must match DEEP_LINK_BASE ("stela://stela"). -->
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="dev.davidfdev.stela"
+            android:targetClass="dev.davidfdev.stela.MainActivity"
+            android:data="stela://stela/list" />
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="new_quick_note"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_new_note_short"
+        android:shortcutLongLabel="@string/shortcut_new_note_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="dev.davidfdev.stela"
+            android:targetClass="dev.davidfdev.stela.ui.shortcut.NewNoteShortcutActivity" />
+    </shortcut>
+
+</shortcuts>

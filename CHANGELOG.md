@@ -17,6 +17,10 @@ All notable changes to Stela are documented here. This project adheres to
   trigger reuses the one popup rather than stacking another.
 - Long-pressing an icon-only button (in the editor, quick-note popup, note list, and Archived screen)
   now shows a brief tooltip with its name.
+- Launcher shortcuts: long-press the Stela app icon for **New quick note** (opens the quick-note popup)
+  and **View notes** (jumps to your list).
+- Quick Settings tile: a **New quick note** tile you can add to the Quick Settings panel to jot a note
+  from anywhere. Add it from there, or use the new "Add Quick Settings tile" button in Settings (Android 13+).
 
 ### Changed
 - New "Remove action" setting: choose what removing a pinned note does — **Unpin**, **Archive**, or

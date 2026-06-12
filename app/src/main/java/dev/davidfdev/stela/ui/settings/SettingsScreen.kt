@@ -1,5 +1,6 @@
 package dev.davidfdev.stela.ui.settings
 
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
@@ -52,6 +53,8 @@ import dev.davidfdev.stela.ui.SectionHeader
 import dev.davidfdev.stela.settings.RemovalPreference
 import dev.davidfdev.stela.settings.Settings
 import dev.davidfdev.stela.settings.ThemeMode
+import dev.davidfdev.stela.ui.tile.AddTileResult
+import dev.davidfdev.stela.ui.tile.requestAddQuickNoteTile
 import dev.davidfdev.stela.ui.openAppNotificationSettings
 import dev.davidfdev.stela.ui.rememberNotificationPermissionGate
 import kotlinx.coroutines.launch
@@ -95,6 +98,8 @@ fun SettingsRoute(
     val exportFailed = stringResource(R.string.snackbar_export_failed)
     val importFailed = stringResource(R.string.snackbar_import_failed)
     val undoLabel = stringResource(R.string.action_undo)
+    val tileAdded = stringResource(R.string.snackbar_tile_added)
+    val tileAlreadyAdded = stringResource(R.string.snackbar_tile_already_added)
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
@@ -139,6 +144,18 @@ fun SettingsRoute(
         onQuickAddEnabledChange = { enabled ->
             if (enabled) gate { viewModel.setQuickAddEnabled(true) } else viewModel.setQuickAddEnabled(false)
         },
+        onAddTile = {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                requestAddQuickNoteTile(context) { result ->
+                    val message = when (result) {
+                        AddTileResult.ADDED -> tileAdded
+                        AddTileResult.ALREADY_ADDED -> tileAlreadyAdded
+                        AddTileResult.OTHER -> null
+                    }
+                    message?.let { scope.launch { snackbarHostState.showSnackbar(it) } }
+                }
+            }
+        },
         onOpenBatterySettings = {
             runCatching { context.startActivity(DeviceResilience.batteryOptimizationSettingsIntent()) }
         },
@@ -164,6 +181,7 @@ fun SettingsScreen(
     onSwipeToRemoveChange: (Boolean) -> Unit,
     onRemovalPreferenceChange: (RemovalPreference) -> Unit,
     onQuickAddEnabledChange: (Boolean) -> Unit,
+    onAddTile: () -> Unit,
     onOpenBatterySettings: () -> Unit,
     onOpenAutostart: () -> Unit,
     onExport: () -> Unit,
@@ -210,6 +228,14 @@ fun SettingsScreen(
                     Switch(checked = state.quickAddEnabled, onCheckedChange = onQuickAddEnabledChange)
                 },
             )
+            // requestAddTileService — the in-app add-tile prompt — exists only from API 33.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.settings_add_tile_title)) },
+                    supportingContent = { Text(stringResource(R.string.settings_add_tile_summary)) },
+                    modifier = Modifier.clickable(onClick = onAddTile),
+                )
+            }
             ListItem(
                 headlineContent = { Text(stringResource(R.string.settings_hide_lock_title)) },
                 supportingContent = { Text(stringResource(R.string.settings_hide_lock_summary)) },
