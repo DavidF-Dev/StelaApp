@@ -192,6 +192,9 @@ A handful of details differed from the plan above; the structure and decisions o
   doesn't cancel the archive mid-flight.
 - **The pinned notification dropped its Archive action** *(2026-06-11)* — it now carries Edit + Unpin
   only; archiving is reachable from the editor and the popup.
+- **Planned follow-up *(2026-06-12)*:** the existing-note action row is too tight on real devices (Save
+  deforms), so a queued slice moves Expand / Share / Archive into an overflow `⋮` menu and makes Save an
+  icon. See [2026-06-12-action-overflow-removal-tooltips.md](2026-06-12-action-overflow-removal-tooltips.md).
 - **Not draggable; back arrow instead of a handle** *(2026-06-11 tweak)*: the `ModalBottomSheet` sets
   `sheetGesturesEnabled = false` and `dragHandle = null`, so dragging to scroll a long description can't
   drag the whole sheet away at the scroll extents. A back arrow (left of the heading, like the editor)

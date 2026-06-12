@@ -460,6 +460,17 @@ Lower priority, kept deferred: an in-app language picker.
 quick-note popup directly — extending the glanceable, no-app-open entry beyond the notification and
 widget. Its own slice; reuses `QuickNoteActivity.newNoteIntent`.
 
+**Action-row overflow · Removal Preference · Tooltips *(planned — queued 2026-06-12; see
+[2026-06-12-action-overflow-removal-tooltips.md](2026-06-12-action-overflow-removal-tooltips.md))*:**
+three independent slices. **A** — fix the cramped existing-note action row: move Expand (popup) /
+Share / Archive/Restore into an overflow (`⋮`) menu, tighten the popup row insets, and turn Save into a
+`FilledIconButton` check (locale-stable, primary-emphasis). **B** — a **Removal Preference** setting
+(Unpin / Archive / Delete, default Unpin) that drives both the notification's remove action and the
+swipe (renamed "Swipe to remove"); the action label reflects the chosen mode, and Delete is allowed
+with a Settings warning. **C** — long-press **tooltips** on icon-only buttons (editor/popup, List,
+Archived) via a shared `TooltipIconButton`; depends on A (its button set shifts to icon Save + overflow
+items). Sequence A → C; B independent.
+
 **Quick-note popup *(done — v1.4.0; see [2026-06-11-quick-note-popup.md](2026-06-11-quick-note-popup.md))*:**
 a bottom-sheet editor that floats over the screen from the quick-add notification / body tap, the widget
 ＋, and the pinned-note Edit action / body tap — for both new and existing notes (new notes pin on save).
