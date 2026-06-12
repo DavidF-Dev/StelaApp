@@ -53,6 +53,8 @@ import com.google.android.material.button.MaterialButton
 import com.vanniktech.emoji.EmojiTheming
 import com.vanniktech.emoji.EmojiView
 import dev.davidfdev.stela.R
+import dev.davidfdev.stela.ui.ButtonTooltip
+import dev.davidfdev.stela.ui.TooltipIconButton
 
 /// The shared note-editing core: an emoji-leading Title field and a Description field, plus the emoji
 /// picker they open. Used by both the full editor and the quick-note popup so editing behaves
@@ -147,17 +149,14 @@ internal fun RowScope.NoteEditorActions(
     onExpand: (() -> Unit)? = null,
     pinModifier: Modifier = Modifier,
 ) {
-    IconButton(onClick = onTogglePin, modifier = pinModifier) {
-        if (state.isPinned) {
-            Icon(Icons.Filled.PushPin, contentDescription = stringResource(R.string.action_unpin))
-        } else {
-            Icon(Icons.Outlined.PushPin, contentDescription = stringResource(R.string.action_pin))
-        }
-    }
+    TooltipIconButton(
+        icon = if (state.isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
+        label = stringResource(if (state.isPinned) R.string.action_unpin else R.string.action_pin),
+        onClick = onTogglePin,
+        modifier = pinModifier,
+    )
     if (state.isEditing) {
-        IconButton(onClick = onDelete) {
-            Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete))
-        }
+        TooltipIconButton(Icons.Filled.Delete, stringResource(R.string.action_delete), onDelete)
     }
     // Shown only when it would hold at least one item (Expand for the popup, or Share/Archive for an
     // existing note).
@@ -165,8 +164,10 @@ internal fun RowScope.NoteEditorActions(
         NoteOverflowMenu(state = state, onExpand = onExpand, onShare = onShare, onArchive = onArchive)
     }
     // Filled so it reads as the primary action and stands out; an icon keeps its width locale-stable.
-    FilledIconButton(onClick = onSave, enabled = state.canSave) {
-        Icon(Icons.Filled.Check, contentDescription = stringResource(R.string.editor_save))
+    ButtonTooltip(stringResource(R.string.editor_save)) {
+        FilledIconButton(onClick = onSave, enabled = state.canSave) {
+            Icon(Icons.Filled.Check, contentDescription = stringResource(R.string.editor_save))
+        }
     }
 }
 
@@ -180,9 +181,7 @@ private fun NoteOverflowMenu(
     var expanded by remember { mutableStateOf(false) }
     // Box so the menu anchors to the icon button's bounds and drops down aligned to it.
     Box {
-        IconButton(onClick = { expanded = true }) {
-            Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.action_more))
-        }
+        TooltipIconButton(Icons.Filled.MoreVert, stringResource(R.string.action_more), onClick = { expanded = true })
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             onExpand?.let { expand ->
                 DropdownMenuItem(

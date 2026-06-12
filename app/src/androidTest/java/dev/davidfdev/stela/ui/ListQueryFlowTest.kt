@@ -9,7 +9,6 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
-import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.davidfdev.stela.MainActivity
@@ -135,7 +134,7 @@ class ListQueryFlowTest {
             composeRule.onAllNodesWithText("Show").fetchSemanticsNodes().isNotEmpty()
         }
         composeRule.onNodeWithText(option).performClick()
-        Espresso.pressBack()
+        pressSystemBack()
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("Show").fetchSemanticsNodes().isEmpty()
         }

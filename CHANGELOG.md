@@ -15,6 +15,8 @@ All notable changes to Stela are documented here. This project adheres to
   you on your note list. Behind a secure lock screen the popup is skipped and the full editor opens as
   before. The popup floats over your current app (it doesn't pull Stela to the foreground), and a second
   trigger reuses the one popup rather than stacking another.
+- Long-pressing an icon-only button (in the editor, quick-note popup, note list, and Archived screen)
+  now shows a brief tooltip with its name.
 
 ### Changed
 - New "Remove action" setting: choose what removing a pinned note does — **Unpin**, **Archive**, or

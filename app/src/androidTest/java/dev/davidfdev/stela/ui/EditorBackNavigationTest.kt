@@ -46,7 +46,7 @@ class EditorBackNavigationTest {
         // A new note auto-focuses the title and raises the soft keyboard; close it first so the single
         // back press reaches the editor's BackHandler instead of only dismissing the keyboard.
         Espresso.closeSoftKeyboard()
-        Espresso.pressBack()
+        pressSystemBack()
 
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithContentDescription("New note").fetchSemanticsNodes().isNotEmpty()

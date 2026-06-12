@@ -51,6 +51,7 @@ import dev.davidfdev.stela.R
 import dev.davidfdev.stela.data.Note
 import dev.davidfdev.stela.data.displayTitle
 import dev.davidfdev.stela.ui.TimeFormatter
+import dev.davidfdev.stela.ui.TooltipIconButton
 
 @Composable
 fun ArchivedRoute(
@@ -195,19 +196,13 @@ private fun ArchivedSelectionTopBar(
         },
         title = { Text(pluralStringResource(R.plurals.notelist_selected_count, count, count)) },
         actions = {
-            IconButton(onClick = onToggleSelectAll) {
-                if (allSelected) {
-                    Icon(Icons.Filled.Deselect, contentDescription = stringResource(R.string.action_deselect_all))
-                } else {
-                    Icon(Icons.Filled.SelectAll, contentDescription = stringResource(R.string.action_select_all))
-                }
-            }
-            IconButton(onClick = onRestore) {
-                Icon(Icons.Filled.Unarchive, contentDescription = stringResource(R.string.action_restore))
-            }
-            IconButton(onClick = onDelete) {
-                Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete))
-            }
+            TooltipIconButton(
+                icon = if (allSelected) Icons.Filled.Deselect else Icons.Filled.SelectAll,
+                label = stringResource(if (allSelected) R.string.action_deselect_all else R.string.action_select_all),
+                onClick = onToggleSelectAll,
+            )
+            TooltipIconButton(Icons.Filled.Unarchive, stringResource(R.string.action_restore), onRestore)
+            TooltipIconButton(Icons.Filled.Delete, stringResource(R.string.action_delete), onDelete)
         },
     )
 }

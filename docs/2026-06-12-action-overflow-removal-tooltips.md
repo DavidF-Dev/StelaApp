@@ -1,6 +1,6 @@
 # Action-row overflow · Removal Preference · Tooltips — implementation plan
 
-> Status: 2026-06-12 · three independent slices. **Slices A and B implemented; C planned.**
+> Status: 2026-06-12 · three independent slices. **All three (A, B, C) implemented.**
 >
 > Motivation: on a real device the existing-note popup's action row packs **seven** hit targets
 > (Back · Expand · Share · Pin/Unpin · Archive · Delete · Save) into a fixed-width row, which squeezes
@@ -172,6 +172,22 @@ notes, and `CHANGELOG`.
 ---
 
 ## Slice C — tooltips (adjusted for Slice A)
+
+> **Implemented 2026-06-12.** Shared `ui/TooltipIconButton.kt` exposes `TooltipIconButton(icon, label,
+> onClick, …)` (plain icon buttons; `label` feeds both the tooltip and `contentDescription`) plus
+> `ButtonTooltip(label) { … }` for the non-`IconButton` cases (the Save `FilledIconButton`, the FAB).
+> Applied across `NoteEditorActions` (Pin/Unpin, Delete, the `⋮`, Save), `NoteListScreen` (Search, Sort
+> and filter, Settings, the `⋮`, the New-note FAB, and the selection bar's Select-all/Pin/Archive/Delete),
+> and `ArchivedScreen` (selection bar's Select-all/Restore/Delete). Skipped per plan: Back, Close-selection,
+> per-row Pin, and the redundant search-clear / clear-filter / sort-direction affordances. Tooltips use
+> `TooltipAnchorPosition.Above` and `focusable = false`. Verified on the emulator (long-press shows the
+> label above the button).
+>
+> **Gotcha:** a `TooltipBox` adds a transient popup window after a programmatic `performClick()`, which
+> confuses Espresso's `RootViewPicker` and breaks a following `Espresso.pressBack()` (it waits on the
+> wrong, unfocused root) — even with `focusable = false`. Real OS back is unaffected. Fixed three tests
+> by pressing back at the OS level (`UiAutomation.performGlobalAction(GLOBAL_ACTION_BACK)` via the new
+> `pressSystemBack()` test helper) instead of `Espresso.pressBack()`.
 
 ### Goal
 Long-pressing an **icon-only** button briefly shows its label in a tooltip above it, via Material 3

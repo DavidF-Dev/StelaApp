@@ -83,7 +83,9 @@ import dev.davidfdev.stela.data.Note
 import dev.davidfdev.stela.data.displayTitle
 import dev.davidfdev.stela.settings.NoteFilter
 import dev.davidfdev.stela.settings.SortOrder
+import dev.davidfdev.stela.ui.ButtonTooltip
 import dev.davidfdev.stela.ui.TimeFormatter
+import dev.davidfdev.stela.ui.TooltipIconButton
 import dev.davidfdev.stela.ui.arePinnedNotificationsBlocked
 import dev.davidfdev.stela.ui.openAppNotificationSettings
 import dev.davidfdev.stela.ui.rememberNotificationPermissionGate
@@ -245,8 +247,10 @@ fun NoteListScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             if (!state.inSelectionMode) {
-                FloatingActionButton(onClick = onAddNote) {
-                    Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.action_new_note))
+                ButtonTooltip(stringResource(R.string.action_new_note)) {
+                    FloatingActionButton(onClick = onAddNote) {
+                        Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.action_new_note))
+                    }
                 }
             }
         },
@@ -350,26 +354,18 @@ private fun SelectionTopBar(
         },
         title = { Text(pluralStringResource(R.plurals.notelist_selected_count, count, count)) },
         actions = {
-            IconButton(onClick = onToggleSelectAll) {
-                if (allSelected) {
-                    Icon(Icons.Filled.Deselect, contentDescription = stringResource(R.string.action_deselect_all))
-                } else {
-                    Icon(Icons.Filled.SelectAll, contentDescription = stringResource(R.string.action_select_all))
-                }
-            }
-            IconButton(onClick = onTogglePin) {
-                if (pinAction) {
-                    Icon(Icons.Outlined.PushPin, contentDescription = stringResource(R.string.action_pin))
-                } else {
-                    Icon(Icons.Filled.PushPin, contentDescription = stringResource(R.string.action_unpin))
-                }
-            }
-            IconButton(onClick = onArchive) {
-                Icon(Icons.Filled.Archive, contentDescription = stringResource(R.string.action_archive))
-            }
-            IconButton(onClick = onDelete) {
-                Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete))
-            }
+            TooltipIconButton(
+                icon = if (allSelected) Icons.Filled.Deselect else Icons.Filled.SelectAll,
+                label = stringResource(if (allSelected) R.string.action_deselect_all else R.string.action_select_all),
+                onClick = onToggleSelectAll,
+            )
+            TooltipIconButton(
+                icon = if (pinAction) Icons.Outlined.PushPin else Icons.Filled.PushPin,
+                label = stringResource(if (pinAction) R.string.action_pin else R.string.action_unpin),
+                onClick = onTogglePin,
+            )
+            TooltipIconButton(Icons.Filled.Archive, stringResource(R.string.action_archive), onArchive)
+            TooltipIconButton(Icons.Filled.Delete, stringResource(R.string.action_delete), onDelete)
         },
     )
 }
@@ -514,15 +510,9 @@ private fun NoteListTopBar(
         TopAppBar(
             title = { Text(stringResource(R.string.app_name)) },
             actions = {
-                IconButton(onClick = onActivateSearch) {
-                    Icon(Icons.Filled.Search, contentDescription = stringResource(R.string.action_search))
-                }
-                IconButton(onClick = onOpenSortFilter) {
-                    Icon(Icons.Filled.Tune, contentDescription = stringResource(R.string.action_sort_and_filter))
-                }
-                IconButton(onClick = onOpenSettings) {
-                    Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.action_settings))
-                }
+                TooltipIconButton(Icons.Filled.Search, stringResource(R.string.action_search), onActivateSearch)
+                TooltipIconButton(Icons.Filled.Tune, stringResource(R.string.action_sort_and_filter), onOpenSortFilter)
+                TooltipIconButton(Icons.Filled.Settings, stringResource(R.string.action_settings), onOpenSettings)
                 OverflowMenu(onOpenArchived = onOpenArchived)
             },
         )
@@ -534,9 +524,7 @@ private fun OverflowMenu(onOpenArchived: () -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     // Box so the menu anchors to the icon button's bounds and drops down aligned to it.
     Box {
-        IconButton(onClick = { expanded = true }) {
-            Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.action_more))
-        }
+        TooltipIconButton(Icons.Filled.MoreVert, stringResource(R.string.action_more), onClick = { expanded = true })
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.notelist_archived)) },
