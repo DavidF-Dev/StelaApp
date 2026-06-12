@@ -139,7 +139,7 @@ Generalise the notification's single "remove" gesture so the user picks what it 
   `SettingsScreen` gets a single-choice control (Unpin / Archive / Delete) + the warning text, and the
   swipe toggle is relabelled.
 - **Controller:** `NotificationController` gains a `removalPreference` (volatile, synced from settings
-  like `hideOnLockScreen`/`swipeToUnpin`). In `post()`, the second action's **label + intent** are
+  like `hideOnLockScreen`/`swipeToRemove`). In `post()`, the second action's **label + intent** are
   chosen by the mode; the swipe `deleteIntent` is the mode's intent when swipe-to-remove is on, else the
   self-heal `reassertIntent`.
 - **Receiver:** `NotificationActionReceiver` reuses `ACTION_UNPIN`/`ACTION_ARCHIVE` and adds

@@ -26,7 +26,7 @@ Read it before making architectural decisions; this file is only a quick orienta
 - **`NoteRepository`** — single source of truth over Room; exposes notes as a `Flow` + CRUD. UI and service both read through it.
 - **`SettingsRepository`** — single source of truth for preferences over DataStore (theme, quick-add, lock-screen, swipe-to-remove + removal preference, list sort/filter). UI, theme, controller, and service read through it.
 - **Backup** — `BackupCodec` (pure JSON encode/decode over a versioned `NotesBackup` DTO, decoupled from the Room entity) + `BackupIo` (the `ContentResolver` seam). Export/import is driven from the Settings screen via the Storage Access Framework; import appends notes (fresh ids, unpinned, archived state preserved).
-- **`NotificationController`** — the *only* class that touches `NotificationManager`. Builds ongoing pinned notifications (Edit/Unpin actions) plus the quick-add and minimal "running" service notifications. Pin/unpin/refresh/re-assert.
+- **`NotificationController`** — the *only* class that touches `NotificationManager`. Builds ongoing pinned notifications (Edit + a Remove action whose label/effect follows the removal preference) plus the quick-add and minimal "running" service notifications. Pin/unpin/refresh/re-assert.
 - **`NotePinner`** — the single seam for pin/unpin and archive/unarchive: persists the flag(s), posts/cancels the notification, and reconciles the service (start/stop/swap). UI and the notification actions both route through it.
 - **`PinService`** — foreground service. Runs **iff** (≥1 pinned note) **OR** (quick-add enabled). Shows the quick-add notification, or a minimal "running" line when quick-add is off but notes are pinned; re-asserts pins on start.
 - **`BootReceiver`** — on `BOOT_COMPLETED` or `MY_PACKAGE_REPLACED` (reboot or app update), starts `PinService` to re-pin flagged notes.
@@ -80,6 +80,10 @@ repo root (set `$ProgressPreference = 'SilentlyContinue'` first to avoid slow do
   tests over a fake DAO, pure-function unit test for the service start/stop rule.
 - Keep the schema flat (forward-compatible with a future JSON export/import).
 - Build phases are sequenced in §12 of the design doc — implement in order.
+- Icon-only buttons use the shared `ui/TooltipIconButton.kt` (`TooltipIconButton` / `ButtonTooltip`):
+  a long-press tooltip whose label doubles as the `contentDescription`. (Note: a `TooltipBox` adds a
+  transient popup window that breaks `Espresso.pressBack()` in tests — use the `pressSystemBack()` test
+  helper instead.)
 
 ## Git
 
