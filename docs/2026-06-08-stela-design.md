@@ -358,8 +358,8 @@ One service, one baseline notification, no redundancy.
    (modified / created / title), **filter** (all / pinned / unpinned), all derived in one
    in-memory `applyQuery` pass over the notes flow in the list ViewModel. Sort/filter persist
    via the Phase 5 preferences store; search is transient. (The planned *sort-by-icon* was
-   dropped — the per-note emoji superseded the v2 icon set. A sort-direction toggle is a
-   queued follow-up.)
+   dropped — the per-note emoji superseded the v2 icon set. A sort-direction toggle shipped in
+   v1.1.0.)
 
 **Scope additions (2026-06-08):** theme selection (→ Phase 5), timestamp display
 and multi-select / batch actions (→ Phase 6), plain-text **share** (→ Phase 6),
