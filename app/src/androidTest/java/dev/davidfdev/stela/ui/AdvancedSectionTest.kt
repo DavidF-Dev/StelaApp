@@ -36,6 +36,7 @@ class AdvancedSectionTest {
                     onShare = {},
                     onSave = {},
                     onDelete = {},
+                    onSnooze = {},
                     onBack = {},
                 )
             }

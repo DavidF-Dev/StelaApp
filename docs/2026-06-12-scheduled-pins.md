@@ -77,7 +77,9 @@ Mirror the "single toucher" pattern (`NotificationController` is the sole `Notif
   field. Robust to a cold process start.
 - **`NotePinner` integration** — `NotePinner` stays the single pin/unpin/archive/delete seam.
   - **Manual pin/unpin leave the schedule alone** — the timers simply no-op if they later fire into the
-    state already reached (the Q2/Q3 simplification; no cancel-on-manual-toggle logic).
+    state already reached (the Q2/Q3 simplification; no cancel-on-manual-toggle logic). *(Superseded
+    2026-06-12 by the snooze slice: pinning now clears `pinAt`, unpinning clears `unpinAt`. See
+    [2026-06-12-snooze.md](2026-06-12-snooze.md).)*
   - **archive** clears both times **and** cancels both alarms (a note can't be archived+pinned, so an
     archived note must never be auto-pinned — preserves the core invariant). Archiving therefore drops a
     note's schedule.
@@ -197,8 +199,8 @@ Built across the three planned slices; specifics where reality differed or is wo
   PendingIntents. `FLAG_IMMUTABLE`.
 - **`PinAlarmReceiver`** (manifest `exported="false"`, `goAsync`) pins/unpins via `NotePinner` and clears
   the spent time. **`NotePinner`** gained `applySchedule` (Save), `reconcileAll` (boot/app start), a private
-  `reconcile`, and schedule-clearing on archive/delete/restore; manual pin/unpin leave the timers alone
-  (they no-op on fire). A `now: () -> Long` was injected for testability.
+  `reconcile`, and schedule-clearing on archive/delete/restore. A `now: () -> Long` was injected for
+  testability. *(The snooze slice later made manual pin clear `pinAt` and manual unpin clear `unpinAt`.)*
 - **Reconcile hooks:** `BootReceiver` (alarms don't survive reboot) and `StelaApp.onCreate` both call
   `reconcileAll`.
 - **Data:** `Note.pinAt` / `Note.unpinAt` (nullable), schema **v4** (`MIGRATION_3_4`), `NoteDao.setSchedule`.

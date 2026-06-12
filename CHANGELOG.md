@@ -9,6 +9,9 @@ All notable changes to Stela are documented here. This project adheres to
 - Scheduled pins: a new **Advanced** section in the note editor lets you set a note to **pin at** a chosen
   time and/or **unpin at** a later time (a temporary pin). Timing is approximate (no exact-alarm permission
   is needed) and best-effort across reboots and battery saving. Editor only — not the quick-note popup.
+- Snooze: a **Snooze** action (in the note's overflow menu) hides a pinned note now and re-pins it later —
+  pick **30 minutes / 1 hour / 3 hours / 1 day** or a custom duration. The return time appears as the
+  note's "Pin at", so you can change or cancel it there.
 
 ## [1.4.0] - 2026/06/12
 

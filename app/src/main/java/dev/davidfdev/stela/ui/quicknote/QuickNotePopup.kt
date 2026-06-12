@@ -138,6 +138,7 @@ internal fun QuickNotePopup(
                     onArchive = { showArchiveDialog = true },
                     onDelete = { showDeleteDialog = true },
                     onSave = { viewModel.save(hideThenFinish) },
+                    onSnooze = viewModel::snooze,
                     onExpand = {
                         dismissKeyboard()
                         onExpand(NoteDraft(noteId, state.title, state.description, state.emoji, state.isPinned))

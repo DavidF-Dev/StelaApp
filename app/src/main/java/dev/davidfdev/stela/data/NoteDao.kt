@@ -31,6 +31,14 @@ interface NoteDao {
     @Query("UPDATE notes SET pinAt = :pinAt, unpinAt = :unpinAt WHERE id = :id")
     suspend fun setSchedule(id: Long, pinAt: Long?, unpinAt: Long?)
 
+    /// Clears only the auto-pin time — pinning a note fulfils any pending auto-pin.
+    @Query("UPDATE notes SET pinAt = NULL WHERE id = :id")
+    suspend fun clearPinAt(id: Long)
+
+    /// Clears only the auto-unpin time — unpinning a note fulfils any pending auto-unpin.
+    @Query("UPDATE notes SET unpinAt = NULL WHERE id = :id")
+    suspend fun clearUnpinAt(id: Long)
+
     @Query("SELECT COUNT(*) FROM notes WHERE isPinned = 1")
     suspend fun countPinned(): Int
 

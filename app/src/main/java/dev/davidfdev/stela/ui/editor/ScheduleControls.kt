@@ -36,10 +36,13 @@ import java.time.ZoneOffset
 
 /// The editor's auto-pin / auto-unpin controls (the contents of the Advanced section): a row each for
 /// "Pin at" and "Unpin at", each opening a date-then-time picker. Times are epoch millis; null means unset.
+/// "Pin at" is disabled while the note is pinned (no pending future pin) and "Unpin at" while it is unpinned
+/// (nothing to auto-unpin) — the same states in which the matching time is always cleared.
 @Composable
 fun ScheduleControls(
     pinAt: Long?,
     unpinAt: Long?,
+    isPinned: Boolean,
     onPinAtChange: (Long?) -> Unit,
     onUnpinAtChange: (Long?) -> Unit,
     now: () -> Long = System::currentTimeMillis,
@@ -50,6 +53,7 @@ fun ScheduleControls(
             timeMillis = pinAt,
             // Future only.
             earliestMillis = now(),
+            enabled = !isPinned,
             onChange = onPinAtChange,
         )
         ScheduleRow(
@@ -57,34 +61,46 @@ fun ScheduleControls(
             timeMillis = unpinAt,
             // After the pin time if one is set, else future.
             earliestMillis = pinAt ?: now(),
+            enabled = isPinned,
             onChange = onUnpinAtChange,
         )
     }
 }
 
 @Composable
-private fun ScheduleRow(label: String, timeMillis: Long?, earliestMillis: Long, onChange: (Long?) -> Unit) {
+private fun ScheduleRow(
+    label: String,
+    timeMillis: Long?,
+    earliestMillis: Long,
+    enabled: Boolean,
+    onChange: (Long?) -> Unit,
+) {
     var showPicker by remember { mutableStateOf(false) }
+    val contentAlpha = if (enabled) 1f else 0.38f
     Row(
         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(label, style = MaterialTheme.typography.bodyLarge)
+            Text(
+                label,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = contentAlpha),
+            )
             Text(
                 text = timeMillis?.let { TimeFormatter.absolute(it) } ?: stringResource(R.string.schedule_not_set),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = contentAlpha),
             )
         }
-        if (timeMillis != null) {
+        if (enabled && timeMillis != null) {
             TooltipIconButton(
                 icon = Icons.Filled.Close,
                 label = stringResource(R.string.schedule_clear),
                 onClick = { onChange(null) },
             )
         }
-        TextButton(onClick = { showPicker = true }) {
+        TextButton(onClick = { showPicker = true }, enabled = enabled) {
             Text(stringResource(if (timeMillis == null) R.string.schedule_set else R.string.schedule_change))
         }
     }

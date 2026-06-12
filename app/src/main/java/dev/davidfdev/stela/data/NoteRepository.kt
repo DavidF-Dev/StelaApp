@@ -51,6 +51,12 @@ class NoteRepository(
     suspend fun setSchedule(noteId: Long, pinAt: Long?, unpinAt: Long?) =
         dao.setSchedule(noteId, pinAt, unpinAt)
 
+    /// Clears a note's auto-pin time (pinning fulfils it).
+    suspend fun clearPinAt(noteId: Long) = dao.clearPinAt(noteId)
+
+    /// Clears a note's auto-unpin time (unpinning fulfils it).
+    suspend fun clearUnpinAt(noteId: Long) = dao.clearUnpinAt(noteId)
+
     suspend fun countPinned(): Int = dao.countPinned()
 
     suspend fun delete(note: Note) = dao.delete(note)

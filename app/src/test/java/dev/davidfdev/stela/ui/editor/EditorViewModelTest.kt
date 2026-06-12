@@ -225,6 +225,51 @@ class EditorViewModelTest {
     }
 
     @Test
+    fun pin_clearsPendingPinAt_inUiAndOnSave() = runTest(dispatcher) {
+        val f = Fixture()
+        val future = System.currentTimeMillis() + 86_400_000L
+        val id = f.repository.create(title = "Scheduled", description = "")
+        f.repository.setSchedule(id, pinAt = future, unpinAt = null)
+        val viewModel = f.viewModel(id)
+        advanceUntilIdle()
+        assertEquals(future, viewModel.uiState.value.pinAt)
+
+        viewModel.pin()
+        advanceUntilIdle()
+
+        // The Advanced row clears immediately, matching the pinner's clear of pinAt.
+        assertNull(viewModel.uiState.value.pinAt)
+        assertNull(f.repository.getById(id)!!.pinAt)
+
+        // A later save must not re-apply the stale schedule.
+        viewModel.save { }
+        advanceUntilIdle()
+        assertNull(f.repository.getById(id)!!.pinAt)
+    }
+
+    @Test
+    fun unpin_clearsPendingUnpinAt_inUiAndOnSave() = runTest(dispatcher) {
+        val f = Fixture()
+        val future = System.currentTimeMillis() + 86_400_000L
+        val id = f.repository.create(title = "Temporary", description = "")
+        f.repository.setPinned(id, true)
+        f.repository.setSchedule(id, pinAt = null, unpinAt = future)
+        val viewModel = f.viewModel(id)
+        advanceUntilIdle()
+        assertEquals(future, viewModel.uiState.value.unpinAt)
+
+        viewModel.unpin()
+        advanceUntilIdle()
+
+        assertNull(viewModel.uiState.value.unpinAt)
+        assertNull(f.repository.getById(id)!!.unpinAt)
+
+        viewModel.save { }
+        advanceUntilIdle()
+        assertNull(f.repository.getById(id)!!.unpinAt)
+    }
+
+    @Test
     fun newNoteDraft_seedsFields_andStaysACreate() = runTest(dispatcher) {
         val f = Fixture()
         val draft = NoteDraft(noteId = null, title = "Jot", description = "from popup", emoji = "📝", pinOnSave = true)
@@ -264,6 +309,24 @@ class EditorViewModelTest {
         val updated = f.repository.getById(id)!!
         assertEquals("Edited", updated.title)
         assertEquals(1, f.repository.notes.first().size)
+    }
+
+    @Test
+    fun existingPinnedNote_snooze_unpinsNowAndSetsPinAt() = runTest(dispatcher) {
+        val f = Fixture()
+        val id = f.repository.create(title = "Pinned", description = "")
+        f.repository.setPinned(id, true)
+        val viewModel = f.viewModel(id)
+        advanceUntilIdle()
+
+        val until = System.currentTimeMillis() + 3_600_000L
+        viewModel.snooze(until)
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.isPinned)
+        assertEquals(until, viewModel.uiState.value.pinAt)
+        assertFalse(f.repository.getById(id)!!.isPinned)
+        assertEquals(until, f.repository.getById(id)!!.pinAt)
     }
 
     @Test

@@ -443,6 +443,10 @@ implement); all keep the no-`INTERNET` invariant.
    - **Slice 2 *(done — see [2026-06-12-scheduled-pins.md](2026-06-12-scheduled-pins.md))*:** **pin-at** and
      **unpin-at** controls (schema v4; `PinScheduler` as the sole `AlarmManager` toucher; `PinSchedule`
      reconcile; backup v3 with schedules dropped on import).
+   - **Slice 3 — Snooze *(done — see [2026-06-12-snooze.md](2026-06-12-snooze.md))*:** an overflow **Snooze**
+     action (presets + custom duration) that hides a pinned note and re-pins it later by reusing `pinAt`;
+     pinning now clears `pinAt` and unpinning clears `unpinAt`. (Recurring pins and a notification Snooze
+     action remain deferred.)
 5. **Emoji-picker search** *(done — v1.2.0; see [2026-06-10-emoji-search-vanniktech.md](2026-06-10-emoji-search-vanniktech.md))* —
    the AndroidX `EmojiPickerView` had no search and exposed no way to add one, so it was replaced with
    **vanniktech/Emoji**'s standalone `EmojiView` (search on by default, matches emoji by shortcode),

@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.OpenInFull
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Snooze
 import androidx.compose.material.icons.filled.Unarchive
 import androidx.compose.material.icons.outlined.Mood
 import androidx.compose.material.icons.outlined.PushPin
@@ -146,6 +147,7 @@ internal fun RowScope.NoteEditorActions(
     onArchive: () -> Unit,
     onDelete: () -> Unit,
     onSave: () -> Unit,
+    onSnooze: (Long) -> Unit,
     onExpand: (() -> Unit)? = null,
     pinModifier: Modifier = Modifier,
 ) {
@@ -161,7 +163,7 @@ internal fun RowScope.NoteEditorActions(
     // Shown only when it would hold at least one item (Expand for the popup, or Share/Archive for an
     // existing note).
     if (onExpand != null || state.isEditing) {
-        NoteOverflowMenu(state = state, onExpand = onExpand, onShare = onShare, onArchive = onArchive)
+        NoteOverflowMenu(state = state, onExpand = onExpand, onShare = onShare, onArchive = onArchive, onSnooze = onSnooze)
     }
     // Filled so it reads as the primary action and stands out; an icon keeps its width locale-stable.
     ButtonTooltip(stringResource(R.string.editor_save)) {
@@ -177,8 +179,10 @@ private fun NoteOverflowMenu(
     onExpand: (() -> Unit)?,
     onShare: () -> Unit,
     onArchive: () -> Unit,
+    onSnooze: (Long) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
+    var showSnooze by remember { mutableStateOf(false) }
     // Box so the menu anchors to the icon button's bounds and drops down aligned to it.
     Box {
         TooltipIconButton(Icons.Filled.MoreVert, stringResource(R.string.action_more), onClick = { expanded = true })
@@ -199,6 +203,13 @@ private fun NoteOverflowMenu(
                     onClick = { expanded = false; onShare() },
                 )
                 DropdownMenuItem(
+                    text = { Text(stringResource(R.string.action_snooze)) },
+                    leadingIcon = { Icon(Icons.Filled.Snooze, contentDescription = null) },
+                    // Snooze hides a note that's in the tray, so it only applies to a pinned note.
+                    enabled = state.isPinned,
+                    onClick = { expanded = false; showSnooze = true },
+                )
+                DropdownMenuItem(
                     text = {
                         Text(stringResource(if (state.isArchived) R.string.action_restore else R.string.action_archive))
                     },
@@ -212,6 +223,13 @@ private fun NoteOverflowMenu(
                 )
             }
         }
+    }
+
+    if (showSnooze) {
+        SnoozeChooser(
+            onPick = { until -> showSnooze = false; onSnooze(until) },
+            onDismiss = { showSnooze = false },
+        )
     }
 }
 

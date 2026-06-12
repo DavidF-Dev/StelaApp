@@ -105,10 +105,11 @@ class EditorViewModel(
             return
         }
         viewModelScope.launch {
-            // Pinning an archived note restores it first; reflect both flags.
+            // Pinning an archived note restores it first, and clears any pending auto-pin (now fulfilled);
+            // reflect all three so the Advanced "Pin at" row matches what the pinner persisted.
             pinner.pin(note)
-            loaded = note.copy(isPinned = true, isArchived = false)
-            _uiState.update { it.copy(isPinned = true, isArchived = false) }
+            loaded = note.copy(isPinned = true, isArchived = false, pinAt = null)
+            _uiState.update { it.copy(isPinned = true, isArchived = false, pinAt = null) }
         }
     }
 
@@ -118,9 +119,10 @@ class EditorViewModel(
             return
         }
         viewModelScope.launch {
+            // Unpinning clears any pending auto-unpin (now fulfilled); reflect it in the Advanced row.
             pinner.unpin(note.id)
-            loaded = note.copy(isPinned = false)
-            _uiState.update { it.copy(isPinned = false) }
+            loaded = note.copy(isPinned = false, unpinAt = null)
+            _uiState.update { it.copy(isPinned = false, unpinAt = null) }
         }
     }
 
@@ -134,6 +136,17 @@ class EditorViewModel(
             loaded = note.copy(isArchived = true, isPinned = false)
             _uiState.update { it.copy(isArchived = true, isPinned = false) }
             onComplete()
+        }
+    }
+
+    /// Snoozes an existing note: hides it now and re-pins it at [untilMillis] (reusing `pinAt`). Keeps any
+    /// auto-unpin window. A no-op for an unsaved note (the action is disabled until it's pinned).
+    fun snooze(untilMillis: Long) {
+        val note = loaded ?: return
+        viewModelScope.launch {
+            pinner.snooze(note.id, untilMillis)
+            loaded = note.copy(isPinned = false, pinAt = untilMillis)
+            _uiState.update { it.copy(isPinned = false, pinAt = untilMillis) }
         }
     }
 

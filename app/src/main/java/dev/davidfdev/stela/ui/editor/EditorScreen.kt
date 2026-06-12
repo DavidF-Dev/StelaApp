@@ -113,6 +113,7 @@ fun EditorRoute(
         onShare = { shareNote(context, displayTitle(state.emoji, state.title), state.description) },
         onSave = { viewModel.save(onDone) },
         onDelete = { viewModel.delete(onDone) },
+        onSnooze = viewModel::snooze,
         onBack = onDone,
     )
 }
@@ -132,6 +133,7 @@ fun EditorScreen(
     onShare: () -> Unit,
     onSave: () -> Unit,
     onDelete: () -> Unit,
+    onSnooze: (Long) -> Unit,
     onBack: () -> Unit,
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -190,6 +192,7 @@ fun EditorScreen(
                         onArchive = onToggleArchive,
                         onDelete = { showDeleteDialog = true },
                         onSave = { dismissKeyboard(); onSave() },
+                        onSnooze = onSnooze,
                         pinModifier = Modifier.graphicsLayer { scaleX = pinPop.value; scaleY = pinPop.value },
                     )
                 },
@@ -243,6 +246,7 @@ fun EditorScreen(
                     ScheduleControls(
                         pinAt = state.pinAt,
                         unpinAt = state.unpinAt,
+                        isPinned = state.isPinned,
                         onPinAtChange = onPinAtChange,
                         onUnpinAtChange = onUnpinAtChange,
                     )

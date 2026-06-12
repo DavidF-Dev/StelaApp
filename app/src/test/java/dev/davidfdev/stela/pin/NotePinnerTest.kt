@@ -318,4 +318,52 @@ class NotePinnerTest {
         assertTrue(f.repository.getById(id)!!.isPinned)
         assertEquals(null, f.repository.getById(id)!!.pinAt)
     }
+
+    @Test
+    fun pin_clearsPendingPinAt() = runTest {
+        val f = Fixture(now = 1_000L)
+        val id = f.repository.create(title = "A", description = "")
+        f.repository.setSchedule(id, pinAt = 5_000L, unpinAt = 9_000L)
+
+        f.pinner.pin(f.repository.getById(id)!!)
+
+        val note = f.repository.getById(id)!!
+        assertTrue(note.isPinned)
+        assertEquals(null, note.pinAt)
+        // Pinning leaves the auto-unpin window intact.
+        assertEquals(9_000L, note.unpinAt)
+        assertTrue(id in f.scheduler.cancelledPins)
+    }
+
+    @Test
+    fun unpin_clearsPendingUnpinAt() = runTest {
+        val f = Fixture(now = 1_000L)
+        val id = f.repository.create(title = "A", description = "")
+        f.pinner.pin(f.repository.getById(id)!!)
+        f.repository.setSchedule(id, pinAt = null, unpinAt = 9_000L)
+
+        f.pinner.unpin(id)
+
+        val note = f.repository.getById(id)!!
+        assertFalse(note.isPinned)
+        assertEquals(null, note.unpinAt)
+        assertTrue(id in f.scheduler.cancelledUnpins)
+    }
+
+    @Test
+    fun snooze_hidesNow_setsPinAt_andKeepsUnpinAt() = runTest {
+        val f = Fixture(now = 1_000L)
+        val id = f.repository.create(title = "A", description = "")
+        f.pinner.pin(f.repository.getById(id)!!)
+        f.repository.setSchedule(id, pinAt = null, unpinAt = 9_000L)
+
+        f.pinner.snooze(id, untilMillis = 5_000L)
+
+        val note = f.repository.getById(id)!!
+        assertFalse(note.isPinned)
+        assertEquals(5_000L, note.pinAt)
+        // Snooze, unlike a manual unpin, preserves the auto-unpin window.
+        assertEquals(9_000L, note.unpinAt)
+        assertEquals(5_000L, f.scheduler.scheduledPins[id])
+    }
 }

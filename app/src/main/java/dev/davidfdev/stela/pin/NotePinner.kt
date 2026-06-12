@@ -28,21 +28,27 @@ class NotePinner(
 
     /// Pins every note, posting each notification, then reconciles the service once
     /// for the whole batch. Pinning also unarchives, since a note is never both pinned
-    /// and archived.
+    /// and archived, and clears any pending auto-pin (now fulfilled).
     suspend fun pinAll(notes: List<Note>) {
         notes.forEach { note ->
             repository.setArchived(note.id, false)
             repository.setPinned(note.id, true)
             controller.pin(note.copy(isPinned = true, isArchived = false))
+            repository.clearPinAt(note.id)
+            pinScheduler.cancelPin(note.id)
         }
         reconcileService()
     }
 
-    /// Unpins every id, cancelling each notification, then reconciles the service once.
+    /// Unpins every id, cancelling each notification and any pending auto-unpin (now
+    /// fulfilled), then reconciles the service once. [snooze] deliberately bypasses this so
+    /// it can keep the unpin time.
     suspend fun unpinAll(noteIds: List<Long>) {
         noteIds.forEach { id ->
             repository.setPinned(id, false)
             controller.unpin(id)
+            repository.clearUnpinAt(id)
+            pinScheduler.cancelUnpin(id)
         }
         reconcileService()
     }
@@ -104,6 +110,20 @@ class NotePinner(
     suspend fun applySchedule(noteId: Long, pinAt: Long?, unpinAt: Long?) {
         repository.setSchedule(noteId, pinAt, unpinAt)
         repository.getById(noteId)?.let { reconcile(it) }
+    }
+
+    /// Snoozes a note: hides it from the tray now and re-pins it at [untilMillis] by reusing the auto-pin
+    /// schedule. Unlike a manual [unpin] this keeps any auto-unpin time, so the note's pin window survives
+    /// the snooze.
+    suspend fun snooze(noteId: Long, untilMillis: Long) {
+        val note = repository.getById(noteId) ?: return
+        // Hide it now without clearing unpinAt (so [unpinAll]'s clear is bypassed).
+        if (note.isPinned) {
+            repository.setPinned(noteId, false)
+            controller.unpin(noteId)
+        }
+        applySchedule(noteId, pinAt = untilMillis, unpinAt = note.unpinAt)
+        reconcileService()
     }
 
     /// Reconciles every scheduled note against the current time — fires past-due transitions
