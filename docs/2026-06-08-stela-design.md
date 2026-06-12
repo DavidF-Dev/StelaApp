@@ -398,6 +398,15 @@ unpinned note, the title heading hidden when editing, Share hidden on new notes,
 delete confirmations, prompt keyboard dismissal on exit, auto-focusing a new note's empty title, and
 extra bottom scroll room so the FAB no longer hides the last row's pin. See [CHANGELOG.md](../CHANGELOG.md).
 
+**v1.4.0 (released 2026/06/12):** the **quick-note popup** (a bottom-sheet editor floating over the screen
+from the notification / widget / pinned-note Edit; see [2026-06-11-quick-note-popup.md](2026-06-11-quick-note-popup.md)),
+the **Removal Preference** setting (Unpin / Archive / Delete, driving the notification remove action and
+swipe-to-remove), an **action-row overflow** tidy-up, and long-press **tooltips** on icon-only buttons (see
+[2026-06-12-action-overflow-removal-tooltips.md](2026-06-12-action-overflow-removal-tooltips.md)), plus the
+**launcher shortcuts + Quick Settings tile** (New quick note · View notes; see
+[2026-06-12-launcher-shortcut-qs-tile.md](2026-06-12-launcher-shortcut-qs-tile.md)) and matching widget ＋
+icon. See [CHANGELOG.md](../CHANGELOG.md).
+
 **Planned features (prioritized, 2026-06-10):** each is its own slice (spec → plan →
 implement); all keep the no-`INTERNET` invariant.
 1. **Undo-delete** *(done — v1.2.0)* — deleting from the list shows an "Undo" snackbar that
