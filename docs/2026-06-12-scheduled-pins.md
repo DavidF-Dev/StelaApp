@@ -109,8 +109,11 @@ Inside the (now non-empty) Advanced section in `EditorScreen`:
 
 - **"Pin at"** row — empty → a "Set" affordance opening a **date picker → time picker** (Material3
   `DatePickerDialog` + `TimePicker`); set → shows the formatted time with a **clear** (×). Constrained to
-  the future. **Always shown** (no hiding based on pin state — Q2/Q3).
-- **"Unpin at"** row — same pattern; constrained to after `pinAt` (if set) and the future. Always shown.
+  the future. *(As built: the row is **disabled while the note is pinned** — a pinned note has no pending
+  future pin — see the disabled-row note below. The original Q2/Q3 "always shown, never disabled" is
+  superseded.)*
+- **"Unpin at"** row — same pattern; constrained to after `pinAt` (if set) and the future. *(As built:
+  **disabled while the note is unpinned** — nothing to auto-unpin.)*
 - **State** lives in `EditorUiState` (`pinAt`/`unpinAt`) + `EditorViewModel`, seeded from the loaded note.
 - **Applied on Save** (recommended — Q1): the times are note data; Save persists them and (re)runs the
   scheduler for this note. For a **new** note, scheduling happens after the note is created (it needs an
@@ -176,6 +179,9 @@ path. Contained by the interval model (reconcile is a pure function) and by reus
 2/3. **No context-sensitive controls.** Both pickers always show. `pinAt` and `unpinAt` are independent
    one-shot timers: firing into an already-reached state is a **no-op** (pin-at when already pinned → no-op;
    unpin-at when already unpinned → no-op). No special pin-toggle coupling, no hiding/disabling.
+   *(Superseded 2026-06-12: once the snooze slice made pin clear `pinAt` and unpin clear `unpinAt`, a
+   pinned note can never carry a pending `pinAt` and vice-versa, so each row is now **disabled** in the
+   state where its time is always empty — "Pin at" while pinned, "Unpin at" while unpinned.)*
 4. **Validation:** pickers constrain to the future; unpin-at's minimum is `pinAt` when one is set.
 5. **Reconcile snaps to the correct current state** (the table above). A window entirely in the past lands
    unpinned and clears both — a long-missed pin does **not** fire late.
@@ -210,6 +216,13 @@ Built across the three planned slices; specifics where reality differed or is wo
   `EditorUiState` (`pinAt`/`unpinAt`), applied on Save via `pinner.applySchedule`. The date picker disables
   past days; a same-day earlier time is allowed and simply fires at once (a past time = pin now). Strings
   externalised.
+- **Disabled rows** *(2026-06-12, follow-up)*: `ScheduleControls` takes `isPinned` and **disables** the
+  "Pin at" row while pinned and the "Unpin at" row while unpinned (greyed label/value at 0.38 alpha, Set/
+  Change button disabled). This follows directly from the snooze-slice clearing rules: a pinned note always
+  has `pinAt == null` and an unpinned note always has `unpinAt == null`, so a disabled row always reads
+  "Not set" — no value is ever stranded behind a disabled control. Tied to `EditorViewModel.pin/unpin` also
+  clearing the matching time in `EditorUiState`/`loaded`, so the row clears live (and a later Save doesn't
+  re-write the stale time).
 - **Tests:** `PinScheduleTest` (the pure decision, table-driven), `NotePinnerTest` additions (apply/arm,
   past-pin fires, archive cancels, reconcile), an `EditorViewModelTest` schedule-persistence case, a
   `BackupCodecTest` drop-on-import case, and the 3→4 `MigrationTest`. Full picker interaction is covered by

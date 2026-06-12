@@ -513,7 +513,11 @@ Shares the `EditorViewModel` + extracted `NoteFields` / emoji picker / `NoteEdit
 editor to avoid a second editor to maintain. A new transparent `QuickNoteActivity` (its own task, one
 instance) hosts a Compose `ModalBottomSheet`; the Expand hand-off rides a process-scoped `NoteDraft`
 (`AppContainer.pendingDraft`) consumed by `EditorViewModel`. Behind a secure lock screen the popup is
-skipped, falling back to the full editor.
+skipped, falling back to the full editor. *(Follow-up 2026-06-12 — see
+[2026-06-12-foreground-popup-routing.md](2026-06-12-foreground-popup-routing.md): the popup is also
+skipped when `MainActivity` is already on-screen (`AppContainer.isMainActivityVisible`, set from its
+onStart/onStop), routing the trigger into the open app instead — the popup exists to float over *other*
+apps, and floating over our own UI opened a second editor for the same note.)*
 
 **Support purchase ("Supporter" gesture) *(deferred — findings recorded 2026-06-11; see
 [2026-06-11-support-purchase.md](2026-06-11-support-purchase.md))*:** a purely support-based, one-time
