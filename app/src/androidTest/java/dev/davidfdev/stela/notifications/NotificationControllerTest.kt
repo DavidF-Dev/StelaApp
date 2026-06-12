@@ -5,7 +5,9 @@ import android.app.NotificationManager
 import android.content.Context
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import dev.davidfdev.stela.R
 import dev.davidfdev.stela.data.Note
+import dev.davidfdev.stela.settings.RemovalPreference
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -72,6 +74,34 @@ class NotificationControllerTest {
 
         waitUntil { manager.activeNotifications.none { it.id == id } }
         assertFalse(manager.activeNotifications.any { it.id == id })
+    }
+
+    @Test
+    fun pin_removeActionLabel_reflectsRemovalPreference() {
+        controller.removalPreference = RemovalPreference.ARCHIVE
+        val id = notificationId(9L)
+
+        controller.pin(pinnedNote(9L))
+
+        waitUntil { manager.activeNotifications.any { it.id == id } }
+        val posted = manager.activeNotifications.first { it.id == id }
+        // Action 0 is Edit; action 1 is the remove action, labelled by the preference.
+        assertEquals(
+            context.getString(R.string.notification_action_archive),
+            posted.notification.actions[1].title.toString(),
+        )
+    }
+
+    @Test
+    fun pin_swipeToRemove_makesNotificationDismissable() {
+        controller.swipeToRemove = true
+        val id = notificationId(10L)
+
+        controller.pin(pinnedNote(10L))
+
+        waitUntil { manager.activeNotifications.any { it.id == id } }
+        val posted = manager.activeNotifications.first { it.id == id }
+        assertFalse(posted.isOngoing)
     }
 
     private fun pinnedNote(id: Long) =

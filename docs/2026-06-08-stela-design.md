@@ -173,8 +173,11 @@ data class Note(
    - **Hide on lock screen** — when on, pinned-note notifications are hidden on a
      secure lock screen (notification visibility SECRET) — *Phase 5* (default off).
    - Toggle the persistent **quick-add** notification.
-   - **Swipe to unpin** — when on, swiping a pinned notification unpins it instead of
-     self-healing — *v1.1* (default off).
+   - **Swipe to remove** — when on, swiping a pinned notification removes it (per the
+     Removal Preference) instead of self-healing — *v1.1; generalised v1.4.0* (default off).
+   - **Remove action** — the Removal Preference: what removing a pinned note does
+     (**Unpin** / **Archive** / **Delete**) — applies to the notification's remove action and to a
+     swipe-to-remove. *v1.4.0* (default Unpin; Delete is permanent and carries a Settings warning).
    - **Battery optimisation** helper — a guidance dialog (manual steps + a best-effort
      "open settings" shortcut), since the system screen is unreliable on some OEMs.
    - **OEM autostart** helper — same guidance dialog; shown for any known aggressive OEM.
@@ -188,13 +191,14 @@ data class Note(
 - Small icon: the note's **silhouette** icon (monochrome; Android tints it).
 - Large icon (optional): a colored version for in-tray richness.
 - Title = the note title; **content line = the note description when present**, falling
-  back to the **"Tap to edit or unpin"** hint only when the description is empty (so a
+  back to the **"Tap to edit or remove"** hint only when the description is empty (so a
   title-only note still has a useful, action-pointing line). *(Implemented 2026-06-09.)*
-- Actions: **Edit** (opens the quick-note popup) · **Unpin** (the note is kept, not deleted). Swiping
-  the notification also unpins it when **"Swipe to unpin"** is enabled; otherwise it self-heals.
-  *(Unpin rename + swipe-to-unpin: 2026-06-10.)* (An **Archive** action shipped 2026-06-11 then was
-  **removed** the same day — archiving stays reachable from the editor and the popup, keeping the
-  notification to two actions.)
+- Actions: **Edit** (opens the quick-note popup) · **Remove**, whose label and effect follow the
+  **Removal Preference** — **Unpin** (note kept) / **Archive** / **Delete** (permanent) — *v1.4.0*.
+  Swiping the notification performs the same removal when **"Swipe to remove"** is enabled; otherwise it
+  self-heals. *(Unpin rename + swipe-to-unpin: 2026-06-10; generalised to the Removal Preference 2026-06-12.
+  An **Archive** action briefly existed 2026-06-11 then was removed; archiving is reachable from the
+  editor/popup and now as a removal mode.)*
 - **Tapping the body opens the quick-note popup** for that note. *(Body tap implemented 2026-06-09;
   retargeted from the editor to the popup with the v1.4.0 quick-note popup.)*
 
@@ -460,16 +464,16 @@ Lower priority, kept deferred: an in-app language picker.
 quick-note popup directly — extending the glanceable, no-app-open entry beyond the notification and
 widget. Its own slice; reuses `QuickNoteActivity.newNoteIntent`.
 
-**Action-row overflow · Removal Preference · Tooltips *(planned — queued 2026-06-12; see
+**Action-row overflow · Removal Preference · Tooltips *(2026-06-12; A + B done, C planned; see
 [2026-06-12-action-overflow-removal-tooltips.md](2026-06-12-action-overflow-removal-tooltips.md))*:**
-three independent slices. **A** — fix the cramped existing-note action row: move Expand (popup) /
-Share / Archive/Restore into an overflow (`⋮`) menu, tighten the popup row insets, and turn Save into a
-`FilledIconButton` check (locale-stable, primary-emphasis). **B** — a **Removal Preference** setting
-(Unpin / Archive / Delete, default Unpin) that drives both the notification's remove action and the
-swipe (renamed "Swipe to remove"); the action label reflects the chosen mode, and Delete is allowed
-with a Settings warning. **C** — long-press **tooltips** on icon-only buttons (editor/popup, List,
-Archived) via a shared `TooltipIconButton`; depends on A (its button set shifts to icon Save + overflow
-items). Sequence A → C; B independent.
+three independent slices. **A *(done)*** — fixed the cramped existing-note action row: moved Expand
+(popup) / Share / Archive/Restore into an overflow (`⋮`) menu, tightened the popup row insets, and
+turned Save into a `FilledIconButton` check (locale-stable, primary-emphasis). **B *(done)*** — a
+**Removal Preference** setting (Unpin / Archive / Delete, default Unpin) that drives both the
+notification's remove action and the swipe (renamed "Swipe to remove"); the action label reflects the
+chosen mode, and Delete is allowed with a Settings warning. **C *(planned)*** — long-press **tooltips**
+on icon-only buttons (editor/popup, List, Archived) via a shared `TooltipIconButton`; depends on A (its
+button set shifted to icon Save + overflow items).
 
 **Quick-note popup *(done — v1.4.0; see [2026-06-11-quick-note-popup.md](2026-06-11-quick-note-popup.md))*:**
 a bottom-sheet editor that floats over the screen from the quick-add notification / body tap, the widget

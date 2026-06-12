@@ -104,8 +104,11 @@
     <string name="settings_quick_add_summary">A persistent entry to add a note from the tray.</string>
     <string name="settings_hide_lock_title">Hide on lock screen</string>
     <string name="settings_hide_lock_summary">Hide pinned notes on a secure lock screen.</string>
-    <string name="settings_swipe_unpin_title">Swipe to unpin</string>
-    <string name="settings_swipe_unpin_summary">Swipe a pinned note\'s notification away to unpin it.</string>
+    <string name="settings_swipe_remove_title">Swipe to remove</string>
+    <string name="settings_swipe_remove_summary">Swipe a pinned note\'s notification away to remove it, instead of it self-healing.</string>
+    <string name="settings_removal_title">Remove action</string>
+    <string name="settings_removal_summary">What removing a pinned note does — from the Remove action or by swiping it away.</string>
+    <string name="settings_removal_delete_warning">Delete is permanent — a note removed this way can\'t be recovered.</string>
     <string name="settings_battery_title">Battery optimisation</string>
     <string name="settings_battery_exempt">Exempt — Stela can run freely.</string>
     <string name="settings_battery_not_exempt">Not exempt — Stela may be killed in the background.</string>
@@ -177,10 +180,11 @@
     <string name="channel_service_status_name">Running in background</string>
 
     <!-- Notification content -->
-    <string name="notification_pinned_hint">Tap to edit or unpin</string>
+    <string name="notification_pinned_hint">Tap to edit or remove</string>
     <string name="notification_action_edit">Edit</string>
     <string name="notification_action_unpin">Unpin</string>
     <string name="notification_action_archive">Archive</string>
+    <string name="notification_action_delete">Delete</string>
     <string name="notification_action_new_note">New note</string>
     <string name="notification_action_view_notes">View notes</string>
     <string name="quick_add_title">New Stela note</string>

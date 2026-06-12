@@ -15,7 +15,8 @@ interface SettingsRepository {
     suspend fun setThemeMode(mode: ThemeMode)
     suspend fun setHideOnLockScreen(value: Boolean)
     suspend fun setQuickAddEnabled(value: Boolean)
-    suspend fun setSwipeToUnpin(value: Boolean)
+    suspend fun setSwipeToRemove(value: Boolean)
+    suspend fun setRemovalPreference(value: RemovalPreference)
     suspend fun setSortOrder(value: SortOrder)
     suspend fun setSortReversed(value: Boolean)
     suspend fun setNoteFilter(value: NoteFilter)
@@ -39,8 +40,12 @@ class DataStoreSettingsRepository(
         dataStore.edit { it[SettingsKeys.QUICK_ADD_ENABLED] = value }
     }
 
-    override suspend fun setSwipeToUnpin(value: Boolean) {
-        dataStore.edit { it[SettingsKeys.SWIPE_TO_UNPIN] = value }
+    override suspend fun setSwipeToRemove(value: Boolean) {
+        dataStore.edit { it[SettingsKeys.SWIPE_TO_REMOVE] = value }
+    }
+
+    override suspend fun setRemovalPreference(value: RemovalPreference) {
+        dataStore.edit { it[SettingsKeys.REMOVAL_PREFERENCE] = value.name }
     }
 
     override suspend fun setSortOrder(value: SortOrder) {
@@ -60,7 +65,9 @@ internal object SettingsKeys {
     val THEME_MODE = stringPreferencesKey("theme_mode")
     val HIDE_ON_LOCK_SCREEN = booleanPreferencesKey("hide_on_lock_screen")
     val QUICK_ADD_ENABLED = booleanPreferencesKey("quick_add_enabled")
-    val SWIPE_TO_UNPIN = booleanPreferencesKey("swipe_to_unpin")
+    // Persisted key kept as "swipe_to_unpin" for back-compat; the setting now means "swipe to remove".
+    val SWIPE_TO_REMOVE = booleanPreferencesKey("swipe_to_unpin")
+    val REMOVAL_PREFERENCE = stringPreferencesKey("removal_preference")
     val SORT_ORDER = stringPreferencesKey("sort_order")
     val SORT_REVERSED = booleanPreferencesKey("sort_reversed")
     val NOTE_FILTER = stringPreferencesKey("note_filter")
@@ -79,11 +86,15 @@ fun settingsFromPreferences(prefs: Preferences): Settings {
     val noteFilter = prefs[SettingsKeys.NOTE_FILTER]
         ?.let { runCatching { NoteFilter.valueOf(it) }.getOrNull() }
         ?: defaults.noteFilter
+    val removalPreference = prefs[SettingsKeys.REMOVAL_PREFERENCE]
+        ?.let { runCatching { RemovalPreference.valueOf(it) }.getOrNull() }
+        ?: defaults.removalPreference
     return Settings(
         themeMode = themeMode,
         hideOnLockScreen = prefs[SettingsKeys.HIDE_ON_LOCK_SCREEN] ?: defaults.hideOnLockScreen,
         quickAddEnabled = prefs[SettingsKeys.QUICK_ADD_ENABLED] ?: defaults.quickAddEnabled,
-        swipeToUnpin = prefs[SettingsKeys.SWIPE_TO_UNPIN] ?: defaults.swipeToUnpin,
+        swipeToRemove = prefs[SettingsKeys.SWIPE_TO_REMOVE] ?: defaults.swipeToRemove,
+        removalPreference = removalPreference,
         sortOrder = sortOrder,
         sortReversed = prefs[SettingsKeys.SORT_REVERSED] ?: defaults.sortReversed,
         noteFilter = noteFilter,

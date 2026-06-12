@@ -10,10 +10,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-/// Receives notification PendingIntents — deliberately not the UI. Handles Unpin (the
-/// note is kept, not deleted), Reassert (re-post a swiped pin), and ReassertService
-/// (re-post the swiped foreground-service notification) — the self-heals triggered by a
-/// notification's deleteIntent.
+/// Receives notification PendingIntents — deliberately not the UI. Handles the three remove modes
+/// (Unpin / Archive / Delete — the remove action and a swipe-to-remove resolve to one of these),
+/// Reassert (re-post a swiped pin), and ReassertService (re-post the swiped foreground-service
+/// notification) — the self-heals triggered by a notification's deleteIntent.
 class NotificationActionReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -29,6 +29,13 @@ class NotificationActionReceiver : BroadcastReceiver() {
                 val noteId = intent.noteId() ?: return
                 runAsync {
                     container.noteRepository.getById(noteId)?.let { container.notePinner.archive(it) }
+                }
+            }
+
+            ACTION_DELETE -> {
+                val noteId = intent.noteId() ?: return
+                runAsync {
+                    container.noteRepository.getById(noteId)?.let { container.notePinner.delete(it) }
                 }
             }
 
@@ -69,6 +76,7 @@ class NotificationActionReceiver : BroadcastReceiver() {
     companion object {
         private const val ACTION_UNPIN = "dev.davidfdev.stela.action.UNPIN"
         private const val ACTION_ARCHIVE = "dev.davidfdev.stela.action.ARCHIVE"
+        private const val ACTION_DELETE = "dev.davidfdev.stela.action.DELETE"
         private const val ACTION_REASSERT = "dev.davidfdev.stela.action.REASSERT"
         private const val ACTION_REASSERT_SERVICE = "dev.davidfdev.stela.action.REASSERT_SERVICE"
         private const val EXTRA_NOTE_ID = "noteId"
@@ -79,6 +87,9 @@ class NotificationActionReceiver : BroadcastReceiver() {
 
         fun archiveIntent(context: Context, noteId: Long): Intent =
             actionIntent(context, ACTION_ARCHIVE, noteId)
+
+        fun deleteIntent(context: Context, noteId: Long): Intent =
+            actionIntent(context, ACTION_DELETE, noteId)
 
         fun reassertIntent(context: Context, noteId: Long): Intent =
             actionIntent(context, ACTION_REASSERT, noteId)

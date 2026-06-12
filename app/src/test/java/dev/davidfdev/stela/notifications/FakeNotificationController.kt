@@ -1,6 +1,7 @@
 package dev.davidfdev.stela.notifications
 
 import dev.davidfdev.stela.data.Note
+import dev.davidfdev.stela.settings.RemovalPreference
 
 /// Records calls so JVM tests can assert what the pin flow posted, without the
 /// platform NotificationManager.
@@ -11,7 +12,8 @@ class FakeNotificationController : NotificationController {
     val serviceReasserts = mutableListOf<Boolean>()
 
     override var hideOnLockScreen: Boolean = false
-    override var swipeToUnpin: Boolean = false
+    override var swipeToRemove: Boolean = false
+    override var removalPreference: RemovalPreference = RemovalPreference.UNPIN
 
     override fun pin(note: Note) { pinned += note }
     override fun unpin(noteId: Long) { unpinned += noteId }

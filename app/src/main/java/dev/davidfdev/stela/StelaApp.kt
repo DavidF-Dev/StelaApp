@@ -58,18 +58,19 @@ class StelaApp : Application() {
         }
     }
 
-    /// Keeps the controller's pinned-notification flags (lock-screen visibility,
-    /// swipe-to-unpin) in sync with preferences, and re-asserts pinned notifications when
-    /// either changes so already-posted ones update. The first emission only seeds the
-    /// values (no re-post on every launch).
+    /// Keeps the controller's pinned-notification settings (lock-screen visibility, swipe-to-remove,
+    /// removal preference) in sync with preferences, and re-asserts pinned notifications when any
+    /// changes so already-posted ones update (the removal preference changes their action label/intent).
+    /// The first emission only seeds the values (no re-post on every launch).
     private fun observePinnedNotificationPreferences() {
         scope.launch {
             container.settingsRepository.settings
-                .map { it.hideOnLockScreen to it.swipeToUnpin }
+                .map { Triple(it.hideOnLockScreen, it.swipeToRemove, it.removalPreference) }
                 .distinctUntilChanged()
-                .collectIndexed { index, (hide, swipe) ->
+                .collectIndexed { index, (hide, swipe, removal) ->
                     container.notificationController.hideOnLockScreen = hide
-                    container.notificationController.swipeToUnpin = swipe
+                    container.notificationController.swipeToRemove = swipe
+                    container.notificationController.removalPreference = removal
                     if (index > 0) container.notePinner.reassertPinned()
                 }
         }

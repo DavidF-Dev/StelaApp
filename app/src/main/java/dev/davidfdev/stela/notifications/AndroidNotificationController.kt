@@ -12,6 +12,7 @@ import dev.davidfdev.stela.MainActivity
 import dev.davidfdev.stela.R
 import dev.davidfdev.stela.data.Note
 import dev.davidfdev.stela.data.displayTitle
+import dev.davidfdev.stela.settings.RemovalPreference
 import dev.davidfdev.stela.ui.quicknote.QuickNoteActivity
 
 /// The sole class that touches the platform notification system. Builds an ongoing
@@ -25,7 +26,10 @@ class AndroidNotificationController(private val context: Context) : Notification
     override var hideOnLockScreen: Boolean = false
 
     @Volatile
-    override var swipeToUnpin: Boolean = false
+    override var swipeToRemove: Boolean = false
+
+    @Volatile
+    override var removalPreference: RemovalPreference = RemovalPreference.UNPIN
 
     init {
         val pinned = NotificationChannelCompat.Builder(CHANNEL_PINNED, NotificationManagerCompat.IMPORTANCE_DEFAULT)
@@ -74,16 +78,17 @@ class AndroidNotificationController(private val context: Context) : Notification
             .setColor(context.getColor(R.color.brand_indigo))
             .setContentTitle(note.displayTitle)
             .setContentIntent(editIntent(note.id))
-            // Non-ongoing (swipeable) when the user opted into swipe-to-unpin.
-            .setOngoing(!swipeToUnpin)
+            // Non-ongoing (swipeable) when the user opted into swipe-to-remove.
+            .setOngoing(!swipeToRemove)
             .setOnlyAlertOnce(true)
             .setSilent(true)
             .setShowWhen(false)
             .setVisibility(visibility)
-            // On swipe: unpin if the user opted in, else self-heal by re-posting.
-            .setDeleteIntent(if (swipeToUnpin) unpinIntent(note.id) else reassertIntent(note.id))
+            // On swipe: remove per the preference if the user opted in, else self-heal by re-posting.
+            .setDeleteIntent(if (swipeToRemove) removeIntent(note.id) else reassertIntent(note.id))
             .addAction(0, context.getString(R.string.notification_action_edit), editIntent(note.id))
-            .addAction(0, context.getString(R.string.notification_action_unpin), unpinIntent(note.id))
+            // The remove action's label reflects what it does (Unpin / Archive / Delete).
+            .addAction(0, context.getString(removeActionLabelRes()), removeIntent(note.id))
         if (note.description.isNotBlank()) {
             builder.setContentText(note.description)
                 .setStyle(NotificationCompat.BigTextStyle().bigText(note.description))
@@ -100,9 +105,20 @@ class AndroidNotificationController(private val context: Context) : Notification
         return PendingIntent.getActivity(context, notificationId(noteId), intent, PENDING_FLAGS)
     }
 
-    private fun unpinIntent(noteId: Long): PendingIntent {
-        val intent = NotificationActionReceiver.unpinIntent(context, noteId)
+    // The remove action and the swipe both perform the current removal preference.
+    private fun removeIntent(noteId: Long): PendingIntent {
+        val intent = when (removalPreference) {
+            RemovalPreference.UNPIN -> NotificationActionReceiver.unpinIntent(context, noteId)
+            RemovalPreference.ARCHIVE -> NotificationActionReceiver.archiveIntent(context, noteId)
+            RemovalPreference.DELETE -> NotificationActionReceiver.deleteIntent(context, noteId)
+        }
         return PendingIntent.getBroadcast(context, notificationId(noteId), intent, PENDING_FLAGS)
+    }
+
+    private fun removeActionLabelRes(): Int = when (removalPreference) {
+        RemovalPreference.UNPIN -> R.string.notification_action_unpin
+        RemovalPreference.ARCHIVE -> R.string.notification_action_archive
+        RemovalPreference.DELETE -> R.string.notification_action_delete
     }
 
     private fun reassertIntent(noteId: Long): PendingIntent {

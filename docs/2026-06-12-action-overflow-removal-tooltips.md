@@ -1,6 +1,6 @@
 # Action-row overflow · Removal Preference · Tooltips — implementation plan
 
-> Status: 2026-06-12 · three independent slices. **Slice A implemented; B and C planned.**
+> Status: 2026-06-12 · three independent slices. **Slices A and B implemented; C planned.**
 >
 > Motivation: on a real device the existing-note popup's action row packs **seven** hit targets
 > (Back · Expand · Share · Pin/Unpin · Archive · Delete · Save) into a fixed-width row, which squeezes
@@ -93,6 +93,17 @@ grab-bag for no discoverability gain. Not part of this slice.
 ---
 
 ## Slice B — Removal Preference setting
+
+> **Implemented 2026-06-12.** As-built per the plan. `RemovalPreference { UNPIN, ARCHIVE, DELETE }`
+> (default UNPIN) in `Settings`; the `swipeToUnpin` field/method/UI renamed to `swipeToRemove` (DataStore
+> key string kept as `"swipe_to_unpin"` for back-compat). `AndroidNotificationController` gained a
+> volatile `removalPreference`; `post()` picks the remove action's label (Unpin/Archive/Delete) and
+> intent, and the swipe `deleteIntent`, by mode. `NotificationActionReceiver` added `ACTION_DELETE`.
+> `StelaApp` observes the preference and re-asserts pinned notes on change. Settings shows the
+> radio choice + a delete warning (shown when DELETE is selected). The stale `notification_pinned_hint`
+> "…or unpin" became "…or remove". Verified on the emulator end-to-end (set Archive → the action read
+> "Archive" → tapping it archived the note). Tests: settings round-trip/fallback (unit) + two new
+> `NotificationControllerTest` cases (action label reflects mode; swipe-to-remove makes it dismissable).
 
 ### Goal
 Generalise the notification's single "remove" gesture so the user picks what it does: **Unpin**,

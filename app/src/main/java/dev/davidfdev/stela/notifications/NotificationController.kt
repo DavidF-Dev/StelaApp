@@ -1,6 +1,7 @@
 package dev.davidfdev.stela.notifications
 
 import dev.davidfdev.stela.data.Note
+import dev.davidfdev.stela.settings.RemovalPreference
 
 /// The only abstraction the rest of the app uses to drive pinned-note
 /// notifications. Its sole implementation is the single class permitted to touch
@@ -10,9 +11,13 @@ interface NotificationController {
     /// Set from the user's preference; applied to notifications built afterward.
     var hideOnLockScreen: Boolean
 
-    /// When true, swiping a pinned notification unpins it instead of self-healing.
-    /// Set from the user's preference; applied to notifications built afterward.
-    var swipeToUnpin: Boolean
+    /// When true, swiping a pinned notification removes it (per [removalPreference]) instead of
+    /// self-healing. Set from the user's preference; applied to notifications built afterward.
+    var swipeToRemove: Boolean
+
+    /// What the notification's remove action — and a swipe when [swipeToRemove] is on — does to the
+    /// note. Set from the user's preference; applied to notifications built afterward.
+    var removalPreference: RemovalPreference
 
     fun pin(note: Note)
     fun unpin(noteId: Long)

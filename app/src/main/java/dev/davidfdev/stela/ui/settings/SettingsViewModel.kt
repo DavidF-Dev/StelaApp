@@ -13,6 +13,7 @@ import dev.davidfdev.stela.data.BackupIo
 import dev.davidfdev.stela.data.Note
 import dev.davidfdev.stela.data.NoteRepository
 import dev.davidfdev.stela.pin.NotePinner
+import dev.davidfdev.stela.settings.RemovalPreference
 import dev.davidfdev.stela.settings.Settings
 import dev.davidfdev.stela.settings.SettingsRepository
 import dev.davidfdev.stela.settings.ThemeMode
@@ -118,8 +119,12 @@ class SettingsViewModel(
         viewModelScope.launch { repository.setQuickAddEnabled(value) }
     }
 
-    fun setSwipeToUnpin(value: Boolean) {
-        viewModelScope.launch { repository.setSwipeToUnpin(value) }
+    fun setSwipeToRemove(value: Boolean) {
+        viewModelScope.launch { repository.setSwipeToRemove(value) }
+    }
+
+    fun setRemovalPreference(value: RemovalPreference) {
+        viewModelScope.launch { repository.setRemovalPreference(value) }
     }
 
     companion object {

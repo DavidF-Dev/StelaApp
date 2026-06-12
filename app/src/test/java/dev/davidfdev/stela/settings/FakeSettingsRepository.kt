@@ -21,8 +21,12 @@ class FakeSettingsRepository(initial: Settings = Settings()) : SettingsRepositor
         state.update { it.copy(quickAddEnabled = value) }
     }
 
-    override suspend fun setSwipeToUnpin(value: Boolean) {
-        state.update { it.copy(swipeToUnpin = value) }
+    override suspend fun setSwipeToRemove(value: Boolean) {
+        state.update { it.copy(swipeToRemove = value) }
+    }
+
+    override suspend fun setRemovalPreference(value: RemovalPreference) {
+        state.update { it.copy(removalPreference = value) }
     }
 
     override suspend fun setSortOrder(value: SortOrder) {

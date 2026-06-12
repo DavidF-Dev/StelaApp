@@ -49,6 +49,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.davidfdev.stela.R
 import dev.davidfdev.stela.resilience.DeviceResilience
 import dev.davidfdev.stela.ui.SectionHeader
+import dev.davidfdev.stela.settings.RemovalPreference
 import dev.davidfdev.stela.settings.Settings
 import dev.davidfdev.stela.settings.ThemeMode
 import dev.davidfdev.stela.ui.openAppNotificationSettings
@@ -133,7 +134,8 @@ fun SettingsRoute(
         autostartAvailable = autostartAvailable,
         onThemeModeChange = viewModel::setThemeMode,
         onHideOnLockScreenChange = viewModel::setHideOnLockScreen,
-        onSwipeToUnpinChange = viewModel::setSwipeToUnpin,
+        onSwipeToRemoveChange = viewModel::setSwipeToRemove,
+        onRemovalPreferenceChange = viewModel::setRemovalPreference,
         onQuickAddEnabledChange = { enabled ->
             if (enabled) gate { viewModel.setQuickAddEnabled(true) } else viewModel.setQuickAddEnabled(false)
         },
@@ -159,7 +161,8 @@ fun SettingsScreen(
     autostartAvailable: Boolean,
     onThemeModeChange: (ThemeMode) -> Unit,
     onHideOnLockScreenChange: (Boolean) -> Unit,
-    onSwipeToUnpinChange: (Boolean) -> Unit,
+    onSwipeToRemoveChange: (Boolean) -> Unit,
+    onRemovalPreferenceChange: (RemovalPreference) -> Unit,
     onQuickAddEnabledChange: (Boolean) -> Unit,
     onOpenBatterySettings: () -> Unit,
     onOpenAutostart: () -> Unit,
@@ -192,7 +195,7 @@ fun SettingsScreen(
         ) {
             SectionHeader(stringResource(R.string.settings_section_theme))
             ThemeMode.entries.forEach { mode ->
-                ThemeOptionRow(
+                RadioOptionRow(
                     label = stringResource(themeModeLabelRes(mode)),
                     selected = state.themeMode == mode,
                     onSelect = { onThemeModeChange(mode) },
@@ -215,12 +218,32 @@ fun SettingsScreen(
                 },
             )
             ListItem(
-                headlineContent = { Text(stringResource(R.string.settings_swipe_unpin_title)) },
-                supportingContent = { Text(stringResource(R.string.settings_swipe_unpin_summary)) },
+                headlineContent = { Text(stringResource(R.string.settings_swipe_remove_title)) },
+                supportingContent = { Text(stringResource(R.string.settings_swipe_remove_summary)) },
                 trailingContent = {
-                    Switch(checked = state.swipeToUnpin, onCheckedChange = onSwipeToUnpinChange)
+                    Switch(checked = state.swipeToRemove, onCheckedChange = onSwipeToRemoveChange)
                 },
             )
+            // What the remove action — and a swipe-to-remove — does to the note.
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.settings_removal_title)) },
+                supportingContent = { Text(stringResource(R.string.settings_removal_summary)) },
+            )
+            RemovalPreference.entries.forEach { preference ->
+                RadioOptionRow(
+                    label = stringResource(removalPreferenceLabelRes(preference)),
+                    selected = state.removalPreference == preference,
+                    onSelect = { onRemovalPreferenceChange(preference) },
+                )
+            }
+            if (state.removalPreference == RemovalPreference.DELETE) {
+                Text(
+                    text = stringResource(R.string.settings_removal_delete_warning),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                )
+            }
 
             SectionHeader(stringResource(R.string.settings_section_keep_alive))
             ListItem(
@@ -349,7 +372,7 @@ private fun OemGuidanceDialog(
 }
 
 @Composable
-private fun ThemeOptionRow(label: String, selected: Boolean, onSelect: () -> Unit) {
+private fun RadioOptionRow(label: String, selected: Boolean, onSelect: () -> Unit) {
     ListItem(
         headlineContent = { Text(label) },
         leadingContent = { RadioButton(selected = selected, onClick = null) },
@@ -364,4 +387,11 @@ private fun themeModeLabelRes(mode: ThemeMode): Int = when (mode) {
     ThemeMode.LIGHT -> R.string.theme_light
     ThemeMode.DARK -> R.string.theme_dark
     ThemeMode.SYSTEM -> R.string.theme_system
+}
+
+@StringRes
+private fun removalPreferenceLabelRes(preference: RemovalPreference): Int = when (preference) {
+    RemovalPreference.UNPIN -> R.string.action_unpin
+    RemovalPreference.ARCHIVE -> R.string.action_archive
+    RemovalPreference.DELETE -> R.string.action_delete
 }

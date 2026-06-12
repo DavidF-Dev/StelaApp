@@ -15,7 +15,8 @@ class SettingsMappingTest {
         assertEquals(ThemeMode.SYSTEM, settings.themeMode)
         assertFalse(settings.hideOnLockScreen)
         assertTrue(settings.quickAddEnabled)
-        assertFalse(settings.swipeToUnpin)
+        assertFalse(settings.swipeToRemove)
+        assertEquals(RemovalPreference.UNPIN, settings.removalPreference)
         assertEquals(SortOrder.MODIFIED, settings.sortOrder)
         assertFalse(settings.sortReversed)
         assertEquals(NoteFilter.ALL, settings.noteFilter)
@@ -27,7 +28,8 @@ class SettingsMappingTest {
             SettingsKeys.THEME_MODE to ThemeMode.LIGHT.name,
             SettingsKeys.HIDE_ON_LOCK_SCREEN to true,
             SettingsKeys.QUICK_ADD_ENABLED to false,
-            SettingsKeys.SWIPE_TO_UNPIN to true,
+            SettingsKeys.SWIPE_TO_REMOVE to true,
+            SettingsKeys.REMOVAL_PREFERENCE to RemovalPreference.ARCHIVE.name,
             SettingsKeys.SORT_ORDER to SortOrder.TITLE.name,
             SettingsKeys.SORT_REVERSED to true,
             SettingsKeys.NOTE_FILTER to NoteFilter.PINNED.name,
@@ -38,7 +40,8 @@ class SettingsMappingTest {
         assertEquals(ThemeMode.LIGHT, settings.themeMode)
         assertTrue(settings.hideOnLockScreen)
         assertFalse(settings.quickAddEnabled)
-        assertTrue(settings.swipeToUnpin)
+        assertTrue(settings.swipeToRemove)
+        assertEquals(RemovalPreference.ARCHIVE, settings.removalPreference)
         assertEquals(SortOrder.TITLE, settings.sortOrder)
         assertTrue(settings.sortReversed)
         assertEquals(NoteFilter.PINNED, settings.noteFilter)
@@ -52,15 +55,17 @@ class SettingsMappingTest {
     }
 
     @Test
-    fun unparsableSortAndFilter_fallBackToDefaults() {
+    fun unparsableSortFilterAndRemoval_fallBackToDefaults() {
         val prefs = mutablePreferencesOf(
             SettingsKeys.SORT_ORDER to "SIDEWAYS",
             SettingsKeys.NOTE_FILTER to "MAYBE",
+            SettingsKeys.REMOVAL_PREFERENCE to "SHRED",
         )
 
         val settings = settingsFromPreferences(prefs)
 
         assertEquals(SortOrder.MODIFIED, settings.sortOrder)
         assertEquals(NoteFilter.ALL, settings.noteFilter)
+        assertEquals(RemovalPreference.UNPIN, settings.removalPreference)
     }
 }

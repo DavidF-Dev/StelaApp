@@ -14,7 +14,7 @@ Read it before making architectural decisions; this file is only a quick orienta
 | Language     | Kotlin                                              |
 | UI           | Jetpack Compose (Material 3; Light/Dark/System theme) |
 | Storage      | Room (SQLite, schema v3), offline                   |
-| Preferences  | Jetpack DataStore (theme, quick-add, lock-screen, swipe-to-unpin, list sort/filter) |
+| Preferences  | Jetpack DataStore (theme, quick-add, lock-screen, swipe-to-remove + removal preference, list sort/filter) |
 | Backup       | JSON export/import via Storage Access Framework (kotlinx.serialization), offline |
 | Background   | Foreground Service (`specialUse` type, API 34+)     |
 | Boot restore | `BroadcastReceiver` on `BOOT_COMPLETED`             |
@@ -24,7 +24,7 @@ Read it before making architectural decisions; this file is only a quick orienta
 ## Architecture (one-line each)
 
 - **`NoteRepository`** — single source of truth over Room; exposes notes as a `Flow` + CRUD. UI and service both read through it.
-- **`SettingsRepository`** — single source of truth for preferences over DataStore (theme, quick-add, lock-screen, swipe-to-unpin, list sort/filter). UI, theme, controller, and service read through it.
+- **`SettingsRepository`** — single source of truth for preferences over DataStore (theme, quick-add, lock-screen, swipe-to-remove + removal preference, list sort/filter). UI, theme, controller, and service read through it.
 - **Backup** — `BackupCodec` (pure JSON encode/decode over a versioned `NotesBackup` DTO, decoupled from the Room entity) + `BackupIo` (the `ContentResolver` seam). Export/import is driven from the Settings screen via the Storage Access Framework; import appends notes (fresh ids, unpinned, archived state preserved).
 - **`NotificationController`** — the *only* class that touches `NotificationManager`. Builds ongoing pinned notifications (Edit/Unpin actions) plus the quick-add and minimal "running" service notifications. Pin/unpin/refresh/re-assert.
 - **`NotePinner`** — the single seam for pin/unpin and archive/unarchive: persists the flag(s), posts/cancels the notification, and reconciles the service (start/stop/swap). UI and the notification actions both route through it.
@@ -41,7 +41,7 @@ Read it before making architectural decisions; this file is only a quick orienta
 - **`NotificationController` is the sole `NotificationManager` toucher.** Route all notification changes through it.
 - **`PendingIntent`s use `FLAG_IMMUTABLE`** (API 31+).
 - **Notification ID is derived deterministically from `note.id`** so a note always maps to the same notification.
-- **Pinned-note body tap and the Edit action open the quick-note popup** for that note; **Unpin** (the only other notification action) removes it from the status bar without deleting. The quick-add notification's body tap / New note action and the widget ＋ open the popup on a fresh note that pins on save. (Behind a secure lock screen, every popup trigger falls back to the full editor in `MainActivity`.)
+- **Pinned-note body tap and the Edit action open the quick-note popup** for that note; the only other notification action is **Remove**, whose label/effect (Unpin / Archive / Delete) follows the **Removal Preference** setting — the same choice a swipe performs when "Swipe to remove" is on (else the notification self-heals). The quick-add notification's body tap / New note action and the widget ＋ open the popup on a fresh note that pins on save. (Behind a secure lock screen, every popup trigger falls back to the full editor in `MainActivity`.)
 - **The notification small icon is the single default silhouette** — no icon picker. A per-note **emoji** (v1.1) prefixes the display title in the list and notification (see `displayTitle`); the `iconId` column is now vestigial (the emoji superseded the planned v2 icon set).
 
 ## Persistence reality

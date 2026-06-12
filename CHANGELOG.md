@@ -17,11 +17,15 @@ All notable changes to Stela are documented here. This project adheres to
   trigger reuses the one popup rather than stacking another.
 
 ### Changed
+- New "Remove action" setting: choose what removing a pinned note does — **Unpin**, **Archive**, or
+  **Delete** (default Unpin). It controls the notification's remove action (whose label now reads Unpin /
+  Archive / Delete to match) and what a swipe does. "Swipe to unpin" is renamed **"Swipe to remove"**.
+  Delete is permanent and shows a warning in Settings.
 - The note editor and quick-note popup tidied their action row: Share and Archive/Restore (and the
   popup's Expand) moved into an overflow (⋮) menu, and Save is now a checkmark button — so the row stays
   uncrowded and Save no longer gets squeezed on narrower screens or in longer languages.
-- The pinned-note notification's Archive action was removed — it now has just Edit and Unpin. You can
-  still archive a note from the editor or the quick-note popup.
+- The pinned-note notification's Archive action was removed — it now has just Edit and Remove. You can
+  still archive a note from the editor, the quick-note popup, or the new Remove action setting.
 - The note editor's title auto-focus is now driven by whether the title is empty: a blank title (a
   new note, or an expanded popup left empty) focuses the title and opens the keyboard; a note that
   already has a title does not. (Previously only brand-new notes auto-focused.)
