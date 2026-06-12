@@ -3,7 +3,7 @@
 All notable changes to Stela are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
-## [1.4.0] - unreleased
+## [1.4.0] - 2026/06/12
 
 ### Added
 - Quick-note popup: a lightweight editor that floats over whatever is on screen for jotting or quickly
