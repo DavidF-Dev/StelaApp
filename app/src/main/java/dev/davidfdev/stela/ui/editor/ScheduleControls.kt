@@ -36,8 +36,9 @@ import java.time.ZoneOffset
 
 /// The editor's auto-pin / auto-unpin controls (the contents of the Advanced section): a row each for
 /// "Pin at" and "Unpin at", each opening a date-then-time picker. Times are epoch millis; null means unset.
-/// "Pin at" is disabled while the note is pinned (no pending future pin) and "Unpin at" while it is unpinned
-/// (nothing to auto-unpin) — the same states in which the matching time is always cleared.
+/// "Pin at" is disabled while the note is pinned (no pending future pin). "Unpin at" is enabled only while
+/// the note is pinned *or* a future "Pin at" is set — i.e. whenever there is (or will be) a pin to end;
+/// disabled for an unpinned, unscheduled note (nothing to auto-unpin).
 @Composable
 fun ScheduleControls(
     pinAt: Long?,
@@ -54,14 +55,19 @@ fun ScheduleControls(
             // Future only.
             earliestMillis = now(),
             enabled = !isPinned,
-            onChange = onPinAtChange,
+            onChange = { newPinAt ->
+                onPinAtChange(newPinAt)
+                // Clearing a pending future pin on an unpinned note also drops the window's end, which
+                // would otherwise be stranded behind the now-disabled "Unpin at" row.
+                if (newPinAt == null && !isPinned) onUnpinAtChange(null)
+            },
         )
         ScheduleRow(
             label = stringResource(R.string.schedule_unpin_at),
             timeMillis = unpinAt,
             // After the pin time if one is set, else future.
             earliestMillis = pinAt ?: now(),
-            enabled = isPinned,
+            enabled = isPinned || pinAt != null,
             onChange = onUnpinAtChange,
         )
     }

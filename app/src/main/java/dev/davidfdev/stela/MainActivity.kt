@@ -29,8 +29,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import dev.davidfdev.stela.settings.Settings
 import dev.davidfdev.stela.settings.ThemeMode
+import dev.davidfdev.stela.ui.Routes
 import dev.davidfdev.stela.ui.StelaNavHost
 import dev.davidfdev.stela.ui.StelaTheme
+import dev.davidfdev.stela.ui.editor.EditorViewModel
 import dev.davidfdev.stela.ui.canPostNotifications
 import kotlinx.coroutines.launch
 
@@ -122,7 +124,17 @@ class MainActivity : AppCompatActivity() {
         // task — unless it came from the popup's Expand, which lands the user on the list.
         goToListOnEditorDone.value = intent.getBooleanExtra(EXTRA_FROM_POPUP_EXPAND, false)
         finishOnEditorDone.value = false
-        navController?.handleDeepLink(intent)
+        // Skip re-navigating when the editor for this exact note is already on top (a warm re-entry from
+        // its own notification while open); handleDeepLink would otherwise stack a duplicate editor.
+        if (!isEditorAlreadyOpenFor(intent)) navController?.handleDeepLink(intent)
+    }
+
+    private fun isEditorAlreadyOpenFor(intent: Intent): Boolean {
+        val current = navController?.currentBackStackEntry ?: return false
+        if (current.destination.route != Routes.EDITOR_EDIT) return false
+        val openId = current.arguments?.getLong(EditorViewModel.NOTE_ID_KEY) ?: return false
+        val targetId = intent.data?.lastPathSegment?.toLongOrNull() ?: return false
+        return openId == targetId
     }
 
     companion object {
