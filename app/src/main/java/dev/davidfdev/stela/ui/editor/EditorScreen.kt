@@ -59,7 +59,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 // How long the editor settles before the unpinned-pin "pop" plays, so it reads as a deliberate nudge.
-private const val POP_START_DELAY_MILLIS = 300L
+private const val POP_START_DELAY_MILLIS = 600L
 
 @Composable
 fun EditorRoute(
