@@ -1,6 +1,10 @@
 package dev.davidfdev.stela.ui
 
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -22,9 +26,11 @@ class AdvancedSectionTest {
 
     private fun setContent() {
         composeRule.setContent {
+            // The expand state is hoisted out of EditorScreen, so the test holds it to drive the toggle.
+            var advancedExpanded by remember { mutableStateOf(false) }
             StelaTheme(darkTheme = true) {
                 EditorScreen(
-                    state = EditorUiState(),
+                    state = EditorUiState(advancedExpanded = advancedExpanded),
                     snackbarHostState = SnackbarHostState(),
                     onTitleChange = {},
                     onDescriptionChange = {},
@@ -37,6 +43,7 @@ class AdvancedSectionTest {
                     onSave = {},
                     onDelete = {},
                     onSnooze = {},
+                    onToggleAdvanced = { advancedExpanded = it },
                     onBack = {},
                 )
             }

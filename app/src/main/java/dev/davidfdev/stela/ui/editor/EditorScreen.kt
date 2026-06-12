@@ -46,7 +46,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -114,6 +113,7 @@ fun EditorRoute(
         onSave = { viewModel.save(onDone) },
         onDelete = { viewModel.delete(onDone) },
         onSnooze = viewModel::snooze,
+        onToggleAdvanced = viewModel::setAdvancedExpanded,
         onBack = onDone,
     )
 }
@@ -134,11 +134,10 @@ fun EditorScreen(
     onSave: () -> Unit,
     onDelete: () -> Unit,
     onSnooze: (Long) -> Unit,
+    onToggleAdvanced: (Boolean) -> Unit,
     onBack: () -> Unit,
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
-    // Transient: the Advanced area opens collapsed each time the editor is opened (survives rotation only).
-    var advancedExpanded by rememberSaveable { mutableStateOf(false) }
 
     // A brief scale "pop" draws the eye to the pin when an unpinned note opens (pinning is the app's
     // purpose). Keyed on noteLoaded so it runs once per open — for an existing note that is when the
@@ -240,8 +239,8 @@ fun EditorScreen(
                 }
 
                 AdvancedSection(
-                    expanded = advancedExpanded,
-                    onToggle = { advancedExpanded = it },
+                    expanded = state.advancedExpanded,
+                    onToggle = onToggleAdvanced,
                 ) {
                     ScheduleControls(
                         pinAt = state.pinAt,

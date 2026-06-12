@@ -45,12 +45,22 @@ class EditorViewModelTest {
             initialPinned: Boolean = true,
             draft: NoteDraft? = null,
             canPost: Boolean = true,
+            initialAdvancedExpanded: Boolean = false,
+            onAdvancedExpandedChange: (Boolean) -> Unit = {},
         ): EditorViewModel {
             // Mirror the routes: the new-note route always supplies the pin arg; the edit route never does.
             val map = buildMap<String, Any> {
                 if (noteId != null) put("noteId", noteId) else put("pin", initialPinned)
             }
-            return EditorViewModel(repository, pinner, SavedStateHandle(map), draft) { canPost }
+            return EditorViewModel(
+                repository,
+                pinner,
+                SavedStateHandle(map),
+                draft,
+                canPostNotifications = { canPost },
+                initialAdvancedExpanded = initialAdvancedExpanded,
+                onAdvancedExpandedChange = onAdvancedExpandedChange,
+            )
         }
     }
 
@@ -110,6 +120,24 @@ class EditorViewModelTest {
         viewModel.save { }
         advanceUntilIdle()
         assertEquals(listOf(f.repository.notes.first().single().id), f.controller.pinned.map { it.id })
+    }
+
+    @Test
+    fun advancedExpanded_seedsFromInitialValue() = runTest(dispatcher) {
+        val viewModel = Fixture().viewModel(initialAdvancedExpanded = true)
+        assertTrue(viewModel.uiState.value.advancedExpanded)
+    }
+
+    @Test
+    fun setAdvancedExpanded_updatesState_andWritesBack() = runTest(dispatcher) {
+        var stored = false
+        val viewModel = Fixture().viewModel(onAdvancedExpandedChange = { stored = it })
+
+        viewModel.setAdvancedExpanded(true)
+
+        // The choice is reflected in state and pushed to the process-wide store (here, the captured flag).
+        assertTrue(viewModel.uiState.value.advancedExpanded)
+        assertTrue(stored)
     }
 
     @Test

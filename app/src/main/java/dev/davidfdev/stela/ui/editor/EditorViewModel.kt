@@ -29,6 +29,7 @@ data class EditorUiState(
     val updatedAt: Long? = null,
     val pinAt: Long? = null,
     val unpinAt: Long? = null,
+    val advancedExpanded: Boolean = false,
 ) {
     val canSave: Boolean get() = title.isNotBlank()
 
@@ -43,6 +44,8 @@ class EditorViewModel(
     savedStateHandle: SavedStateHandle,
     draft: NoteDraft? = null,
     private val canPostNotifications: () -> Boolean = { true },
+    initialAdvancedExpanded: Boolean = false,
+    private val onAdvancedExpandedChange: (Boolean) -> Unit = {},
 ) : ViewModel() {
 
     // A draft (Expand from the popup) carries the note id; otherwise it comes from the edit route.
@@ -52,7 +55,11 @@ class EditorViewModel(
     private val initialPinned: Boolean = draft?.pinOnSave ?: savedStateHandle[PIN_KEY] ?: true
 
     private val _uiState = MutableStateFlow(
-        EditorUiState(isEditing = noteId != null, isPinned = noteId == null && initialPinned),
+        EditorUiState(
+            isEditing = noteId != null,
+            isPinned = noteId == null && initialPinned,
+            advancedExpanded = initialAdvancedExpanded,
+        ),
     )
     val uiState: StateFlow<EditorUiState> = _uiState.asStateFlow()
 
@@ -97,6 +104,13 @@ class EditorViewModel(
     fun onPinAtChange(value: Long?) = _uiState.update { it.copy(pinAt = value) }
 
     fun onUnpinAtChange(value: Long?) = _uiState.update { it.copy(unpinAt = value) }
+
+    /// Expands or collapses the editor's Advanced section, remembering the choice process-wide (so it
+    /// survives reopening the editor, but not a cold start).
+    fun setAdvancedExpanded(expanded: Boolean) {
+        _uiState.update { it.copy(advancedExpanded = expanded) }
+        onAdvancedExpandedChange(expanded)
+    }
 
     fun pin() {
         // New note (not yet persisted): record the intent; it is pinned on save, not live.
@@ -210,7 +224,10 @@ class EditorViewModel(
                     app.container.notePinner,
                     createSavedStateHandle(),
                     draft,
-                ) { canPostNotifications(app) }
+                    canPostNotifications = { canPostNotifications(app) },
+                    initialAdvancedExpanded = app.container.editorAdvancedExpanded,
+                    onAdvancedExpandedChange = { app.container.editorAdvancedExpanded = it },
+                )
             }
         }
     }

@@ -59,6 +59,11 @@ class AppContainer(context: Context) {
     @Volatile
     var isMainActivityVisible: Boolean = false
 
+    /// Whether the editor's "Advanced" section is expanded, remembered across editor opens within the
+    /// process (it resets to collapsed on a cold start, by design — not persisted).
+    @Volatile
+    var editorAdvancedExpanded: Boolean = false
+
     private companion object {
         const val DATABASE_NAME = "stela.db"
     }

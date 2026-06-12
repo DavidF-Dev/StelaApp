@@ -112,7 +112,9 @@ already settled above.
 **Resolved (2026-06-12):**
 - Empty body — **shown genuinely empty** (content coming soon).
 - New *and* existing notes — **both**.
-- Persist expanded state — **no**, collapsed by default each open (transient `rememberSaveable`).
+- Persist expanded state — **no** disk persistence. *(Originally collapsed on every open via a local
+  `rememberSaveable`; later changed so the choice is **remembered across editor opens within the process**
+  — see the 2026-06-12 follow-up note below. Still resets on a cold start; never persisted.)*
 - Editor-only — enforced by **placement** in `EditorScreen` (outside the popup-shared `NoteFields`).
 
 **Deferred to later slices (when content lands):**
@@ -124,8 +126,9 @@ already settled above.
 Built as planned; specifics:
 
 - **`AdvancedSection`** is a private composable in `EditorScreen.kt`, rendered after the timestamps in the
-  body column. State is `rememberSaveable { mutableStateOf(false) }` in `EditorScreen`, hoisted in as
-  `expanded` / `onToggle` so the composable stays stateless.
+  body column. The `expanded` / `onToggle` state is hoisted in so the composable stays stateless. *(Originally
+  the state lived in a local `rememberSaveable { mutableStateOf(false) }` in `EditorScreen`, resetting to
+  collapsed on every open; see the follow-up note below for the current process-scoped behaviour.)*
 - **Header:** a `toggleable` `Row` (`Role.Button`) with a `semantics { stateDescription = … }` reading
   "Expanded" / "Collapsed" (strings `state_expanded` / `state_collapsed`), the `editor_advanced` label
   (`titleSmall`), and an `Icons.Filled.ExpandMore` chevron rotated 0°→180° via `animateFloatAsState` +
@@ -141,3 +144,23 @@ Built as planned; specifics:
 - **No CHANGELOG entry yet** — the section is an empty container with no user-facing function. The
   user-facing note is deferred to the slice that adds the first control, so release notes describe a
   feature rather than an empty box.
+
+### Follow-up — remember expand state within the session (2026-06-12)
+
+The collapse state now **persists across editor opens within the process** (so a user who expands Advanced
+finds it expanded on the next note too), while still resetting to collapsed on a cold start — no disk
+persistence. The local `rememberSaveable` was lifted to a process-scoped flag:
+
+- **`AppContainer.editorAdvancedExpanded`** — a `@Volatile var` alongside `pendingDraft` /
+  `isMainActivityVisible`. Process-lifetime: survives recomposition, rotation, and reopening the editor;
+  resets when the `Application` is rebuilt (cold start).
+- **`EditorViewModel`** bridges it (mirroring the `canPostNotifications` lambda pattern): an
+  `initialAdvancedExpanded` seeds `EditorUiState.advancedExpanded` on construction, and `setAdvancedExpanded`
+  updates the state *and* calls an `onAdvancedExpandedChange` write-back. The `Factory` reads/writes
+  `app.container.editorAdvancedExpanded`, so each fresh editor (or popup) VM sees the remembered value.
+- **`EditorScreen`** stays stateless: it takes `onToggleAdvanced` and reads `state.advancedExpanded`. The
+  **quick-note popup** never renders the Advanced section, so its shared VM reads the flag but never toggles
+  it — no special-casing needed.
+- **Tests:** `EditorViewModelTest` covers seed-from-initial and toggle-updates-state-and-writes-back;
+  `AdvancedSectionTest` now holds the hoisted state to drive the toggle. Unit + lint green; the two
+  instrumented Advanced tests pass. No CHANGELOG (still an unreleased-feature refinement).
