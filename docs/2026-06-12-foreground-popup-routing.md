@@ -61,6 +61,12 @@ if (container.isMainActivityVisible) {
 reused via `onNewIntent`. No `EXTRA_FROM_POPUP_EXPAND`, so the editor pops normally on done (the app was
 already open — not a cold notification entry).
 
+**Same-note re-entry dedup** *(2026-06-12, follow-up)*: routing into `MainActivity` while the editor for
+that *exact* note is already on top would otherwise have `handleDeepLink` stack a duplicate editor copy.
+`MainActivity.onNewIntent` now skips `handleDeepLink` when the current back-stack entry is the edit editor
+(`Routes.EDITOR_EDIT`) whose `noteId` argument equals the intent's deep-link id (`intent.data.lastPathSegment`).
+A *different* note still navigates (and can be backed out of); a cold start is unaffected (no `onNewIntent`).
+
 ## Files
 
 **Edited:**

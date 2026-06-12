@@ -113,7 +113,10 @@ Inside the (now non-empty) Advanced section in `EditorScreen`:
   future pin — see the disabled-row note below. The original Q2/Q3 "always shown, never disabled" is
   superseded.)*
 - **"Unpin at"** row — same pattern; constrained to after `pinAt` (if set) and the future. *(As built:
-  **disabled while the note is unpinned** — nothing to auto-unpin.)*
+  **enabled only while the note is pinned or a future "Pin at" is set** — i.e. whenever there is or will
+  be a pin to end; disabled for an unpinned, unscheduled note. This keeps the future-window case ("pin at
+  3pm, unpin at 5pm") configurable: setting a future "Pin at" unlocks "Unpin at". Clearing "Pin at" on an
+  unpinned note also clears "Unpin at" so it can't be stranded behind the re-disabled row.)*
 - **State** lives in `EditorUiState` (`pinAt`/`unpinAt`) + `EditorViewModel`, seeded from the loaded note.
 - **Applied on Save** (recommended — Q1): the times are note data; Save persists them and (re)runs the
   scheduler for this note. For a **new** note, scheduling happens after the note is created (it needs an
@@ -180,8 +183,9 @@ path. Contained by the interval model (reconcile is a pure function) and by reus
    one-shot timers: firing into an already-reached state is a **no-op** (pin-at when already pinned → no-op;
    unpin-at when already unpinned → no-op). No special pin-toggle coupling, no hiding/disabling.
    *(Superseded 2026-06-12: once the snooze slice made pin clear `pinAt` and unpin clear `unpinAt`, a
-   pinned note can never carry a pending `pinAt` and vice-versa, so each row is now **disabled** in the
-   state where its time is always empty — "Pin at" while pinned, "Unpin at" while unpinned.)*
+   pinned note can never carry a pending `pinAt`, so "Pin at" is **disabled while pinned**. "Unpin at" is
+   **enabled only while pinned or a future "Pin at" is set** — disabled for an unpinned, unscheduled note —
+   which keeps the future-window case configurable. See the disabled-row note below.)*
 4. **Validation:** pickers constrain to the future; unpin-at's minimum is `pinAt` when one is set.
 5. **Reconcile snaps to the correct current state** (the table above). A window entirely in the past lands
    unpinned and clears both — a long-missed pin does **not** fire late.
@@ -216,13 +220,19 @@ Built across the three planned slices; specifics where reality differed or is wo
   `EditorUiState` (`pinAt`/`unpinAt`), applied on Save via `pinner.applySchedule`. The date picker disables
   past days; a same-day earlier time is allowed and simply fires at once (a past time = pin now). Strings
   externalised.
-- **Disabled rows** *(2026-06-12, follow-up)*: `ScheduleControls` takes `isPinned` and **disables** the
-  "Pin at" row while pinned and the "Unpin at" row while unpinned (greyed label/value at 0.38 alpha, Set/
-  Change button disabled). This follows directly from the snooze-slice clearing rules: a pinned note always
-  has `pinAt == null` and an unpinned note always has `unpinAt == null`, so a disabled row always reads
-  "Not set" — no value is ever stranded behind a disabled control. Tied to `EditorViewModel.pin/unpin` also
-  clearing the matching time in `EditorUiState`/`loaded`, so the row clears live (and a later Save doesn't
-  re-write the stale time).
+- **Disabled rows** *(2026-06-12, follow-up)*: `ScheduleControls` takes `isPinned` and disables a row in
+  the state where its time is meaningless (greyed label/value at 0.38 alpha, Set/Change button disabled):
+  - **"Pin at"** — disabled while **pinned** (a pinned note always has `pinAt == null`, per the snooze-slice
+    clearing rules, so the row always reads "Not set").
+  - **"Unpin at"** — enabled when **`isPinned || pinAt != null`**, disabled only for an unpinned,
+    unscheduled note. The `pinAt != null` clause is what keeps the future-window case ("pin at 3pm, unpin
+    at 5pm") reachable — setting a future "Pin at" unlocks "Unpin at" (earliest-constrained to the pin
+    time). Clearing "Pin at" on an unpinned note also clears "Unpin at", so a window end can't be stranded
+    behind the re-disabled row. *(Refined 2026-06-12 from an earlier, stricter "disabled while unpinned",
+    which had inadvertently made the future window unconfigurable.)*
+
+  Tied to `EditorViewModel.pin/unpin` also clearing the matching time in `EditorUiState`/`loaded`, so the
+  row clears live (and a later Save doesn't re-write the stale time).
 - **Tests:** `PinScheduleTest` (the pure decision, table-driven), `NotePinnerTest` additions (apply/arm,
   past-pin fires, archive cancels, reconcile), an `EditorViewModelTest` schedule-persistence case, a
   `BackupCodecTest` drop-on-import case, and the 3→4 `MigrationTest`. Full picker interaction is covered by
