@@ -37,6 +37,8 @@ All notable changes to Stela are documented here. This project adheres to
   already has a title does not. (Previously only brand-new notes auto-focused.)
 - The editor's description field now grows with your text up to a larger height and then scrolls,
   instead of staying a fixed size.
+- The home-screen widget's add button now uses the same ＋ icon as the new "New quick note" launcher
+  shortcut, instead of a plain text character.
 
 ## [1.3.0] - 2026/06/11
 

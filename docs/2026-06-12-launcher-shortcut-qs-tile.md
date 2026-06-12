@@ -171,8 +171,8 @@ reusing `newNoteIntent` and the existing deep links.
 - Icons — **reuse** `ic_stela_pin`.
 
 **Minor, deferrable to implementation:**
-- Shortcut icon — resolved to the adaptive `@mipmap/ic_launcher` (a flat `ic_stela_pin` renders blank,
-  see As-built); distinct per-shortcut glyphs remain an optional nicety.
+- Shortcut icons — resolved to per-shortcut adaptive icons (＋ / bulleted-list on the brand indigo; a flat
+  `ic_stela_pin` renders blank — see As-built).
 - Whether to lift the deep-link base into a shared string resource vs a commented literal in `shortcuts.xml`.
 
 ## As-built notes (2026-06-12)
@@ -194,13 +194,18 @@ The structure and decisions held; the few specifics:
 - **Add-tile prompt** lives in the Settings **Notifications** section, just below the quick-add toggle,
   rendered only on API ≥ 33. A small `requestAddQuickNoteTile` helper + an `AddTileResult` enum keep the
   `StatusBarManager` result codes out of the composable; the row shows an "added" / "already added" snackbar.
-- **Shortcut icon — not the tint-mask silhouette** *(fixed 2026-06-12)*: `ic_stela_pin` is a white-on-
+- **Shortcut icons — not the tint-mask silhouette** *(fixed 2026-06-12)*: `ic_stela_pin` is a white-on-
   transparent alpha mask meant to be *tinted* (notification small icon). Launchers don't tint shortcut
   icons — they drop the drawable onto a white circle, so the white pin rendered invisible (blank white
-  circles). Switched the shortcut `android:icon` to **`@mipmap/ic_launcher`** (the adaptive app icon:
-  indigo background + the same white pin foreground, already sized for the safe zone), which carries its
-  own background and renders correctly. Both shortcuts share it (labels differentiate them); distinct
-  per-shortcut glyphs remain an optional polish.
+  circles). Fixed by giving each shortcut its own **adaptive icon** (`mipmap-anydpi-v26/ic_shortcut_*` =
+  the `ic_launcher_background` indigo + a white foreground glyph, framed in the safe zone exactly like the
+  launcher pin): a **＋** for "New quick note" and a **bulleted list** for "View notes". Adaptive icons
+  carry their own background, so they render correctly, and the distinct glyphs read at a glance. (A first
+  pass reused `@mipmap/ic_launcher` for both — visible but identical; the per-shortcut glyphs followed.)
+- **Widget ＋ reuses the new-note glyph** *(2026-06-12)*: the home-screen widget's add button previously
+  drew the ＋ as a text character; it now renders a shared `ic_add` plus vector (24dp, tinted
+  `GlanceTheme.colors.primary`) — the same glyph as the "New quick note" shortcut — so the quick-add entry
+  points look consistent. The `widget_add` string was removed.
 - **Tests:** an instrumented `NewNoteShortcutActivityTest` launches the exported trampoline and asserts the
   popup's Title field appears (proving the forward), finishing the leftover popup in `@After`. The tile
   service and shortcuts XML are otherwise covered by the manual matrix.

@@ -5,7 +5,7 @@
     <shortcut
         android:shortcutId="view_notes"
         android:enabled="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/ic_shortcut_view_notes"
         android:shortcutShortLabel="@string/shortcut_view_notes_short"
         android:shortcutLongLabel="@string/shortcut_view_notes_long">
         <!-- Literal mirror of the list navDeepLink; must match DEEP_LINK_BASE ("stela://stela"). -->
@@ -19,7 +19,7 @@
     <shortcut
         android:shortcutId="new_quick_note"
         android:enabled="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/ic_shortcut_new_note"
         android:shortcutShortLabel="@string/shortcut_new_note_short"
         android:shortcutLongLabel="@string/shortcut_new_note_long">
         <intent

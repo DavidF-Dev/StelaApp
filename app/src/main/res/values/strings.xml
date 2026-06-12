@@ -179,7 +179,6 @@
     <!-- Home-screen widget -->
     <string name="widget_label">Stela notes</string>
     <string name="widget_description">Quick-add and view your pinned notes</string>
-    <string name="widget_add" translatable="false">＋</string>
     <string name="widget_empty">No pinned notes</string>
 
     <!-- Theme options -->

@@ -79,3 +79,11 @@ emission costs one idempotent redraw per launch and reconciles any drift from wh
 
 Glance 1.1.1 carries its own Compose-runtime usage and can lag the newest Compose compiler; Phase 1 stays
 minimal to surface any incompatibility early. Fallback: pin a known-good Glance/Compose pairing.
+
+## Update — ＋ icon (2026-06-12)
+
+The header's add button rendered the ＋ as a text character (`widget_add` = "＋"). Replaced it with a Glance
+`Image` of a shared `ic_add` plus vector (24dp, white, tinted `GlanceTheme.colors.primary`) — the same glyph
+used by the new "New quick note" launcher shortcut, so the quick-add entry points read consistently. The
+`widget_add` string was removed. Tap behaviour is unchanged (still opens the quick-note popup). See
+[2026-06-12-launcher-shortcut-qs-tile.md](2026-06-12-launcher-shortcut-qs-tile.md).

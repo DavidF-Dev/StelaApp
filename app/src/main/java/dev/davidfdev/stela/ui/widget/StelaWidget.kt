@@ -6,9 +6,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
+import androidx.glance.ColorFilter
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
+import androidx.glance.Image
+import androidx.glance.ImageProvider
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.action.actionStartActivity
@@ -23,6 +26,7 @@ import androidx.glance.layout.Row
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.padding
+import androidx.glance.layout.size
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
@@ -84,11 +88,13 @@ class StelaWidget : GlanceAppWidget() {
                     .defaultWeight()
                     .clickable(actionStartActivity(deepLink(context, "/list"))),
             )
-            Text(
-                text = context.getString(R.string.widget_add),
-                style = TextStyle(color = GlanceTheme.colors.primary, fontWeight = FontWeight.Bold, fontSize = 22.sp),
+            Image(
+                provider = ImageProvider(R.drawable.ic_add),
+                contentDescription = context.getString(R.string.action_new_note),
+                colorFilter = ColorFilter.tint(GlanceTheme.colors.primary),
                 modifier = GlanceModifier
                     .padding(horizontal = 8.dp)
+                    .size(24.dp)
                     // The + opens the quick-note popup; the note rows still open the full editor.
                     .clickable(actionStartActivity(QuickNoteActivity.newNoteIntent(context))),
             )
