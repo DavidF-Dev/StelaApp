@@ -1,6 +1,6 @@
 # Action-row overflow · Removal Preference · Tooltips — implementation plan
 
-> Status: **Planned** · 2026-06-12 · three independent slices. Spec only — not implemented.
+> Status: 2026-06-12 · three independent slices. **Slice A implemented; B and C planned.**
 >
 > Motivation: on a real device the existing-note popup's action row packs **seven** hit targets
 > (Back · Expand · Share · Pin/Unpin · Archive · Delete · Save) into a fixed-width row, which squeezes
@@ -20,6 +20,14 @@ buttons survive as icons); B is independent and can land any time. Each ships on
 ---
 
 ## Slice A — action-row overflow + icon Save
+
+> **Implemented 2026-06-12.** As-built matches the plan: `NoteEditorActions` now renders Pin/Unpin ·
+> Delete · `⋮` · Save(`FilledIconButton` check), with a private `NoteOverflowMenu` holding Open-in-full-
+> editor (popup) · Share · Archive/Restore; the `⋮` is hidden when empty (e.g. a new note in the editor).
+> The popup's action row hugs the edges (4 dp) while its fields stay at 16 dp. Six instrumented tests
+> that clicked Save *by text* were switched to `onNodeWithContentDescription("Save")`. Verified on the
+> emulator: existing-note popup, new-note popup, and the full editor all show the compact row with the
+> filled check; the overflow holds the right items per surface/state. No new strings.
 
 ### Locked decisions
 1. **Expand → overflow menu item** ("Open in full editor"), popup only. (Not a FAB — a FAB for a

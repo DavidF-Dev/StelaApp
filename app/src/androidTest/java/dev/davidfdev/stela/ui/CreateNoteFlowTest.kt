@@ -26,7 +26,7 @@ class CreateNoteFlowTest {
 
         composeRule.onNodeWithContentDescription("New note").performClick()
         composeRule.onNodeWithText("Title").performTextInput(title)
-        composeRule.onNodeWithText("Save").performClick()
+        composeRule.onNodeWithContentDescription("Save").performClick()
 
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText(title).fetchSemanticsNodes().isNotEmpty()

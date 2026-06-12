@@ -108,14 +108,17 @@ internal fun QuickNotePopup(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp)
                 // Top padding stands in for the now-removed drag handle's spacing.
                 .padding(top = 8.dp, bottom = 16.dp)
                 .imePadding(),
         ) {
             // Back arrow + heading (new notes only, mirroring the editor) on the left; the shared action
-            // cluster on the right, led by Expand.
-            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            // cluster on the right. Hug the edges (app-bar inset) so Back and Save sit near the screen
+            // edges, leaving the row more room than the 16 dp the fields use.
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 IconButton(onClick = hideThenFinish) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                 }
@@ -141,7 +144,11 @@ internal fun QuickNotePopup(
                     },
                 )
             }
-            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .verticalScroll(rememberScrollState()),
+            ) {
                 NoteFields(
                     title = state.title,
                     description = state.description,

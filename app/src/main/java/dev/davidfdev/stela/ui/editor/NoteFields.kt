@@ -4,6 +4,7 @@ import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,19 +12,23 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Archive
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.OpenInFull
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Unarchive
 import androidx.compose.material.icons.outlined.Mood
 import androidx.compose.material.icons.outlined.PushPin
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -124,11 +129,13 @@ internal fun NoteFields(
     }
 }
 
-/// The shared editor action cluster — Expand · Share · Pin/Unpin · Archive · Delete · Save — used by
-/// both the full editor's app bar and the quick-note popup so the two stay in lockstep. Share, Archive,
-/// and Delete show only for an existing note (`isEditing`); the surface decides what each callback does
-/// (e.g. the popup confirms Archive/Delete and the editor toggles Archive directly). [onExpand] is null
-/// for the full editor (no Expand there); [pinModifier] lets the editor apply its pin "pop".
+/// The shared editor action cluster — Pin/Unpin · Delete · ⋮ (Expand · Share · Archive/Restore) · Save —
+/// used by both the full editor's app bar and the quick-note popup so the two stay in lockstep. Delete,
+/// and the overflow's Share + Archive/Restore, show only for an existing note (`isEditing`); the surface
+/// decides what each callback does (e.g. the popup confirms Archive/Delete and the editor toggles Archive
+/// directly). The secondary actions live in an overflow menu to keep the row from crowding the
+/// width-stable Save. [onExpand] is null for the full editor (no Expand there); [pinModifier] lets the
+/// editor apply its pin "pop".
 @Composable
 internal fun RowScope.NoteEditorActions(
     state: EditorUiState,
@@ -140,17 +147,6 @@ internal fun RowScope.NoteEditorActions(
     onExpand: (() -> Unit)? = null,
     pinModifier: Modifier = Modifier,
 ) {
-    onExpand?.let { expand ->
-        IconButton(onClick = expand) {
-            Icon(Icons.Filled.OpenInFull, contentDescription = stringResource(R.string.quick_note_expand_description))
-        }
-    }
-    if (state.isEditing) {
-        // Greyed when an existing note has no content to share.
-        IconButton(onClick = onShare, enabled = state.title.isNotBlank() || state.description.isNotBlank()) {
-            Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.action_share))
-        }
-    }
     IconButton(onClick = onTogglePin, modifier = pinModifier) {
         if (state.isPinned) {
             Icon(Icons.Filled.PushPin, contentDescription = stringResource(R.string.action_unpin))
@@ -159,19 +155,64 @@ internal fun RowScope.NoteEditorActions(
         }
     }
     if (state.isEditing) {
-        IconButton(onClick = onArchive) {
-            if (state.isArchived) {
-                Icon(Icons.Filled.Unarchive, contentDescription = stringResource(R.string.action_restore))
-            } else {
-                Icon(Icons.Filled.Archive, contentDescription = stringResource(R.string.action_archive))
-            }
-        }
         IconButton(onClick = onDelete) {
             Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete))
         }
     }
-    TextButton(onClick = onSave, enabled = state.canSave) {
-        Text(stringResource(R.string.editor_save))
+    // Shown only when it would hold at least one item (Expand for the popup, or Share/Archive for an
+    // existing note).
+    if (onExpand != null || state.isEditing) {
+        NoteOverflowMenu(state = state, onExpand = onExpand, onShare = onShare, onArchive = onArchive)
+    }
+    // Filled so it reads as the primary action and stands out; an icon keeps its width locale-stable.
+    FilledIconButton(onClick = onSave, enabled = state.canSave) {
+        Icon(Icons.Filled.Check, contentDescription = stringResource(R.string.editor_save))
+    }
+}
+
+@Composable
+private fun NoteOverflowMenu(
+    state: EditorUiState,
+    onExpand: (() -> Unit)?,
+    onShare: () -> Unit,
+    onArchive: () -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    // Box so the menu anchors to the icon button's bounds and drops down aligned to it.
+    Box {
+        IconButton(onClick = { expanded = true }) {
+            Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.action_more))
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            onExpand?.let { expand ->
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.quick_note_expand_description)) },
+                    leadingIcon = { Icon(Icons.Filled.OpenInFull, contentDescription = null) },
+                    onClick = { expanded = false; expand() },
+                )
+            }
+            if (state.isEditing) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.action_share)) },
+                    leadingIcon = { Icon(Icons.Filled.Share, contentDescription = null) },
+                    // Greyed when an existing note has no content to share.
+                    enabled = state.title.isNotBlank() || state.description.isNotBlank(),
+                    onClick = { expanded = false; onShare() },
+                )
+                DropdownMenuItem(
+                    text = {
+                        Text(stringResource(if (state.isArchived) R.string.action_restore else R.string.action_archive))
+                    },
+                    leadingIcon = {
+                        Icon(
+                            if (state.isArchived) Icons.Filled.Unarchive else Icons.Filled.Archive,
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = { expanded = false; onArchive() },
+                )
+            }
+        }
     }
 }
 

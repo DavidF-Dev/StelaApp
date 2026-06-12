@@ -17,6 +17,9 @@ All notable changes to Stela are documented here. This project adheres to
   trigger reuses the one popup rather than stacking another.
 
 ### Changed
+- The note editor and quick-note popup tidied their action row: Share and Archive/Restore (and the
+  popup's Expand) moved into an overflow (⋮) menu, and Save is now a checkmark button — so the row stays
+  uncrowded and Save no longer gets squeezed on narrower screens or in longer languages.
 - The pinned-note notification's Archive action was removed — it now has just Edit and Unpin. You can
   still archive a note from the editor or the quick-note popup.
 - The note editor's title auto-focus is now driven by whether the title is empty: a blank title (a

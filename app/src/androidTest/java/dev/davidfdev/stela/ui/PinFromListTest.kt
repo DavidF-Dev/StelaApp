@@ -53,7 +53,7 @@ class PinFromListTest {
         composeRule.onNodeWithText("Title").performTextInput(title)
         // New notes default to pinned; create this one unpinned so the test can pin it from the list.
         composeRule.onNodeWithContentDescription("Unpin").performClick()
-        composeRule.onNodeWithText("Save").performClick()
+        composeRule.onNodeWithContentDescription("Save").performClick()
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText(title).fetchSemanticsNodes().isNotEmpty()
         }

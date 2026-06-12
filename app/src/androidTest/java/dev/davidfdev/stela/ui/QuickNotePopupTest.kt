@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
@@ -41,7 +42,7 @@ class QuickNotePopupTest {
 
         ActivityScenario.launch<QuickNoteActivity>(intent).use {
             composeRule.onNodeWithText("Title").performTextInput(title)
-            composeRule.onNodeWithText("Save").performClick()
+            composeRule.onNodeWithContentDescription("Save").performClick()
 
             composeRule.waitUntil(timeoutMillis = 5_000) {
                 notesNow().any { it.title == title }
