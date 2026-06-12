@@ -437,7 +437,10 @@ implement); all keep the no-`INTERNET` invariant.
 4. **Advanced note settings (scheduled/timed pins)** — pin a note as a notification at a
    chosen time (`AlarmManager` + exact-alarm permission). A natural extension of "pin as
    notification" and the largest; a deliberate step toward reminder territory, so confirm
-   scope before building.
+   scope before building. *Sliced for v1.5.0; built incrementally inside an editor-only **"Advanced"**
+   collapsible area.* **Slice 1 *(done — see [2026-06-12-advanced-section.md](2026-06-12-advanced-section.md))*:**
+   the collapsible "Advanced" container in the full editor (not the popup), collapsed by default, empty for
+   now — the home that the scheduling controls drop into next.
 5. **Emoji-picker search** *(done — v1.2.0; see [2026-06-10-emoji-search-vanniktech.md](2026-06-10-emoji-search-vanniktech.md))* —
    the AndroidX `EmojiPickerView` had no search and exposed no way to add one, so it was replaced with
    **vanniktech/Emoji**'s standalone `EmojiView` (search on by default, matches emoji by shortcode),

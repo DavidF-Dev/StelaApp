@@ -2,10 +2,15 @@ package dev.davidfdev.stela.ui.editor
 
 import android.provider.Settings
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,12 +20,15 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Archive
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -38,6 +46,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,7 +54,11 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -60,6 +73,9 @@ import kotlinx.coroutines.launch
 
 // How long the editor settles before the unpinned-pin "pop" plays, so it reads as a deliberate nudge.
 private const val POP_START_DELAY_MILLIS = 600L
+
+// Anchors the (currently empty) Advanced body so a test can assert it expands and collapses.
+const val ADVANCED_CONTENT_TEST_TAG = "advancedContent"
 
 @Composable
 fun EditorRoute(
@@ -115,6 +131,8 @@ fun EditorScreen(
     onBack: () -> Unit,
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
+    // Transient: the Advanced area opens collapsed each time the editor is opened (survives rotation only).
+    var advancedExpanded by rememberSaveable { mutableStateOf(false) }
 
     // A brief scale "pop" draws the eye to the pin when an unpinned note opens (pinning is the app's
     // purpose). Keyed on noteLoaded so it runs once per open — for an existing note that is when the
@@ -213,6 +231,11 @@ fun EditorScreen(
                         modifier = Modifier.padding(top = 12.dp),
                     )
                 }
+
+                AdvancedSection(
+                    expanded = advancedExpanded,
+                    onToggle = { advancedExpanded = it },
+                )
             }
         }
     }
@@ -233,6 +256,50 @@ fun EditorScreen(
                 TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.editor_delete_dialog_cancel)) }
             },
         )
+    }
+}
+
+/// A collapsible "Advanced" area for editor-only note features, collapsed by default. Empty for now —
+/// it is the container later advanced controls drop into. Editor-only by virtue of living here rather
+/// than in the popup-shared `NoteFields`.
+@Composable
+private fun AdvancedSection(expanded: Boolean, onToggle: (Boolean) -> Unit) {
+    val chevronRotation by animateFloatAsState(if (expanded) 180f else 0f, label = "advancedChevron")
+    val expandedLabel = stringResource(R.string.state_expanded)
+    val collapsedLabel = stringResource(R.string.state_collapsed)
+
+    Column(modifier = Modifier.padding(top = 12.dp)) {
+        HorizontalDivider()
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .toggleable(
+                    value = expanded,
+                    role = Role.Button,
+                    onValueChange = onToggle,
+                )
+                .semantics { stateDescription = if (expanded) expandedLabel else collapsedLabel }
+                .padding(vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = stringResource(R.string.editor_advanced),
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.weight(1f),
+            )
+            Icon(
+                Icons.Filled.ExpandMore,
+                contentDescription = null,
+                modifier = Modifier.graphicsLayer { rotationZ = chevronRotation },
+            )
+        }
+        AnimatedVisibility(
+            visible = expanded,
+            enter = expandVertically(),
+            exit = shrinkVertically(),
+        ) {
+            Box(modifier = Modifier.testTag(ADVANCED_CONTENT_TEST_TAG))
+        }
     }
 }
 

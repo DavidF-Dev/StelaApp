@@ -1,8 +1,9 @@
 # Editor "Advanced" collapsible section (scaffold) — implementation plan
 
-> Status: **Planned** · 2026-06-12 · targets v1.5.0. The first slice of the **Advanced note features**
-> (design doc §12 planned-feature #4, scheduled/timed pins). This slice builds **only the collapsible
-> container, with no contents** — the home that later advanced controls drop into.
+> Status: **Implemented** · 2026-06-12 · v1.5.0. Built as planned; see the "As-built notes" at the end.
+> The first slice of the **Advanced note features** (design doc §12 planned-feature #4, scheduled/timed
+> pins). This slice builds **only the collapsible container, with no contents** — the home that later
+> advanced controls drop into.
 
 ## Goal
 
@@ -116,3 +117,26 @@ already settled above.
 **Deferred to later slices (when content lands):**
 - Per-control gating for new/unsaved notes (e.g. scheduling that needs a saved note).
 - Whether a full-bleed divider / richer section styling is wanted once there's content.
+
+## As-built notes (2026-06-12)
+
+Built as planned; specifics:
+
+- **`AdvancedSection`** is a private composable in `EditorScreen.kt`, rendered after the timestamps in the
+  body column. State is `rememberSaveable { mutableStateOf(false) }` in `EditorScreen`, hoisted in as
+  `expanded` / `onToggle` so the composable stays stateless.
+- **Header:** a `toggleable` `Row` (`Role.Button`) with a `semantics { stateDescription = … }` reading
+  "Expanded" / "Collapsed" (strings `state_expanded` / `state_collapsed`), the `editor_advanced` label
+  (`titleSmall`), and an `Icons.Filled.ExpandMore` chevron rotated 0°→180° via `animateFloatAsState` +
+  `graphicsLayer { rotationZ }`. A `HorizontalDivider` sits above it.
+- **Body:** `AnimatedVisibility` (`expandVertically`/`shrinkVertically`) wrapping an empty `Box` tagged
+  `ADVANCED_CONTENT_TEST_TAG` (a public const, the test's anchor). Collapsed → the body isn't composed.
+- **Strings:** `editor_advanced`, plus reusable `state_expanded` / `state_collapsed`.
+- **Test:** `AdvancedSectionTest` drives the stateless `EditorScreen` directly via `createComposeRule` +
+  `setContent` (no activity/nav), as the existing `NoteListBannerTest` does — collapsed-by-default, and
+  expand-then-collapse. Both pass.
+- **Verified (2026-06-12):** `assembleDebug` + `assembleDebugAndroidTest`, `lintDebug` (0 errors), the two
+  instrumented tests, and an emulator check (the chevron rotates down→up on tap; the body opens empty).
+- **No CHANGELOG entry yet** — the section is an empty container with no user-facing function. The
+  user-facing note is deferred to the slice that adds the first control, so release notes describe a
+  feature rather than an empty box.
