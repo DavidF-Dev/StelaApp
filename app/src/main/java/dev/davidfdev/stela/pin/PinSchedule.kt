@@ -11,8 +11,15 @@ object PinSchedule {
     data class Resolution(val targetPinned: Boolean, val pinAt: Long?, val unpinAt: Long?)
 
     fun resolve(isPinned: Boolean, isArchived: Boolean, pinAt: Long?, unpinAt: Long?, now: Long): Resolution {
-        // An archived note never carries a schedule (a note is never both archived and pinned).
-        if (isArchived) return Resolution(targetPinned = isPinned, pinAt = null, unpinAt = null)
+        // An archived note's schedule is dormant: future times survive, past-due ones clear with no effect,
+        // and the pin state never changes (a note is never both archived and pinned).
+        if (isArchived) {
+            return Resolution(
+                targetPinned = isPinned,
+                pinAt = pinAt?.takeIf { it > now },
+                unpinAt = unpinAt?.takeIf { it > now },
+            )
+        }
 
         // Apply the fired transitions in time order; the latest one not after `now` wins.
         var pinned = isPinned

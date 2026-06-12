@@ -62,23 +62,30 @@ class NotePinner(
     /// Archives every note: unpins and cancels the notification of any that were pinned,
     /// then sets the archive flag, and reconciles the service once for the batch. Archived
     /// notes are hidden from the list and can never be pinned (pinning restores them first,
-    /// see [pinAll]). Archiving also drops any schedule, so an archived note is never auto-pinned.
+    /// see [pinAll]). The schedule and its alarms are kept but dormant: a fired timer only
+    /// clears its spent time (the receiver and [PinSchedule] no-op on an archived note), so the
+    /// schedule self-expires rather than going stale, and [unarchiveAll] reconciles it on restore.
     suspend fun archiveAll(notes: List<Note>) {
         notes.forEach { note ->
             if (note.isPinned) {
+                // Raw unpin (not unpinAll) so archiving keeps unpinAt and the rest of the schedule.
                 repository.setPinned(note.id, false)
                 controller.unpin(note.id)
             }
             repository.setArchived(note.id, true)
-            clearSchedule(note.id)
         }
         reconcileService()
     }
 
-    /// Restores every note from the archive (the inverse of [archiveAll]). They return
-    /// unpinned, so there is no notification to post or service change to make.
+    /// Restores every note from the archive (the inverse of [archiveAll]) and reconciles each against
+    /// its kept schedule — future times resume, past-due ones clear, and a now-due pin catches up. The
+    /// service reconciles once in case a catch-up pin started it.
     suspend fun unarchiveAll(notes: List<Note>) {
-        notes.forEach { note -> repository.setArchived(note.id, false) }
+        notes.forEach { note ->
+            repository.setArchived(note.id, false)
+            repository.getById(note.id)?.let { reconcile(it) }
+        }
+        reconcileService()
     }
 
     /// Deletes every note, cancelling the notifications of pinned ones and any pending
@@ -147,12 +154,6 @@ class NotePinner(
         }
         resolution.pinAt?.let { pinScheduler.schedulePin(note.id, it) } ?: pinScheduler.cancelPin(note.id)
         resolution.unpinAt?.let { pinScheduler.scheduleUnpin(note.id, it) } ?: pinScheduler.cancelUnpin(note.id)
-    }
-
-    private suspend fun clearSchedule(noteId: Long) {
-        repository.setSchedule(noteId, null, null)
-        pinScheduler.cancelPin(noteId)
-        pinScheduler.cancelUnpin(noteId)
     }
 
     /// Re-posts a pinned note's notification so it reflects edited content. A no-op

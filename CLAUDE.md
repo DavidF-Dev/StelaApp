@@ -38,7 +38,7 @@ Read it before making architectural decisions; this file is only a quick orienta
 
 - **No `INTERNET` permission.** Ever. The app is offline by design.
 - **Service lifecycle:** the service runs **iff** pinned-notes ≥ 1 OR quick-add enabled. One decision point drives start/stop.
-- **A note is never both archived and pinned.** Archiving unpins (and cancels the notification); pinning an archived note unarchives it. `NotePinner` enforces this, so archived notes never count toward the service-lifecycle rule, never appear in the list or widget, and are reachable only via the Archived screen and the editor.
+- **A note is never both archived and pinned.** Archiving unpins (and cancels the notification); pinning an archived note unarchives it. `NotePinner` enforces this, so archived notes never count toward the service-lifecycle rule, never appear in the list or widget, and are reachable only via the Archived screen and the editor. An archived note **may** keep a scheduled-pin (`pinAt`/`unpinAt`), but it is **dormant** — a fired timer only clears its spent time, so it never auto-pins while archived; restoring reconciles the kept schedule (future times resume, a now-due pin catches up, past times clear).
 - **`NotificationController` is the sole `NotificationManager` toucher.** Route all notification changes through it.
 - **`PendingIntent`s use `FLAG_IMMUTABLE`** (API 31+).
 - **`QuickNoteActivity` stays `exported="false"`.** It can edit an existing note by id, so external apps must not be able to launch it. Only the new-note-only `NewNoteShortcutActivity` trampoline is exported (for the launcher shortcut); everything else reaches the popup in-process or via a `PendingIntent`.

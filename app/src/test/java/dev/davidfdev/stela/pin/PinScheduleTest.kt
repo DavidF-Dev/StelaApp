@@ -47,8 +47,21 @@ class PinScheduleTest {
     }
 
     @Test
-    fun archived_dropsScheduleAndNeverPins() {
+    fun archived_keepsFutureTimes_clearsPastDue_andNeverPins() {
+        // pinAt past, unpinAt future: the past pin clears with no effect; the future unpin survives dormant.
         val r = PinSchedule.resolve(isPinned = false, isArchived = true, pinAt = 500L, unpinAt = 2_000L, now = now)
+        assertEquals(PinSchedule.Resolution(targetPinned = false, pinAt = null, unpinAt = 2_000L), r)
+    }
+
+    @Test
+    fun archived_keepsBothFutureTimes_unpinned() {
+        val r = PinSchedule.resolve(isPinned = false, isArchived = true, pinAt = 2_000L, unpinAt = 3_000L, now = now)
+        assertEquals(PinSchedule.Resolution(targetPinned = false, pinAt = 2_000L, unpinAt = 3_000L), r)
+    }
+
+    @Test
+    fun archived_pastDueTimesClearWithoutEffect() {
+        val r = PinSchedule.resolve(isPinned = false, isArchived = true, pinAt = 400L, unpinAt = 600L, now = now)
         assertEquals(PinSchedule.Resolution(targetPinned = false, pinAt = null, unpinAt = null), r)
     }
 }

@@ -1,6 +1,6 @@
 # Archive ↔ scheduled pins — implementation plan
 
-> Status: **Planned** · 2026-06-12 · v1.5.0.
+> Status: **Implemented** · 2026-06-12 · v1.5.0. Built as planned (as-built notes at the end).
 > How a note's Advanced schedule (`pinAt` / `unpinAt`) interacts with archiving and restoring. An
 > extension of [2026-06-12-scheduled-pins.md](2026-06-12-scheduled-pins.md). Supersedes that slice's
 > "archiving clears the schedule and cancels its alarms."
@@ -136,3 +136,23 @@ drops schedules — kept as-is by decision).
 **Small.** One pure-function branch, one removed line + helper, one reconcile call. The risk surface is the
 `PinSchedule` change (pure, table-tested) and making sure `archiveAll`'s raw unpin still doesn't clear
 `unpinAt` (it doesn't). No new components, alarms, permissions, or schema.
+
+## As-built notes (2026-06-12)
+
+Built exactly as planned — the three edits, no surprises:
+
+- **`PinSchedule.resolve`** — the archived branch now returns `pinAt`/`unpinAt` filtered to `it > now`
+  (future kept, past-due cleared) with `targetPinned = isPinned` (never flips). The non-archived path is
+  unchanged.
+- **`NotePinner.archiveAll`** — dropped the `clearSchedule(note.id)` call; the per-note unpin stays a raw
+  `setPinned(false)` so `unpinAt` survives. The private `clearSchedule` helper was removed (no other
+  caller — `deleteAll` cancels alarms inline).
+- **`NotePinner.unarchiveAll`** — now `setArchived(false)` then `reconcile(getById(...))` per note, then a
+  single `reconcileService()` (a catch-up pin can start the service).
+- **Unchanged as predicted:** `PinAlarmReceiver` (already guards `!note.isArchived` / `note.isPinned`),
+  `reconcileAll`, `undoArchive`, backup.
+- **Tests:** `PinScheduleTest` gained three archived cases (future-kept, both-future-kept, past-cleared);
+  `NotePinnerTest`'s old `archive_dropsScheduleAndCancelsAlarms` became `archive_keepsScheduleAndArmedAlarm`
+  plus three restore cases (re-arm future pin, catch-up past-due pin, fully-elapsed window clears).
+- **Verified (2026-06-12):** `testDebugUnitTest` + `lintDebug` green (0 lint errors); full instrumented
+  suite pending the next on-device run.

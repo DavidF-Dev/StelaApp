@@ -447,6 +447,9 @@ implement); all keep the no-`INTERNET` invariant.
      action (presets + custom duration) that hides a pinned note and re-pins it later by reusing `pinAt`;
      pinning now clears `pinAt` and unpinning clears `unpinAt`. (Recurring pins and a notification Snooze
      action remain deferred.)
+   - **Archive interaction *(done — see [2026-06-12-archive-schedule-interaction.md](2026-06-12-archive-schedule-interaction.md))*:**
+     archiving keeps a note's schedule **dormant** (alarms armed but no-op while archived) rather than
+     clearing it, and restoring reconciles it (catch-up).
 5. **Emoji-picker search** *(done — v1.2.0; see [2026-06-10-emoji-search-vanniktech.md](2026-06-10-emoji-search-vanniktech.md))* —
    the AndroidX `EmojiPickerView` had no search and exposed no way to add one, so it was replaced with
    **vanniktech/Emoji**'s standalone `EmojiView` (search on by default, matches emoji by shortcode),

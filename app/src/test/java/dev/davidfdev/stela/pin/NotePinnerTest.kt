@@ -294,7 +294,7 @@ class NotePinnerTest {
     }
 
     @Test
-    fun archive_dropsScheduleAndCancelsAlarms() = runTest {
+    fun archive_keepsScheduleAndArmedAlarm() = runTest {
         val f = Fixture(now = 1_000L)
         val id = f.repository.create(title = "A", description = "")
         f.pinner.applySchedule(id, pinAt = 2_000L, unpinAt = null)
@@ -303,8 +303,60 @@ class NotePinnerTest {
 
         val note = f.repository.getById(id)!!
         assertTrue(note.isArchived)
+        // The schedule is kept (dormant), not dropped, and its alarm stays armed.
+        assertEquals(2_000L, note.pinAt)
+        assertEquals(2_000L, f.scheduler.scheduledPins[id])
+        assertFalse(id in f.scheduler.cancelledPins)
+    }
+
+    @Test
+    fun unarchive_reArmsKeptFuturePin_withoutPinningYet() = runTest {
+        val f = Fixture(now = 1_000L)
+        val id = f.repository.create(title = "A", description = "")
+        f.pinner.applySchedule(id, pinAt = 2_000L, unpinAt = null)
+        f.pinner.archive(f.repository.getById(id)!!)
+        f.scheduler.scheduledPins.clear()
+
+        f.pinner.unarchive(f.repository.getById(id)!!)
+
+        val note = f.repository.getById(id)!!
+        assertFalse(note.isArchived)
+        assertFalse(note.isPinned)
+        assertEquals(2_000L, note.pinAt)
+        assertEquals(2_000L, f.scheduler.scheduledPins[id])
+    }
+
+    @Test
+    fun unarchive_catchesUpPastDuePin() = runTest {
+        val f = Fixture(now = 1_000L)
+        val id = f.repository.create(title = "A", description = "")
+        // A past-due pinAt that survived the archive (no alarm/reconcile cleared it).
+        f.repository.setSchedule(id, pinAt = 500L, unpinAt = null)
+        f.repository.setArchived(id, true)
+
+        f.pinner.unarchive(f.repository.getById(id)!!)
+
+        val note = f.repository.getById(id)!!
+        assertFalse(note.isArchived)
+        assertTrue(note.isPinned)
         assertEquals(null, note.pinAt)
-        assertTrue(id in f.scheduler.cancelledPins)
+        assertEquals(listOf(id), f.controller.pinned.map { it.id })
+    }
+
+    @Test
+    fun unarchive_fullyElapsedWindow_returnsUnpinnedAndCleared() = runTest {
+        val f = Fixture(now = 10_000L)
+        val id = f.repository.create(title = "A", description = "")
+        f.repository.setSchedule(id, pinAt = 2_000L, unpinAt = 5_000L)
+        f.repository.setArchived(id, true)
+
+        f.pinner.unarchive(f.repository.getById(id)!!)
+
+        val note = f.repository.getById(id)!!
+        assertFalse(note.isArchived)
+        assertFalse(note.isPinned)
+        assertEquals(null, note.pinAt)
+        assertEquals(null, note.unpinAt)
     }
 
     @Test

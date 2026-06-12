@@ -80,11 +80,14 @@ Mirror the "single toucher" pattern (`NotificationController` is the sole `Notif
     state already reached (the Q2/Q3 simplification; no cancel-on-manual-toggle logic). *(Superseded
     2026-06-12 by the snooze slice: pinning now clears `pinAt`, unpinning clears `unpinAt`. See
     [2026-06-12-snooze.md](2026-06-12-snooze.md).)*
-  - **archive** clears both times **and** cancels both alarms (a note can't be archived+pinned, so an
-    archived note must never be auto-pinned — preserves the core invariant). Archiving therefore drops a
-    note's schedule.
+  - **archive** keeps the times and their alarms but **dormant**: a fired timer only clears its spent time
+    (the receiver and `PinSchedule` no-op on an archived note), so an archived note is never auto-pinned —
+    preserving the core invariant — and its schedule self-expires rather than going stale. *(Superseded
+    2026-06-12: archive originally cleared both times and cancelled both alarms. See
+    [2026-06-12-archive-schedule-interaction.md](2026-06-12-archive-schedule-interaction.md).)*
   - **delete/deleteAll** cancel both alarms (the row's times go with it).
-  - **restore** (undo-delete) re-inserts and **reconciles** the note, so any future times reschedule.
+  - **restore** (undo-delete *and* unarchive) re-inserts / unarchives then **reconciles** the note, so a
+    kept schedule resumes (future times reschedule, a now-due pin catches up, past times clear).
   - **Save** persists the chosen times then reconciles the note (fire-now-if-past, else schedule).
   - `PinScheduler` is the AlarmManager wrapper it delegates to; the reconcile decision is a pure function.
 - **Reconcile pass** — `reconcileSchedules()` applies the interval-model table above across all notes:
@@ -134,7 +137,8 @@ OEMs may delay background alarms. The reconcile pass corrects state whenever the
 - **No `INTERNET`, no special permission** (inexact alarms only).
 - **`NotificationController` stays the sole `NotificationManager` toucher; `PinScheduler` the sole
   `AlarmManager` toucher.**
-- **A note is never both archived and pinned** — archiving cancels schedules too.
+- **A note is never both archived and pinned** — an archived note's schedule is dormant (never auto-pins);
+  restore reconciles it.
 - **Service runs iff pinned ≥ 1 OR quick-add** — scheduled-unpinned notes don't count; rule unchanged.
 - **Editor-only** — controls live in `EditorScreen`/Advanced, never the popup.
 - **`PendingIntent`s use `FLAG_IMMUTABLE`**; notification id stays derived from `note.id` (alarm request
@@ -209,8 +213,10 @@ Built across the three planned slices; specifics where reality differed or is wo
   PendingIntents. `FLAG_IMMUTABLE`.
 - **`PinAlarmReceiver`** (manifest `exported="false"`, `goAsync`) pins/unpins via `NotePinner` and clears
   the spent time. **`NotePinner`** gained `applySchedule` (Save), `reconcileAll` (boot/app start), a private
-  `reconcile`, and schedule-clearing on archive/delete/restore. A `now: () -> Long` was injected for
-  testability. *(The snooze slice later made manual pin clear `pinAt` and manual unpin clear `unpinAt`.)*
+  `reconcile`, and schedule handling on delete (cancel alarms) and restore (reconcile). A `now: () -> Long`
+  was injected for testability. *(The snooze slice later made manual pin clear `pinAt` and manual unpin clear
+  `unpinAt`; archiving was later changed to keep a dormant schedule rather than clear it — see
+  [2026-06-12-archive-schedule-interaction.md](2026-06-12-archive-schedule-interaction.md).)*
 - **Reconcile hooks:** `BootReceiver` (alarms don't survive reboot) and `StelaApp.onCreate` both call
   `reconcileAll`.
 - **Data:** `Note.pinAt` / `Note.unpinAt` (nullable), schema **v4** (`MIGRATION_3_4`), `NoteDao.setSchedule`.
