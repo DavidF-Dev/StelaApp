@@ -76,6 +76,12 @@ Restructure the shared `RowScope.NoteEditorActions` (in `NoteFields.kt`):
 **Low–medium.** Mostly a refactor of a shared composable. Watch: the `⋮`-empty case (hide it), the
 new-note vs existing-note action sets, and that the editor's pin-pop still animates the Pin icon.
 
+### Considered: move "About" to the List overflow — declined *(2026-06-12)*
+"About" (version, author, privacy promise, licences) stays a **Settings** row. It is low-frequency,
+informational, and conventionally lives under Settings; the List overflow currently holds **Archived**,
+a *content* destination, so adding an app-info screen there would make the overflow an incoherent
+grab-bag for no discoverability gain. Not part of this slice.
+
 ---
 
 ## Slice B — Removal Preference setting
