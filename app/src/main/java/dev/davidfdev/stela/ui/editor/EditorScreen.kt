@@ -11,14 +11,12 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -211,63 +209,54 @@ fun EditorScreen(
                 .imePadding(),
         ) {
             if (state.isArchived) ArchivedBanner()
-            // BoxWithConstraints reads the height left above the keyboard; the page scrolls (so Advanced
-            // and the bottom spacer are reachable on short phones), while the description is capped to that
-            // space so it scrolls *within* its box — the field's own scroll, unlike the page's, follows the
-            // caret, keeping it above the keyboard. A fixed cap would occlude the caret on shorter phones.
-            BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-                // Reserve room for the title + paddings (and a margin) so the capped box's bottom — and
-                // thus the caret — stays clear of the keyboard.
-                val descriptionMax = (maxHeight - 140.dp).coerceAtLeast(120.dp)
-                val descriptionMin = 200.dp.coerceAtMost(descriptionMax)
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .padding(16.dp),
-                ) {
-                    NoteFields(
-                        title = state.title,
-                        description = state.description,
-                        emoji = state.emoji,
-                        noteLoaded = state.noteLoaded,
-                        onTitleChange = onTitleChange,
-                        onDescriptionChange = onDescriptionChange,
-                        onEmojiChange = onEmojiChange,
-                        descriptionModifier = Modifier.heightIn(min = descriptionMin, max = descriptionMax),
+            // The page scrolls so the timestamps, Advanced section, and bottom spacer stay reachable on
+            // short phones; the description is a fixed compact height (set in NoteFields) and scrolls within.
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
+            ) {
+                NoteFields(
+                    title = state.title,
+                    description = state.description,
+                    emoji = state.emoji,
+                    noteLoaded = state.noteLoaded,
+                    onTitleChange = onTitleChange,
+                    onDescriptionChange = onDescriptionChange,
+                    onEmojiChange = onEmojiChange,
+                )
+
+                val created = state.createdAt
+                val updated = state.updatedAt
+                if (created != null && updated != null) {
+                    Text(
+                        text = stringResource(
+                            R.string.editor_timestamps,
+                            TimeFormatter.absolute(created),
+                            TimeFormatter.absolute(updated),
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 12.dp),
                     )
-
-                    val created = state.createdAt
-                    val updated = state.updatedAt
-                    if (created != null && updated != null) {
-                        Text(
-                            text = stringResource(
-                                R.string.editor_timestamps,
-                                TimeFormatter.absolute(created),
-                                TimeFormatter.absolute(updated),
-                            ),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 12.dp),
-                        )
-                    }
-
-                    AdvancedSection(
-                        expanded = state.advancedExpanded,
-                        onToggle = onToggleAdvanced,
-                    ) {
-                        ScheduleControls(
-                            pinAt = state.pinAt,
-                            unpinAt = state.unpinAt,
-                            isPinned = state.isPinned,
-                            onPinAtChange = onPinAtChange,
-                            onUnpinAtChange = onUnpinAtChange,
-                        )
-                    }
-
-                    // Breathing room so the last control can scroll clear of the bottom, as Settings does.
-                    Spacer(Modifier.height(48.dp))
                 }
+
+                AdvancedSection(
+                    expanded = state.advancedExpanded,
+                    onToggle = onToggleAdvanced,
+                ) {
+                    ScheduleControls(
+                        pinAt = state.pinAt,
+                        unpinAt = state.unpinAt,
+                        isPinned = state.isPinned,
+                        onPinAtChange = onPinAtChange,
+                        onUnpinAtChange = onUnpinAtChange,
+                    )
+                }
+
+                // Breathing room so the last control can scroll clear of the bottom, as Settings does.
+                Spacer(Modifier.height(48.dp))
             }
         }
     }

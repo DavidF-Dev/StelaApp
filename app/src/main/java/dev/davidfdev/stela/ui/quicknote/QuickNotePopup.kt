@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -159,8 +158,6 @@ internal fun QuickNotePopup(
                     onDescriptionChange = viewModel::onDescriptionChange,
                     onEmojiChange = viewModel::onEmojiChange,
                     modifier = Modifier.padding(top = 8.dp),
-                    // Grows with content up to double the default height, then scrolls within.
-                    descriptionModifier = Modifier.heightIn(min = 96.dp, max = 192.dp),
                 )
             }
             SnackbarHost(snackbarHostState)

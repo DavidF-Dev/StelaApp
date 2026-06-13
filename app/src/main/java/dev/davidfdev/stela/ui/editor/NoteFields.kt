@@ -59,9 +59,8 @@ import dev.davidfdev.stela.ui.TooltipIconButton
 
 /// The shared note-editing core: an emoji-leading Title field and a Description field, plus the emoji
 /// picker they open. Used by both the full editor and the quick-note popup so editing behaves
-/// identically across surfaces. [descriptionModifier] sizes the description field; both callers cap its
-/// height so it scrolls within — its own scroll, unlike a parent's, follows the caret, which keeps a
-/// multiline caret above the keyboard.
+/// identically across surfaces. The Description is a fixed two-to-six lines and scrolls within once
+/// full, so it stays compact and never dominates the surface.
 @Composable
 internal fun NoteFields(
     title: String,
@@ -72,7 +71,6 @@ internal fun NoteFields(
     onDescriptionChange: (String) -> Unit,
     onEmojiChange: (String) -> Unit,
     modifier: Modifier = Modifier,
-    descriptionModifier: Modifier = Modifier,
 ) {
     var showEmojiPicker by remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -111,7 +109,9 @@ internal fun NoteFields(
             onValueChange = onDescriptionChange,
             label = { Text(stringResource(R.string.editor_label_description)) },
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-            modifier = descriptionModifier
+            minLines = 2,
+            maxLines = 6,
+            modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 12.dp),
         )

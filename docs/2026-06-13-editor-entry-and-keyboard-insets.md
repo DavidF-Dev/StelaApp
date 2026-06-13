@@ -106,3 +106,18 @@ thus the caret, which its internal scroll holds at the bottom) clears the keyboa
 with the keyboard down, the page scrolls so the expanded Advanced section and the bottom spacer are
 reachable, Top Bar pinned throughout. Still worth a pass on an API ≤ 29 device, where `adjustResize` is what
 makes `imePadding()` receive IME insets at all.
+
+## Addendum — 2026-06-13 · description sizing superseded (v1.5.2)
+
+The adaptive cap from Issue 2.3 (`BoxWithConstraints` → `maxHeight − 140.dp`) is **gone**. It sized the
+description to fill the space above the keyboard, which let the field dominate the page and — because an
+inner field's scroll captures the gesture — blocked the user from scrolling the page from over it.
+
+The description is now a fixed **`minLines = 2, maxLines = 6`** in the shared `NoteFields`, identical in the
+editor and the popup (the popup's old `heightIn(96.dp, 192.dp)` is dropped too). A compact box leaves most
+of the page grabbable for scrolling, and over-scrolling the field chains naturally into the page scroll, so
+the description never blocks it. Overflow past six lines scrolls within the field. The other half of the
+keyboard fix — `adjustResize` + `imePadding()` on the body — is unchanged; the small box still bring-into-
+views above the keyboard on focus, with internal scroll holding the caret.
+
+A follow-up slice will add an opt-in full-screen description editor for long notes.
