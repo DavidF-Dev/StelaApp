@@ -12,12 +12,17 @@ All notable changes to Stela are documented here. This project adheres to
 - Snooze: a **Snooze** action (in the note's overflow menu) hides a pinned note now and re-pins it later —
   pick **30 minutes / 1 hour / 3 hours / 1 day** or a custom duration. The return time appears as the
   note's "Pin at", so you can change or cancel it there.
+- The description field now shows a slim scroll indicator on its right edge when it holds more text than
+  fits, making it clear you can scroll within the field.
 
 ### Changed
 - Opening a note from its notification (or the widget / Quick Settings tile) while Stela is already on
   screen now opens the full editor in the app, instead of floating the quick-note popup over it. This
   avoids two editors being open for the same note at once. The popup still appears when you trigger it
   from another app.
+- The description field is now a compact, fixed height (about two to six lines) that scrolls within itself
+  as you write more, rather than growing to fill the screen. This leaves more of the page free to scroll
+  and keeps the field from dominating the editor. (Supersedes the 1.4.0 grow-to-a-larger-height behaviour.)
 
 ## [1.4.0] - 2026/06/12
 

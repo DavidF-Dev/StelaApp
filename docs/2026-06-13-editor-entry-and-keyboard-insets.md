@@ -121,3 +121,9 @@ keyboard fix — `adjustResize` + `imePadding()` on the body — is unchanged; t
 views above the keyboard on focus, with internal scroll holding the caret.
 
 A follow-up slice will add an opt-in full-screen description editor for long notes.
+
+**Update (v1.5.3):** the Description later migrated from the `String`-based `OutlinedTextField` to a
+state-based `BasicTextField` (`TextFieldState` + an owned `ScrollState`) so it can show a slim scroll thumb
+while it overflows — see [the description scroll-thumb doc](2026-06-13-description-scroll-thumb.md). The 2–6
+line sizing and caret-follow are unchanged; the field now drives its own `ScrollState` (which is also what
+keeps the caret above the keyboard).

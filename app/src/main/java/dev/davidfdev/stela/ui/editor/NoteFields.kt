@@ -4,12 +4,19 @@ import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Check
@@ -29,6 +36,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -37,14 +45,23 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
@@ -59,8 +76,8 @@ import dev.davidfdev.stela.ui.TooltipIconButton
 
 /// The shared note-editing core: an emoji-leading Title field and a Description field, plus the emoji
 /// picker they open. Used by both the full editor and the quick-note popup so editing behaves
-/// identically across surfaces. The Description is a fixed two-to-six lines and scrolls within once
-/// full, so it stays compact and never dominates the surface.
+/// identically across surfaces. The Description is a fixed two-to-six lines and scrolls within once full —
+/// showing a slim scroll thumb while it overflows — so it stays compact and never dominates the surface.
 @Composable
 internal fun NoteFields(
     title: String,
@@ -104,13 +121,10 @@ internal fun NoteFields(
             },
             modifier = Modifier.fillMaxWidth().focusRequester(titleFocusRequester),
         )
-        OutlinedTextField(
+        DescriptionField(
             value = description,
             onValueChange = onDescriptionChange,
-            label = { Text(stringResource(R.string.editor_label_description)) },
-            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-            minLines = 2,
-            maxLines = 6,
+            noteLoaded = noteLoaded,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 12.dp),
@@ -132,6 +146,84 @@ internal fun NoteFields(
         )
     }
 }
+
+/// Tags the description field so tests can target its editable node.
+const val DESCRIPTION_FIELD_TEST_TAG = "descriptionField"
+
+/// The note Description: a state-based [BasicTextField] sized to two-to-six lines that scrolls within once
+/// full and shows a slim scroll thumb while it overflows. It owns a `TextFieldState` while the editor's
+/// `String` stays the source of truth — seeding once from [value] when the note has loaded ([noteLoaded]),
+/// then pushing every edit back through [onValueChange]. Owning the scroll lets the thumb track the offset
+/// and keeps the caret in view above the keyboard.
+@Composable
+private fun DescriptionField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    noteLoaded: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    val state = rememberTextFieldState()
+    var seeded by rememberSaveable { mutableStateOf(false) }
+    // The editor mutates the description only on load; thereafter the field owns it. Seed once so a
+    // recreation can't overwrite in-progress edits or jump the cursor.
+    LaunchedEffect(noteLoaded) {
+        if (noteLoaded && !seeded) {
+            state.setTextAndPlaceCursorAtEnd(value)
+            seeded = true
+        }
+    }
+    // Mirror edits back to the source of truth so save/share/expand read the latest text.
+    LaunchedEffect(state) {
+        snapshotFlow { state.text }.collect { onValueChange(it.toString()) }
+    }
+
+    val scrollState = rememberScrollState()
+    val interactionSource = remember { MutableInteractionSource() }
+    val lineLimits = TextFieldLineLimits.MultiLine(minHeightInLines = 2, maxHeightInLines = 6)
+    val thumbColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+
+    BasicTextField(
+        state = state,
+        modifier = modifier
+            .testTag(DESCRIPTION_FIELD_TEST_TAG)
+            .drawScrollThumb(scrollState, thumbColor),
+        textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+        lineLimits = lineLimits,
+        scrollState = scrollState,
+        interactionSource = interactionSource,
+        decorator = OutlinedTextFieldDefaults.decorator(
+            state = state,
+            enabled = true,
+            lineLimits = lineLimits,
+            outputTransformation = null,
+            interactionSource = interactionSource,
+            label = { Text(stringResource(R.string.editor_label_description)) },
+        ),
+    )
+}
+
+/// Draws a slim vertical scroll thumb at the field's right edge while [scrollState] can scroll, its height
+/// and offset taken from the scroll position. Inset vertically so it tracks the text area, not the border.
+private fun Modifier.drawScrollThumb(scrollState: ScrollState, color: Color): Modifier =
+    drawWithContent {
+        drawContent()
+        val max = scrollState.maxValue
+        if (max <= 0) return@drawWithContent
+        val verticalInset = 12.dp.toPx()
+        val barWidth = 4.dp.toPx()
+        val rightInset = 10.dp.toPx()
+        val track = (size.height - verticalInset * 2).coerceAtLeast(0f)
+        val thumb = (track * track / (track + max)).coerceIn(24.dp.toPx().coerceAtMost(track), track)
+        val top = verticalInset + scrollState.value.toFloat() / max * (track - thumb)
+        drawRoundRect(
+            color = color,
+            topLeft = Offset(size.width - barWidth - rightInset, top),
+            size = Size(barWidth, thumb),
+            cornerRadius = CornerRadius(barWidth / 2),
+        )
+    }
 
 /// The shared editor action cluster — Pin/Unpin · Delete · ⋮ (Expand · Share · Archive/Restore) · Save —
 /// used by both the full editor's app bar and the quick-note popup so the two stay in lockstep. Delete,
