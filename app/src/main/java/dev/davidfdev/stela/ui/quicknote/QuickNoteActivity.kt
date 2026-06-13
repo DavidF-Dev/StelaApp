@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.getValue
@@ -36,6 +37,9 @@ class QuickNoteActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Edge-to-edge so the popup's own window animates the IME inset (the keyboard slides in step
+        // with the card on open/close instead of trailing it).
+        enableEdgeToEdge()
         val container = (application as StelaApp).container
 
         // Behind a secure lock screen the overlay isn't shown; fall back to the full editor in

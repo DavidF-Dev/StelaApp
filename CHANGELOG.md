@@ -34,6 +34,8 @@ All notable changes to Stela are documented here. This project adheres to
   note list as expected.
 - In the note editor, the on-screen keyboard no longer covers the description while you type a longer note,
   and the toolbar across the top stays in place instead of scrolling off-screen.
+- Closing the quick-note popup now hides the keyboard at the same time as the popup, instead of letting it
+  linger for a moment over the app behind.
 
 ## [1.4.0] - 2026/06/12
 
