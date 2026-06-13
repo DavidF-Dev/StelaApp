@@ -228,3 +228,40 @@ optional"; confirm before implementing C.)*
 ### Risk
 **Low.** Purely additive polish; `contentDescription` already covers screen readers, so this is for
 sighted discoverability of the icon-only actions.
+
+---
+
+## Addendum — 2026-06-14 · overflow menu keeps the keyboard open (1.5.0, unreleased)
+
+### Symptom
+
+With the keyboard up (focused Title/Description), opening the `⋮` overflow menu **dismissed the
+keyboard**, and closing the menu re-showed it — a visible flicker. Reported on the quick-note popup and
+confirmed identical on the full Editor screen (both render the shared `NoteOverflowMenu`).
+
+### Root cause
+
+`DropdownMenu` hosts its content in a `Popup`, which defaults to `PopupProperties(focusable = true)`. A
+focusable popup is a separate window that grabs input focus, pulling it off the editing `BasicTextField`;
+with no focused editor the IME detaches and the keyboard hides. (This is window-focus behaviour, distinct
+from the earlier IME-inset work in the editor-keyboard-insets doc.)
+
+### Fix — two lines in `NoteOverflowMenu` (`NoteFields.kt`), shared by both surfaces
+
+1. **`properties = PopupProperties(focusable = false)`** on the `DropdownMenu` — the popup no longer takes
+   focus, so the text field stays focused and the keyboard stays up. Tap-an-item and tap-outside dismissal
+   still work (the latter via the Popup's outside-touch watch, which does not need focus).
+2. **`BackHandler(enabled = expanded) { expanded = false }`** in `NoteOverflowMenu` — a non-focusable popup
+   no longer captures the system Back, so this restores back-to-dismiss. Enabled only while the menu is
+   open, it sits above the screens' back handlers when shown and is transparent otherwise, so closed-menu
+   Back navigation is unchanged. Kept in the component (not the screens) so both surfaces inherit it.
+
+No call-site or signature changes; `NoteEditorActions`/`NoteOverflowMenu` are shared, so the editor app bar
+and the quick-note popup both get the fix.
+
+### Testing
+
+Build only is automated. Window-focus/IME behaviour is not reliably instrumentable (same rationale as the
+editor-keyboard-insets fix), so verified manually on the emulator with a docked keyboard, on **both** the
+Editor screen and the quick-note popup: keyboard stays up when the menu opens; item-tap, tap-outside, and
+Back each dismiss the menu with the keyboard still up.

@@ -38,6 +38,8 @@ All notable changes to Stela are documented here. This project adheres to
   and the toolbar across the top stays in place instead of scrolling off-screen.
 - Closing the quick-note popup now hides the keyboard at the same time as the popup, instead of letting it
   linger for a moment over the app behind.
+- Opening the overflow (⋮) menu while editing a note no longer hides the keyboard — it stays up in both the
+  full editor and the quick-note popup, so it doesn't flash away and back when you open and close the menu.
 
 ## [1.4.0] - 2026/06/12
 

@@ -4,6 +4,7 @@ import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -65,6 +66,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.PopupProperties
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
@@ -295,10 +297,17 @@ private fun NoteOverflowMenu(
 ) {
     var expanded by remember { mutableStateOf(false) }
     var showSnooze by remember { mutableStateOf(false) }
+    // A non-focusable popup no longer captures back, so restore back-to-dismiss while the menu is open.
+    BackHandler(enabled = expanded) { expanded = false }
     // Box so the menu anchors to the icon button's bounds and drops down aligned to it.
     Box {
         TooltipIconButton(Icons.Filled.MoreVert, stringResource(R.string.action_more), onClick = { expanded = true })
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+        // Non-focusable so opening the menu keeps focus on the editing text field and the keyboard stays up.
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            properties = PopupProperties(focusable = false),
+        ) {
             onExpand?.let { expand ->
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.quick_note_expand_description)) },
