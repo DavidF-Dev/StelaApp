@@ -213,6 +213,7 @@ internal fun QuickNotePopup(
                             onDescriptionChange = viewModel::onDescriptionChange,
                             onEmojiChange = viewModel::onEmojiChange,
                             modifier = Modifier.padding(top = 8.dp),
+                            alwaysFocusTitle = true,
                         )
                     }
                     SnackbarHost(snackbarHostState)

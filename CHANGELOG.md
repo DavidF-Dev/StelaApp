@@ -25,6 +25,8 @@ All notable changes to Stela are documented here. This project adheres to
 - The description field is now a compact, fixed height (about two to six lines) that scrolls within itself
   as you write more, rather than growing to fill the screen. This leaves more of the page free to scroll
   and keeps the field from dominating the editor.
+- Opening the quick-note popup to edit an existing note now places the cursor in the title (keyboard ready,
+  at the end of the text) so you can start typing straight away. The full editor is unchanged.
 
 ### Fixed
 - Quickly pressing Back twice on a screen such as Settings, Archived, About, or the note editor no longer

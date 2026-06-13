@@ -89,16 +89,33 @@ internal fun NoteFields(
     onDescriptionChange: (String) -> Unit,
     onEmojiChange: (String) -> Unit,
     modifier: Modifier = Modifier,
+    alwaysFocusTitle: Boolean = false,
 ) {
     var showEmojiPicker by remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
     val titleFocusRequester = remember { FocusRequester() }
 
-    // Focus the title and raise the keyboard once the note is loaded with a blank title — the new-note
-    // case (and an expanded popup left empty). A prefilled title (existing note, or a carried-over
-    // draft) keeps focus off so the keyboard does not pop.
+    val titleState = rememberTextFieldState()
+    var titleSeeded by rememberSaveable { mutableStateOf(false) }
+    // The editor mutates the title only on load; thereafter the field owns it. Seed once with the caret at
+    // the end so focusing an existing note's title lands the cursor after its text, not before it.
     LaunchedEffect(noteLoaded) {
-        if (noteLoaded && title.isBlank()) {
+        if (noteLoaded && !titleSeeded) {
+            titleState.setTextAndPlaceCursorAtEnd(title)
+            titleSeeded = true
+        }
+    }
+    // Mirror edits back to the source of truth so save/share/expand read the latest text. Drop the field's
+    // initial (pre-seed) value so it can't race the async note load and clobber a still-loading title.
+    LaunchedEffect(titleState) {
+        snapshotFlow { titleState.text }.drop(1).collect { onTitleChange(it.toString()) }
+    }
+
+    // Focus the title and raise the keyboard once the note is loaded with a blank title — the new-note
+    // case (and an expanded popup left empty). A prefilled title keeps focus off unless [alwaysFocusTitle]
+    // is set, which also focuses an existing note's title (the quick-note popup wants this; the editor does not).
+    LaunchedEffect(noteLoaded) {
+        if (noteLoaded && (title.isBlank() || alwaysFocusTitle)) {
             titleFocusRequester.requestFocus()
             keyboardController?.show()
         }
@@ -106,10 +123,9 @@ internal fun NoteFields(
 
     Column(modifier = modifier) {
         OutlinedTextField(
-            value = title,
-            onValueChange = onTitleChange,
+            state = titleState,
             label = { Text(stringResource(R.string.editor_label_title)) },
-            singleLine = true,
+            lineLimits = TextFieldLineLimits.SingleLine,
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
             leadingIcon = {
                 IconButton(onClick = { showEmojiPicker = true }) {
