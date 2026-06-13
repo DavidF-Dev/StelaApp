@@ -1,6 +1,6 @@
 # Description scroll thumb — implementation plan
 
-> Status: **In progress** · 2026-06-13 · target v1.5.3. Follows the description-sizing change
+> Status: **Implemented** · 2026-06-13 · v1.5.3. Follows the description-sizing change
 > ([the keyboard-insets doc's addendum](2026-06-13-editor-entry-and-keyboard-insets.md)), which capped the
 > Description at a fixed 2–6 lines that scrolls within.
 
