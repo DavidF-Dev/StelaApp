@@ -86,6 +86,11 @@ repo root (set `$ProgressPreference = 'SilentlyContinue'` first to avoid slow do
   a long-press tooltip whose label doubles as the `contentDescription`. (Note: a `TooltipBox` adds a
   transient popup window that breaks `Espresso.pressBack()` in tests — use the `pressSystemBack()` test
   helper instead.)
+- Back navigation guards against the rapid-double-press blank-`NavHost` bug in `ui/StelaNavHost.kt`: each
+  child destination's Back action (`guardedPop`, and the editor's `onDone`) pops only while its **passed**
+  `NavBackStackEntry` is `RESUMED` — using the destination entry's lifecycle, never `LocalLifecycleOwner`
+  (which is the always-`RESUMED` Activity). A `LaunchedEffect` safety net re-asserts the list if the host
+  is ever left with no destination. The app opts into predictive back (`enableOnBackInvokedCallback`).
 
 ## Git
 

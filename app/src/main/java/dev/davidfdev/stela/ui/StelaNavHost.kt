@@ -1,6 +1,11 @@
 package dev.davidfdev.stela.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.Lifecycle
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -51,6 +56,21 @@ fun StelaNavHost(
             else -> navController.popBackStack()
         }
     }
+
+    // Safety net: if a rapid back ever empties the host (no current destination), re-assert the list.
+    LaunchedEffect(navController) {
+        var hadDestination = false
+        navController.currentBackStack.collect {
+            if (navController.currentDestination != null) {
+                hadDestination = true
+            } else if (hadDestination) {
+                navController.navigate(Routes.LIST) {
+                    popUpTo(navController.graph.id) { inclusive = true }
+                }
+            }
+        }
+    }
+
     NavHost(navController = navController, startDestination = Routes.LIST) {
         composable(
             route = Routes.LIST,
@@ -65,9 +85,11 @@ fun StelaNavHost(
                 onOpenArchived = { navController.navigate(Routes.ARCHIVED) },
             )
         }
-        composable(Routes.ARCHIVED) {
+        composable(Routes.ARCHIVED) { entry ->
+            val goBack = guardedPop(navController, entry)
+            BackHandler { goBack() }
             ArchivedRoute(
-                onBack = { navController.popBackStack() },
+                onBack = goBack,
                 onOpenNote = { id -> navController.navigate(Routes.editNote(id)) },
             )
         }
@@ -83,8 +105,10 @@ fun StelaNavHost(
                         "${AndroidNotificationController.DEEP_LINK_BASE}/new?${EditorViewModel.PIN_KEY}={${EditorViewModel.PIN_KEY}}"
                 },
             ),
-        ) {
-            EditorRoute(onDone = onEditorDone)
+        ) { entry ->
+            // Every editor exit (back arrow, save, delete, system back) routes through onDone; ignore a
+            // tap landing mid-transition so it can't pop a second destination and leave a blank host.
+            EditorRoute(onDone = { if (entry.lifecycle.isResumed()) onEditorDone() })
         }
         composable(
             route = Routes.EDITOR_EDIT,
@@ -95,17 +119,32 @@ fun StelaNavHost(
                         "${AndroidNotificationController.DEEP_LINK_BASE}/editor/{${EditorViewModel.NOTE_ID_KEY}}"
                 },
             ),
-        ) {
-            EditorRoute(onDone = onEditorDone)
+        ) { entry ->
+            // Every editor exit (back arrow, save, delete, system back) routes through onDone; ignore a
+            // tap landing mid-transition so it can't pop a second destination and leave a blank host.
+            EditorRoute(onDone = { if (entry.lifecycle.isResumed()) onEditorDone() })
         }
-        composable(Routes.SETTINGS) {
+        composable(Routes.SETTINGS) { entry ->
+            val goBack = guardedPop(navController, entry)
+            BackHandler { goBack() }
             SettingsRoute(
-                onBack = { navController.popBackStack() },
+                onBack = goBack,
                 onOpenAbout = { navController.navigate(Routes.ABOUT) },
             )
         }
-        composable(Routes.ABOUT) {
-            AboutRoute(onBack = { navController.popBackStack() })
+        composable(Routes.ABOUT) { entry ->
+            val goBack = guardedPop(navController, entry)
+            BackHandler { goBack() }
+            AboutRoute(onBack = goBack)
         }
     }
+}
+
+/// True only when this lifecycle is fully RESUMED — i.e. settled, not mid navigation transition.
+private fun Lifecycle.isResumed() = currentState == Lifecycle.State.RESUMED
+
+/// Builds a back action that pops only while [entry] is RESUMED, so a rapid second press landing during
+/// the pop transition is ignored rather than popping a further destination into a blank host.
+private fun guardedPop(navController: NavController, entry: NavBackStackEntry): () -> Unit = {
+    if (entry.lifecycle.isResumed()) navController.popBackStack()
 }

@@ -27,6 +27,8 @@ All notable changes to Stela are documented here. This project adheres to
   and keeps the field from dominating the editor.
 
 ### Fixed
+- Quickly pressing Back twice on a screen such as Settings, Archived, About, or the note editor no longer
+  leaves the app on a blank screen that needed a restart.
 - Opening Stela from the "View notes" shortcut, the quick-add notification, or the running-service
   notification — then opening a note and leaving it — no longer closes the app. It now returns you to your
   note list as expected.
