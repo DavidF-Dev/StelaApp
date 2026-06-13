@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -59,9 +60,13 @@ class QuickNotePopupTest {
         val intent = QuickNoteActivity.editNoteIntent(context, id).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
         ActivityScenario.launch<QuickNoteActivity>(intent).use {
-            // The title proves the popup is up and rendered; the description's contract is that it is
-            // *prefilled* with the stored body — a content check, not an instantaneous pixel-visibility one
-            // (the latter races the sheet's slide-in, since the description sits lower than the title).
+            // The note loads asynchronously, and the description seeds a frame behind the directly-bound
+            // title, so it is the last field to appear — wait for it before asserting the prefill. The
+            // description's contract is that it holds the stored body (a content check), not that it is
+            // pixel-visible at that instant (which would race the sheet's slide-in, as it sits low).
+            composeRule.waitUntil(timeoutMillis = 5_000) {
+                composeRule.onAllNodesWithText("body").fetchSemanticsNodes().isNotEmpty()
+            }
             composeRule.onNodeWithText(title).assertIsDisplayed()
             composeRule.onNodeWithText("body").assertExists()
         }

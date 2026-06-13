@@ -73,6 +73,7 @@ import com.vanniktech.emoji.EmojiView
 import dev.davidfdev.stela.R
 import dev.davidfdev.stela.ui.ButtonTooltip
 import dev.davidfdev.stela.ui.TooltipIconButton
+import kotlinx.coroutines.flow.drop
 
 /// The shared note-editing core: an emoji-leading Title field and a Description field, plus the emoji
 /// picker they open. Used by both the full editor and the quick-note popup so editing behaves
@@ -172,9 +173,11 @@ private fun DescriptionField(
             seeded = true
         }
     }
-    // Mirror edits back to the source of truth so save/share/expand read the latest text.
+    // Mirror edits back to the source of truth so save/share/expand read the latest text. Drop the field's
+    // initial (pre-seed) value so it can't race the async note load and clobber a still-loading note's
+    // description back to empty — only the seed and the user's own edits propagate.
     LaunchedEffect(state) {
-        snapshotFlow { state.text }.collect { onValueChange(it.toString()) }
+        snapshotFlow { state.text }.drop(1).collect { onValueChange(it.toString()) }
     }
 
     val scrollState = rememberScrollState()
