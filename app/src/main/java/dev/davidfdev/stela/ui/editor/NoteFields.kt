@@ -61,6 +61,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -95,6 +96,7 @@ internal fun NoteFields(
 ) {
     var showEmojiPicker by remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
     val titleFocusRequester = remember { FocusRequester() }
 
     val titleState = rememberTextFieldState()
@@ -113,13 +115,19 @@ internal fun NoteFields(
         snapshotFlow { titleState.text }.drop(1).collect { onTitleChange(it.toString()) }
     }
 
-    // Focus the title and raise the keyboard once the note is loaded with a blank title — the new-note
-    // case (and an expanded popup left empty). A prefilled title keeps focus off unless [alwaysFocusTitle]
-    // is set, which also focuses an existing note's title (the quick-note popup wants this; the editor does not).
+    // Once the note is loaded, focus the title and raise the keyboard for a blank title (the new-note case,
+    // and an expanded popup left empty) or whenever [alwaysFocusTitle] is set (the quick-note popup wants
+    // this; the editor does not). Otherwise actively clear focus and hide the keyboard: an existing note
+    // opened via the popup's Expand lands in an already-running window that can restore focus to a
+    // previously-focused field, which this undoes so the editor opens quiet.
     LaunchedEffect(noteLoaded) {
-        if (noteLoaded && (title.isBlank() || alwaysFocusTitle)) {
+        if (!noteLoaded) return@LaunchedEffect
+        if (title.isBlank() || alwaysFocusTitle) {
             titleFocusRequester.requestFocus()
             keyboardController?.show()
+        } else {
+            focusManager.clearFocus()
+            keyboardController?.hide()
         }
     }
 

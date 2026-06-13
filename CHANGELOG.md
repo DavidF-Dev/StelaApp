@@ -40,6 +40,8 @@ All notable changes to Stela are documented here. This project adheres to
   linger for a moment over the app behind.
 - Opening the overflow (⋮) menu while editing a note no longer hides the keyboard — it stays up in both the
   full editor and the quick-note popup, so it doesn't flash away and back when you open and close the menu.
+- Expanding the quick-note popup into the full editor for an existing note no longer sometimes opens it with
+  the description focused and the keyboard popping up — the editor now opens quietly, as it does elsewhere.
 
 ## [1.4.0] - 2026/06/12
 

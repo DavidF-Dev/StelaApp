@@ -24,6 +24,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -47,6 +48,10 @@ class MainActivity : AppCompatActivity() {
     // the popup), rather than finishing the task. Takes precedence over finishOnEditorDone.
     private val goToListOnEditorDone = mutableStateOf(false)
 
+    // An existing-note Expand must open with nothing focused, but the reused window restores focus to its
+    // last-focused field (re-raising the keyboard) as it regains focus. One-shot: clear it on that gain.
+    private var clearFocusOnWindowFocusGain = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         // Must precede super.onCreate so the splash theme is swapped for the app theme before the first frame.
         installSplashScreen()
@@ -65,6 +70,7 @@ class MainActivity : AppCompatActivity() {
                 isEditorDeepLink(intent.action, intent.data?.scheme, intent.data?.path) && !fromExpand
             goToListOnEditorDone.value = fromExpand
         }
+        clearFocusOnWindowFocusGain = isExpandOfExistingNote(intent)
         setContent {
             val settings by container.settingsRepository.settings.collectAsStateWithLifecycle(initialValue = Settings())
             val darkTheme = when (settings.themeMode) {
@@ -137,6 +143,7 @@ class MainActivity : AppCompatActivity() {
         // task — unless it came from the popup's Expand, which lands the user on the list.
         goToListOnEditorDone.value = intent.getBooleanExtra(EXTRA_FROM_POPUP_EXPAND, false)
         finishOnEditorDone.value = false
+        clearFocusOnWindowFocusGain = isExpandOfExistingNote(intent)
         // Skip re-navigating when the editor for this exact note is already on top (a warm re-entry from
         // its own notification while open); handleDeepLink would otherwise stack a duplicate editor.
         if (!isEditorAlreadyOpenFor(intent)) navController?.handleDeepLink(intent)
@@ -148,6 +155,27 @@ class MainActivity : AppCompatActivity() {
         val openId = current.arguments?.getLong(EditorViewModel.NOTE_ID_KEY) ?: return false
         val targetId = intent.data?.lastPathSegment?.toLongOrNull() ?: return false
         return openId == targetId
+    }
+
+    // An existing-note Expand: the from-popup-expand marker plus the /editor/{id} deep-link path (a new
+    // note uses /new and legitimately auto-focuses its title, so it must not be cleared).
+    private fun isExpandOfExistingNote(intent: Intent): Boolean =
+        intent.getBooleanExtra(EXTRA_FROM_POPUP_EXPAND, false) &&
+            intent.data?.path?.startsWith("/editor") == true
+
+    // The window restores focus to its last-focused field as it regains focus; for an existing-note Expand
+    // that re-raises the keyboard over an editor meant to open quiet. Clear it once, deferred past the
+    // framework's own restore on this same focus gain.
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus && clearFocusOnWindowFocusGain) {
+            clearFocusOnWindowFocusGain = false
+            val decor = window.decorView
+            decor.post {
+                currentFocus?.clearFocus()
+                WindowCompat.getInsetsController(window, decor).hide(WindowInsetsCompat.Type.ime())
+            }
+        }
     }
 
     companion object {
