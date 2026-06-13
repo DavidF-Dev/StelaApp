@@ -61,7 +61,8 @@ class MainActivity : AppCompatActivity() {
             val fromExpand = intent.getBooleanExtra(EXTRA_FROM_POPUP_EXPAND, false)
             // Expand from the popup uses the editor deep link but is in-app navigation: send the editor
             // to the list on done rather than finishing the task as a cold notification entry would.
-            finishOnEditorDone.value = isNotificationDeepLink(intent.action, intent.data?.scheme) && !fromExpand
+            finishOnEditorDone.value =
+                isEditorDeepLink(intent.action, intent.data?.scheme, intent.data?.path) && !fromExpand
             goToListOnEditorDone.value = fromExpand
         }
         setContent {
@@ -113,6 +114,18 @@ class MainActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         (application as StelaApp).container.isMainActivityVisible = false
+    }
+
+    // Returning from the background is a normal re-open, so a cold-entered editor should no longer finish
+    // the task on done. Downgrade to the in-app go-to-list exit (a bare pop could pop into an empty stack,
+    // since the editor deep link's synthesised back stack may have no list under it). onRestart runs only
+    // on re-entry, never on first launch, so the genuine cold session keeps its finish behaviour.
+    override fun onRestart() {
+        super.onRestart()
+        if (finishOnEditorDone.value) {
+            finishOnEditorDone.value = false
+            goToListOnEditorDone.value = true
+        }
     }
 
     /// The launch intent's deep link is handled by NavHost automatically; a singleTop

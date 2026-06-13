@@ -284,18 +284,23 @@ One service, one baseline notification, no redundancy.
 - **OEM active-notification caps (~24–50):** "unlimited notes" is fine, but
   pinning hundreds may hit an OEM ceiling → documented expectation, not a blocker.
 - **Channel disabled by user:** detect and prompt (see §7).
-- **Notification → editor return (implemented, v1.1.x):** opening the editor from a
-  notification now returns the user to **where they were** rather than always to the Note
-  List. A cold/external entry (`onCreate` with an `ACTION_VIEW` deep link and no saved
-  state) `finish()`es the task on completion — back to home / the previous app; a warm entry
-  (`onNewIntent`) and in-app navigation `popBackStack` instead. The decision is a
-  `finishOnEditorDone` flag set in `onCreate` (classified by `isNotificationDeepLink`),
-  reset on `onNewIntent`, and persisted across recreation in `onSaveInstanceState`; it is
-  threaded into the editor deep links, and a `BackHandler` routes system back through the
-  same exit. *Warm fidelity:* a warm entry pops to the **list** (the deep link rebuilds the
-  `[List → Editor]` back stack), not an arbitrary prior screen such as Settings — accepted,
-  since the list is the usual warm screen. Verified: cold→finish (device), in-app→list
-  (instrumented); warm→list shares the in-app pop mechanism.
+- **Notification → editor return (implemented, v1.1.x; refined v1.5.1):** opening the editor
+  from a notification now returns the user to **where they were** rather than always to the
+  Note List. A cold/external entry that lands **directly on the editor** (`onCreate` with an
+  `ACTION_VIEW` deep link and no saved state) `finish()`es the task on completion — back to
+  home / the previous app; a warm entry (`onNewIntent`) and in-app navigation `popBackStack`
+  instead. The decision is a `finishOnEditorDone` flag set in `onCreate` (classified by
+  `isEditorDeepLink`, which is **path-aware**: only the `/new` and `/editor/{id}` paths
+  qualify — the `/list` deep link behind "View Notes" lands on the list and is excluded, so
+  editing then leaving keeps the app open), reset on `onNewIntent`, and persisted across
+  recreation in `onSaveInstanceState`; it is threaded into the editor deep links, and a
+  `BackHandler` routes system back through the same exit. Because `MainActivity` is
+  `singleTop`, returning from the background runs only `onRestart` (no `onCreate`/
+  `onNewIntent`); `onRestart` therefore downgrades a still-set flag to the in-app go-to-list
+  exit, so a cold-entered editor re-opened from the launcher lands on the list rather than
+  finishing. *Warm fidelity:* a warm entry pops to the **list**, not an arbitrary prior
+  screen such as Settings — accepted, since the list is the usual warm screen. Verified:
+  cold→finish (device), in-app→list (instrumented); warm→list shares the in-app pop mechanism.
 - **Play `specialUse` review:** the biggest publishing risk; mitigated by the
   justification string and honest functionality.
 

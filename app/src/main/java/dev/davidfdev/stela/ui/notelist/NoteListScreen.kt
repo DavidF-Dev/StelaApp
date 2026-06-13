@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -258,7 +259,10 @@ fun NoteListScreen(
         Column(
             modifier = Modifier
                 .padding(padding)
-                .fillMaxSize(),
+                .fillMaxSize()
+                // Edge-to-edge means the framework won't inset for the keyboard; keep the body above it
+                // while the app bar (a separate slot) stays pinned, matching the editor.
+                .imePadding(),
         ) {
             if (notificationsBlocked) {
                 NotificationsBlockedBanner(onOpenSettings = onOpenNotificationSettings)

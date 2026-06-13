@@ -59,8 +59,9 @@ import dev.davidfdev.stela.ui.TooltipIconButton
 
 /// The shared note-editing core: an emoji-leading Title field and a Description field, plus the emoji
 /// picker they open. Used by both the full editor and the quick-note popup so editing behaves
-/// identically across surfaces. [descriptionModifier] sizes the description field (the popup keeps it
-/// compact; the editor gives it a fixed tall height).
+/// identically across surfaces. [descriptionModifier] sizes the description field; both callers cap its
+/// height so it scrolls within — its own scroll, unlike a parent's, follows the caret, which keeps a
+/// multiline caret above the keyboard.
 @Composable
 internal fun NoteFields(
     title: String,
