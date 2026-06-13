@@ -284,7 +284,7 @@ One service, one baseline notification, no redundancy.
 - **OEM active-notification caps (~24–50):** "unlimited notes" is fine, but
   pinning hundreds may hit an OEM ceiling → documented expectation, not a blocker.
 - **Channel disabled by user:** detect and prompt (see §7).
-- **Notification → editor return (implemented, v1.1.x; refined v1.5.1):** opening the editor
+- **Notification → editor return (implemented, v1.1.x; refined 1.5.0):** opening the editor
   from a notification now returns the user to **where they were** rather than always to the
   Note List. A cold/external entry that lands **directly on the editor** (`onCreate` with an
   `ACTION_VIEW` deep link and no saved state) `finish()`es the task on completion — back to

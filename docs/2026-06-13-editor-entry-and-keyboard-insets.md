@@ -1,6 +1,6 @@
 # Editor entry-context & keyboard insets — implementation plan
 
-> Status: **Implemented** · 2026-06-13 · v1.5.1. Issue 1 built as planned; Issue 2's keyboard fix grew
+> Status: **Implemented** · 2026-06-13 · 1.5.0 (unreleased). Issue 1 built as planned; Issue 2's keyboard fix grew
 > during implementation — `imePadding` alone did not suffice (see Issue 2, point 3: page scroll + a
 > keyboard-aware adaptive cap on the description).
 > Two independent fixes surfaced during testing:
@@ -107,7 +107,7 @@ with the keyboard down, the page scrolls so the expanded Advanced section and th
 reachable, Top Bar pinned throughout. Still worth a pass on an API ≤ 29 device, where `adjustResize` is what
 makes `imePadding()` receive IME insets at all.
 
-## Addendum — 2026-06-13 · description sizing superseded (v1.5.2)
+## Addendum — 2026-06-13 · description sizing superseded (1.5.0, unreleased)
 
 The adaptive cap from Issue 2.3 (`BoxWithConstraints` → `maxHeight − 140.dp`) is **gone**. It sized the
 description to fill the space above the keyboard, which let the field dominate the page and — because an
@@ -122,7 +122,7 @@ views above the keyboard on focus, with internal scroll holding the caret.
 
 A follow-up slice will add an opt-in full-screen description editor for long notes.
 
-**Update (v1.5.3):** the Description later migrated from the `String`-based `OutlinedTextField` to a
+**Update (later in the 1.5.0 cycle):** the Description later migrated from the `String`-based `OutlinedTextField` to a
 state-based `BasicTextField` (`TextFieldState` + an owned `ScrollState`) so it can show a slim scroll thumb
 while it overflows — see [the description scroll-thumb doc](2026-06-13-description-scroll-thumb.md). The 2–6
 line sizing and caret-follow are unchanged; the field now drives its own `ScrollState` (which is also what

@@ -22,7 +22,14 @@ All notable changes to Stela are documented here. This project adheres to
   from another app.
 - The description field is now a compact, fixed height (about two to six lines) that scrolls within itself
   as you write more, rather than growing to fill the screen. This leaves more of the page free to scroll
-  and keeps the field from dominating the editor. (Supersedes the 1.4.0 grow-to-a-larger-height behaviour.)
+  and keeps the field from dominating the editor.
+
+### Fixed
+- Opening Stela from the "View notes" shortcut, the quick-add notification, or the running-service
+  notification — then opening a note and leaving it — no longer closes the app. It now returns you to your
+  note list as expected.
+- In the note editor, the on-screen keyboard no longer covers the description while you type a longer note,
+  and the toolbar across the top stays in place instead of scrolling off-screen.
 
 ## [1.4.0] - 2026/06/12
 
