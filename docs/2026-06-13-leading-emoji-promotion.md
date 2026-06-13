@@ -1,6 +1,6 @@
 # Leading-emoji promotion on save — implementation plan
 
-> Status: **Planned** · 2026-06-13 · 1.5.0 (unreleased).
+> Status: **Implemented** · 2026-06-13 · 1.5.0 (unreleased).
 
 ## Goal
 
@@ -77,21 +77,22 @@ Walk-throughs:
 
 - New `data/EmojiTitle.kt`, beside `displayTitle` in `Note.kt`:
   - `data class EmojiPromotion(val emoji: String, val title: String)`.
-  - `promoteLeadingEmoji(title: String, currentEmoji: String, emojiRanges: List<IntRange>): EmojiPromotion?`
-    — **pure**, JVM-testable, no vanniktech dependency.
-  - `promoteLeadingEmoji(title: String, currentEmoji: String): EmojiPromotion?` — thin runtime overload that
-    short-circuits on a non-blank emoji, else maps `title.emojiInformation().emojiRanges.map { it.range }`
-    into the pure function. The only piece that touches vanniktech.
-- `EditorViewModel.save()` calls the runtime overload once at the top and feeds the promoted `(title, emoji)`
-  into **both** the create and update branches:
+  - `promoteLeadingEmoji(title, currentEmoji, emojiRanges: List<IntRange>): EmojiPromotion?` — **pure**,
+    JVM-testable, no vanniktech dependency.
+  - `emojiRangesOf(text): List<IntRange>` — the lone vanniktech touch
+    (`text.emojiInformation().emojiRanges.map { it.range }`).
+- `EditorViewModel` takes an **injected** `detectEmojiRanges: (String) -> List<IntRange> = ::emojiRangesOf`
+  (defaulted via the Factory). This keeps `save()` JVM-testable: the real detector needs `EmojiManager`
+  (only installed in the app process), so unit tests inject a fake/empty detector. `save()` computes the
+  promotion once and feeds `(title, emoji)` into **both** the create and update branches:
 
   ```kotlin
   val state = _uiState.value
-  val promo = promoteLeadingEmoji(state.title, state.emoji)
-  val titleToSave = promo?.title ?: state.title
-  val emojiToSave = promo?.emoji ?: state.emoji
-  // create: repository.create(titleToSave, state.description, emoji = emojiToSave)
-  // update: existing.copy(title = titleToSave, description = state.description, emoji = emojiToSave)
+  val promotion = promoteLeadingEmoji(state.title, state.emoji, detectEmojiRanges(state.title))
+  val title = promotion?.title ?: state.title
+  val emoji = promotion?.emoji ?: state.emoji
+  // create: repository.create(title, state.description, emoji = emoji)
+  // update: existing.copy(title = title, description = state.description, emoji = emoji)
   ```
 
   This covers both the full editor and the quick-note popup, since both route through `save()`. Pin/refresh
@@ -104,12 +105,13 @@ No schema, settings, or `displayTitle` changes.
 - **JVM unit** `EmojiTitleTest` over the pure `promoteLeadingEmoji(title, emoji, ranges)` — ranges supplied by
   hand — covering every row in the walk-through table plus: emoji-already-set (unchanged), emoji-not-at-start
   (`Foo 👑`), blank remainder, and each locked decision.
-- **Instrumented** `LeadingEmojiPromotionTest` calling the **runtime overload** with real emoji strings
-  (`👑 Foo`, `👑👸 Foo`, ` 👑 Foo`, `1. Milk`, `1️⃣ Tasks`, `👨‍👩‍👧 Trip`). Instrumented because it exercises
-  the real `emojiInformation()` (EmojiManager is installed by `StelaApp.onCreate` in the app process). This
-  validates the vanniktech integration — the digit guard and grapheme handling — not just the algorithm.
-- Optional full e2e: type `👑 Foo` in the editor, save, assert the persisted note has `emoji="👑"`,
-  `title="Foo"`.
+- **VM wiring** (`EditorViewModelTest`, JVM): new tests inject a fake crown detector and assert `save()`
+  promotes for a new note and an existing note, and does **not** promote when an emoji is already chosen.
+- **Instrumented** `LeadingEmojiPromotionTest` composing `promoteLeadingEmoji(title, "", emojiRangesOf(title))`
+  with real emoji strings (`👑 Foo`, `👑👸 Foo`, ` 👑 Foo`, `1. Milk`, `1️⃣ Tasks`, `👨‍👩‍👧 Trip`).
+  Instrumented because it exercises the real `emojiInformation()` (EmojiManager is installed by
+  `StelaApp.onCreate` in the app process). This validates the vanniktech integration — the digit guard and
+  grapheme handling — not just the algorithm.
 
 ## Docs & changelog
 

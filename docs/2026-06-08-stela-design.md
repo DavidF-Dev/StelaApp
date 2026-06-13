@@ -165,7 +165,10 @@ data class Note(
    The **pin toggle is shown for new notes too** *(v1.2.0)* — for an unsaved note it sets the
    *intended* pin state (no live notification until save), **defaulting to pinned**, and the note is
    pinned on save if notifications are permitted; for an existing note it pins/unpins live. (Delete
-   stays edit-only.)
+   stays edit-only.) On save, a title that **leads with an emoji** (at index 0, not followed by another
+   emoji, with a non-blank remainder) **promotes** that emoji into the empty emoji slot and strips it from
+   the title — *1.5.0*. Display is unchanged (`displayTitle` re-prefixes it); leading the title with a
+   space is the opt-out. See [2026-06-13-leading-emoji-promotion.md](2026-06-13-leading-emoji-promotion.md).
 3. **Settings** —
    - **Theme** — Light / Dark / Follow System, persisted via DataStore — *Phase 5*
      (the first consumer of the preferences store; default Follow System once

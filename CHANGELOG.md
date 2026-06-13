@@ -14,6 +14,8 @@ All notable changes to Stela are documented here. This project adheres to
   note's "Pin at", so you can change or cancel it there.
 - The description field now shows a slim scroll indicator on its right edge when it holds more text than
   fits, making it clear you can scroll within the field.
+- When you save a note whose title starts with an emoji and you haven't chosen one, that emoji automatically
+  becomes the note's emoji. Tip: start the title with a space to keep the emoji as part of the text instead.
 
 ### Changed
 - Opening a note from its notification (or the widget / Quick Settings tile) while Stela is already on

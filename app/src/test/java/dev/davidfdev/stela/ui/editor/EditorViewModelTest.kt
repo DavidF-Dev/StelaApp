@@ -47,6 +47,8 @@ class EditorViewModelTest {
             canPost: Boolean = true,
             initialAdvancedExpanded: Boolean = false,
             onAdvancedExpandedChange: (Boolean) -> Unit = {},
+            // Default to "no emoji anywhere": the real detector needs EmojiManager, unavailable in JVM tests.
+            detectEmojiRanges: (String) -> List<IntRange> = { emptyList() },
         ): EditorViewModel {
             // Mirror the routes: the new-note route always supplies the pin arg; the edit route never does.
             val map = buildMap<String, Any> {
@@ -60,6 +62,7 @@ class EditorViewModelTest {
                 canPostNotifications = { canPost },
                 initialAdvancedExpanded = initialAdvancedExpanded,
                 onAdvancedExpandedChange = onAdvancedExpandedChange,
+                detectEmojiRanges = detectEmojiRanges,
             )
         }
     }
@@ -386,5 +389,53 @@ class EditorViewModelTest {
         advanceUntilIdle()
 
         assertEquals("Edited", f.controller.refreshed.single().title)
+    }
+
+    // 👑 occupies UTF-16 indices 0..1; the fake reports it only when the title leads with it.
+    private val crownDetector: (String) -> List<IntRange> = { if (it.startsWith("👑")) listOf(0..1) else emptyList() }
+
+    @Test
+    fun newNote_save_promotesLeadingTitleEmoji() = runTest(dispatcher) {
+        val f = Fixture()
+        val viewModel = f.viewModel(detectEmojiRanges = crownDetector)
+
+        viewModel.onTitleChange("👑 Foo")
+        viewModel.save { }
+        advanceUntilIdle()
+
+        val note = f.repository.notes.first().single()
+        assertEquals("👑", note.emoji)
+        assertEquals("Foo", note.title)
+    }
+
+    @Test
+    fun newNote_save_withChosenEmoji_doesNotPromote() = runTest(dispatcher) {
+        val f = Fixture()
+        val viewModel = f.viewModel(detectEmojiRanges = crownDetector)
+
+        viewModel.onTitleChange("👑 Foo")
+        viewModel.onEmojiChange("🛒")
+        viewModel.save { }
+        advanceUntilIdle()
+
+        val note = f.repository.notes.first().single()
+        assertEquals("🛒", note.emoji)
+        assertEquals("👑 Foo", note.title)
+    }
+
+    @Test
+    fun existingNote_save_promotesLeadingTitleEmoji() = runTest(dispatcher) {
+        val f = Fixture()
+        val id = f.repository.create(title = "plain", description = "")
+        val viewModel = f.viewModel(id, detectEmojiRanges = crownDetector)
+        advanceUntilIdle()
+
+        viewModel.onTitleChange("👑 Foo")
+        viewModel.save { }
+        advanceUntilIdle()
+
+        val updated = f.repository.getById(id)!!
+        assertEquals("👑", updated.emoji)
+        assertEquals("Foo", updated.title)
     }
 }

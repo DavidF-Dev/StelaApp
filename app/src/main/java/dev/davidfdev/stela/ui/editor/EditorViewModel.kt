@@ -10,6 +10,8 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import dev.davidfdev.stela.StelaApp
 import dev.davidfdev.stela.data.Note
 import dev.davidfdev.stela.data.NoteRepository
+import dev.davidfdev.stela.data.emojiRangesOf
+import dev.davidfdev.stela.data.promoteLeadingEmoji
 import dev.davidfdev.stela.pin.NotePinner
 import dev.davidfdev.stela.ui.canPostNotifications
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,6 +48,8 @@ class EditorViewModel(
     private val canPostNotifications: () -> Boolean = { true },
     initialAdvancedExpanded: Boolean = false,
     private val onAdvancedExpandedChange: (Boolean) -> Unit = {},
+    // Injected so the save-time emoji detection (which needs EmojiManager) can be faked in JVM tests.
+    private val detectEmojiRanges: (String) -> List<IntRange> = ::emojiRangesOf,
 ) : ViewModel() {
 
     // A draft (Expand from the popup) carries the note id; otherwise it comes from the edit route.
@@ -177,17 +181,22 @@ class EditorViewModel(
     fun save(onComplete: () -> Unit) {
         viewModelScope.launch {
             val state = _uiState.value
+            // Quality-of-life: a title that leads with an emoji (and no emoji chosen) promotes it into the
+            // emoji slot. Display is unchanged; the inline emoji just becomes the structured one.
+            val promotion = promoteLeadingEmoji(state.title, state.emoji, detectEmojiRanges(state.title))
+            val title = promotion?.title ?: state.title
+            val emoji = promotion?.emoji ?: state.emoji
             val existing = loaded
             if (existing == null) {
-                val id = repository.create(state.title, state.description, emoji = state.emoji)
+                val id = repository.create(title, state.description, emoji = emoji)
                 // Mirror the other pin entry points: only pin when notifications can post.
                 if (state.isPinned && canPostNotifications()) repository.getById(id)?.let { pinner.pin(it) }
                 pinner.applySchedule(id, state.pinAt, state.unpinAt)
             } else {
                 val updated = existing.copy(
-                    title = state.title,
+                    title = title,
                     description = state.description,
-                    emoji = state.emoji,
+                    emoji = emoji,
                 )
                 repository.update(updated)
                 pinner.refresh(updated)
