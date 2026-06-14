@@ -33,6 +33,10 @@ All notable changes to Stela are documented here. This project adheres to
   the description is now trimmed to a compact length with an ellipsis, and the full note is a tap away.
 - Quickly pressing Back twice on a screen such as Settings, Archived, About, or the note editor no longer
   leaves the app on a blank screen that needed a restart.
+- Tapping a control on a screen that is sliding away no longer takes effect. Previously, pressing Back and
+  then quickly tapping (for example) a theme option in Settings or "Set" on a time picker could apply that
+  action to the screen mid-exit; taps are now ignored while a screen is animating in or out. Screen
+  transitions are also a little quicker.
 - Opening Stela from the "View notes" shortcut, the quick-add notification, or the running-service
   notification — then opening a note and leaving it — no longer closes the app. It now returns you to your
   note list as expected.

@@ -1,8 +1,16 @@
 package dev.davidfdev.stela.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
@@ -71,27 +79,38 @@ fun StelaNavHost(
         }
     }
 
-    NavHost(navController = navController, startDestination = Routes.LIST) {
+    NavHost(
+        navController = navController,
+        startDestination = Routes.LIST,
+        enterTransition = { fadeIn(tween(TRANSITION_MS)) },
+        exitTransition = { fadeOut(tween(TRANSITION_MS)) },
+        popEnterTransition = { fadeIn(tween(TRANSITION_MS)) },
+        popExitTransition = { fadeOut(tween(TRANSITION_MS)) },
+    ) {
         composable(
             route = Routes.LIST,
             deepLinks = listOf(
                 navDeepLink { uriPattern = "${AndroidNotificationController.DEEP_LINK_BASE}/list" },
             ),
         ) {
-            NoteListRoute(
-                onAddNote = { navController.navigate(Routes.EDITOR_NEW) },
-                onOpenNote = { id -> navController.navigate(Routes.editNote(id)) },
-                onOpenSettings = { navController.navigate(Routes.SETTINGS) },
-                onOpenArchived = { navController.navigate(Routes.ARCHIVED) },
-            )
+            ScreenGate {
+                NoteListRoute(
+                    onAddNote = { navController.navigate(Routes.EDITOR_NEW) },
+                    onOpenNote = { id -> navController.navigate(Routes.editNote(id)) },
+                    onOpenSettings = { navController.navigate(Routes.SETTINGS) },
+                    onOpenArchived = { navController.navigate(Routes.ARCHIVED) },
+                )
+            }
         }
         composable(Routes.ARCHIVED) { entry ->
             val goBack = guardedPop(navController, entry)
             BackHandler { goBack() }
-            ArchivedRoute(
-                onBack = goBack,
-                onOpenNote = { id -> navController.navigate(Routes.editNote(id)) },
-            )
+            ScreenGate {
+                ArchivedRoute(
+                    onBack = goBack,
+                    onOpenNote = { id -> navController.navigate(Routes.editNote(id)) },
+                )
+            }
         }
         composable(
             route = Routes.EDITOR_NEW_ROUTE,
@@ -106,9 +125,11 @@ fun StelaNavHost(
                 },
             ),
         ) { entry ->
-            // Every editor exit (back arrow, save, delete, system back) routes through onDone; ignore a
-            // tap landing mid-transition so it can't pop a second destination and leave a blank host.
-            EditorRoute(onDone = { if (entry.lifecycle.isResumed()) onEditorDone() })
+            ScreenGate {
+                // Every editor exit (back arrow, save, delete, system back) routes through onDone; ignore a
+                // tap landing mid-transition so it can't pop a second destination and leave a blank host.
+                EditorRoute(onDone = { if (entry.lifecycle.isResumed()) onEditorDone() })
+            }
         }
         composable(
             route = Routes.EDITOR_EDIT,
@@ -120,24 +141,54 @@ fun StelaNavHost(
                 },
             ),
         ) { entry ->
-            // Every editor exit (back arrow, save, delete, system back) routes through onDone; ignore a
-            // tap landing mid-transition so it can't pop a second destination and leave a blank host.
-            EditorRoute(onDone = { if (entry.lifecycle.isResumed()) onEditorDone() })
+            ScreenGate {
+                // Every editor exit (back arrow, save, delete, system back) routes through onDone; ignore a
+                // tap landing mid-transition so it can't pop a second destination and leave a blank host.
+                EditorRoute(onDone = { if (entry.lifecycle.isResumed()) onEditorDone() })
+            }
         }
         composable(Routes.SETTINGS) { entry ->
             val goBack = guardedPop(navController, entry)
             BackHandler { goBack() }
-            SettingsRoute(
-                onBack = goBack,
-                onOpenAbout = { navController.navigate(Routes.ABOUT) },
-            )
+            ScreenGate {
+                SettingsRoute(
+                    onBack = goBack,
+                    onOpenAbout = { navController.navigate(Routes.ABOUT) },
+                )
+            }
         }
         composable(Routes.ABOUT) { entry ->
             val goBack = guardedPop(navController, entry)
             BackHandler { goBack() }
-            AboutRoute(onBack = goBack)
+            ScreenGate {
+                AboutRoute(onBack = goBack)
+            }
         }
     }
+}
+
+/// Full-screen navigation cross-fade duration, in milliseconds.
+private const val TRANSITION_MS = 350
+
+/// Wraps a destination's [content], dropping all pointer input while the destination is mid-transition
+/// (entering or leaving). A tap landing during the cross-fade then cannot reach a screen that is not
+/// settled — neither the one animating out nor the one not yet fully arrived.
+@Composable
+private fun AnimatedVisibilityScope.ScreenGate(content: @Composable () -> Unit) {
+    val settled = transition.currentState == transition.targetState
+    val gate = if (settled) {
+        Modifier
+    } else {
+        Modifier.pointerInput(Unit) {
+            // Consume on the initial pass so the gate wins before any child handler sees the event.
+            awaitPointerEventScope {
+                while (true) {
+                    awaitPointerEvent(PointerEventPass.Initial).changes.forEach { it.consume() }
+                }
+            }
+        }
+    }
+    Box(gate) { content() }
 }
 
 /// True only when this lifecycle is fully RESUMED — i.e. settled, not mid navigation transition.
