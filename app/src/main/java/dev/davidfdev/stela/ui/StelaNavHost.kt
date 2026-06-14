@@ -1,5 +1,6 @@
 package dev.davidfdev.stela.ui
 
+import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -47,6 +48,9 @@ object Routes {
     fun editNote(noteId: Long) = "editor/$noteId"
 }
 
+// currentBackStack is @RestrictTo(LIBRARY_GROUP): no public Flow emits when the back stack empties,
+// which is the exact case the rapid-back safety net below watches for.
+@SuppressLint("RestrictedApi")
 @Composable
 fun StelaNavHost(
     navController: NavHostController = rememberNavController(),
