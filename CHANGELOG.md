@@ -29,6 +29,8 @@ All notable changes to Stela are documented here. This project adheres to
   at the end of the text) so you can start typing straight away. The full editor is unchanged.
 
 ### Fixed
+- A pinned note with a very long description no longer fills the whole notification shade when expanded;
+  the description is now trimmed to a compact length with an ellipsis, and the full note is a tap away.
 - Quickly pressing Back twice on a screen such as Settings, Archived, About, or the note editor no longer
   leaves the app on a blank screen that needed a restart.
 - Opening Stela from the "View notes" shortcut, the quick-add notification, or the running-service

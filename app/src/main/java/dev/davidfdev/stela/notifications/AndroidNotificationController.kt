@@ -90,8 +90,9 @@ class AndroidNotificationController(private val context: Context) : Notification
             // The remove action's label reflects what it does (Unpin / Archive / Delete).
             .addAction(0, context.getString(removeActionLabelRes()), removeIntent(note.id))
         if (note.description.isNotBlank()) {
-            builder.setContentText(note.description)
-                .setStyle(NotificationCompat.BigTextStyle().bigText(note.description))
+            val body = notificationBody(note.description)
+            builder.setContentText(body)
+                .setStyle(NotificationCompat.BigTextStyle().bigText(body))
         } else {
             // Title-only note: show an action hint instead of a blank content line.
             builder.setContentText(context.getString(R.string.notification_pinned_hint))
