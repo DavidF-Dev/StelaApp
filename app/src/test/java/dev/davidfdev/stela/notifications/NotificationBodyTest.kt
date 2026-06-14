@@ -18,7 +18,7 @@ class NotificationBodyTest {
 
     @Test
     fun exactlyAtCap_returnedUnchanged() {
-        val text = "a".repeat(300)
+        val text = "a".repeat(140)
         assertEquals(text, notificationBody(text))
     }
 
@@ -43,6 +43,6 @@ class NotificationBodyTest {
     fun longDescription_withoutNearbySpace_hardCuts() {
         val text = "a".repeat(350)
         val result = notificationBody(text)
-        assertEquals("a".repeat(300) + "…", result)
+        assertEquals("a".repeat(140) + "…", result)
     }
 }

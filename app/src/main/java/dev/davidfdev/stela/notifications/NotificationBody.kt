@@ -1,7 +1,7 @@
 package dev.davidfdev.stela.notifications
 
 // A compact cap so a long note can't fill the shade; the full note is a tap away.
-private const val MAX_BODY_LENGTH = 300
+private const val MAX_BODY_LENGTH = 140
 
 // How far back from the cap we'll look for a space to avoid cutting mid-word.
 private const val WORD_BREAK_WINDOW = 40
