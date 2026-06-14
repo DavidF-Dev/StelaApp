@@ -187,3 +187,9 @@ Built as planned, with one important correction found in device/test verificatio
   `@BeforeClass` in the nine `MainActivity`-launching UI tests, plus the new `OnboardingFlowTest`.
 - **Verified:** unit tests, full instrumented suite (52 tests, 0 failed), lint clean; manual: first launch
   shows onboarding, relaunch goes straight to the list (no flash, no stuck splash).
+- **Follow-up fix (2026-06-14): edge-to-edge insets on the custom bars.** The custom top bar (Skip) and
+  bottom bar (Next/Get started) are plain `Row`/`Column`s, not a Material `TopAppBar`/`BottomAppBar`, so
+  under `enableEdgeToEdge()` they didn't inset themselves — "Skip" rendered behind the status bar
+  (clipped, untappable). Added `statusBarsPadding()` to the Skip row and `navigationBarsPadding()` to the
+  bottom bar. (`OnboardingFlowTest` taps Skip via the semantics tree, so it had passed despite the visual
+  clipping — confirming this was purely a layout/inset gap; verified by screenshot afterwards.)

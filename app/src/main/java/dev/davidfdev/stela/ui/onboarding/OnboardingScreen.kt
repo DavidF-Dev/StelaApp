@@ -15,8 +15,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
@@ -109,7 +111,12 @@ fun OnboardingScreen(
     Surface(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             topBar = {
-                Row(modifier = Modifier.fillMaxWidth().padding(8.dp), horizontalArrangement = Arrangement.End) {
+                // Edge-to-edge: inset below the status bar so Skip isn't clipped behind it (a custom bar,
+                // unlike TopAppBar, doesn't apply this itself).
+                Row(
+                    modifier = Modifier.fillMaxWidth().statusBarsPadding().padding(8.dp),
+                    horizontalArrangement = Arrangement.End,
+                ) {
                     TextButton(onClick = onComplete) { Text(stringResource(R.string.onboarding_skip)) }
                 }
             },
@@ -243,7 +250,13 @@ private fun DoneRow(label: String) {
 @Composable
 private fun OnboardingBottomBar(currentPage: Int, onNext: () -> Unit, onComplete: () -> Unit) {
     val lastPage = currentPage == PAGE_COUNT - 1
-    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 16.dp)) {
+    // Edge-to-edge: keep the button clear of the navigation bar (a custom bar doesn't inset itself).
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .navigationBarsPadding()
+            .padding(horizontal = 24.dp, vertical = 16.dp),
+    ) {
         PageIndicator(currentPage = currentPage)
         Spacer(Modifier.height(16.dp))
         Button(
