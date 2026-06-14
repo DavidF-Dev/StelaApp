@@ -20,6 +20,7 @@ class SettingsMappingTest {
         assertEquals(SortOrder.MODIFIED, settings.sortOrder)
         assertFalse(settings.sortReversed)
         assertEquals(NoteFilter.ALL, settings.noteFilter)
+        assertFalse(settings.onboardingComplete)
     }
 
     @Test
@@ -33,6 +34,7 @@ class SettingsMappingTest {
             SettingsKeys.SORT_ORDER to SortOrder.TITLE.name,
             SettingsKeys.SORT_REVERSED to true,
             SettingsKeys.NOTE_FILTER to NoteFilter.PINNED.name,
+            SettingsKeys.ONBOARDING_COMPLETE to true,
         )
 
         val settings = settingsFromPreferences(prefs)
@@ -45,6 +47,7 @@ class SettingsMappingTest {
         assertEquals(SortOrder.TITLE, settings.sortOrder)
         assertTrue(settings.sortReversed)
         assertEquals(NoteFilter.PINNED, settings.noteFilter)
+        assertTrue(settings.onboardingComplete)
     }
 
     @Test

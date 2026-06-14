@@ -50,6 +50,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.davidfdev.stela.R
 import dev.davidfdev.stela.resilience.DeviceResilience
 import dev.davidfdev.stela.ui.SectionHeader
+import dev.davidfdev.stela.ui.resilience.OemGuidanceDialog
 import dev.davidfdev.stela.settings.RemovalPreference
 import dev.davidfdev.stela.settings.Settings
 import dev.davidfdev.stela.settings.ThemeMode
@@ -163,6 +164,7 @@ fun SettingsRoute(
         onExport = { exportLauncher.launch("stela-backup-${LocalDate.now()}.json") },
         onImport = { importLauncher.launch(arrayOf("application/json")) },
         onClearNotes = viewModel::clearAllNotes,
+        onReplayOnboarding = viewModel::replayOnboarding,
         onOpenAbout = onOpenAbout,
         onBack = onBack,
     )
@@ -187,6 +189,7 @@ fun SettingsScreen(
     onExport: () -> Unit,
     onImport: () -> Unit,
     onClearNotes: () -> Unit,
+    onReplayOnboarding: () -> Unit,
     onOpenAbout: () -> Unit,
     onBack: () -> Unit,
 ) {
@@ -324,6 +327,11 @@ fun SettingsScreen(
                 headlineContent = { Text(stringResource(R.string.settings_about_title)) },
                 modifier = Modifier.clickable(onClick = onOpenAbout),
             )
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.settings_show_intro_title)) },
+                supportingContent = { Text(stringResource(R.string.settings_show_intro_summary)) },
+                modifier = Modifier.clickable(onClick = onReplayOnboarding),
+            )
             // Breathing room so the last item can scroll clear of the bottom edge.
             Spacer(Modifier.height(48.dp))
         }
@@ -365,36 +373,6 @@ fun SettingsScreen(
             },
         )
     }
-}
-
-@Composable
-private fun OemGuidanceDialog(
-    title: String,
-    steps: String,
-    onOpenSettings: () -> Unit,
-    onDismiss: () -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(title) },
-        text = {
-            Column {
-                Text(steps)
-                Spacer(Modifier.height(12.dp))
-                Text(
-                    text = stringResource(R.string.oem_dialog_caveat),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onOpenSettings) { Text(stringResource(R.string.oem_dialog_open)) }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.oem_dialog_close)) }
-        },
-    )
 }
 
 @Composable

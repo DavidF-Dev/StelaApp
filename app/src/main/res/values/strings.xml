@@ -173,6 +173,8 @@
 
     <string name="settings_section_about">About</string>
     <string name="settings_about_title">About Stela</string>
+    <string name="settings_show_intro_title">Show intro again</string>
+    <string name="settings_show_intro_summary">Replay the welcome and setup guide.</string>
 
     <!-- About -->
     <string name="about_title">About</string>
@@ -188,6 +190,21 @@
     <string name="about_licenses_body">Jetpack Compose, AndroidX, Material Components, Kotlin, and vanniktech/Emoji — Apache License 2.0.</string>
     <string name="action_view_source">View source</string>
     <string name="about_source_url" translatable="false">https://github.com/DavidF-Dev/StelaApp</string>
+
+    <!-- First-run onboarding -->
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_get_started">Get started</string>
+    <string name="onboarding_welcome_title">Notes as notifications</string>
+    <string name="onboarding_welcome_body">Pin your notes to the status bar so they\'re always a glance away — while using any app. Fully offline: no ads, no tracking, no internet.</string>
+    <string name="onboarding_notifications_title">Stay visible</string>
+    <string name="onboarding_notifications_body">Stela pins a note by showing it as a notification, so it needs permission to post notifications.</string>
+    <string name="onboarding_notifications_action">Allow notifications</string>
+    <string name="onboarding_notifications_granted">Notifications are on.</string>
+    <string name="onboarding_keepalive_title">Survive in the background</string>
+    <string name="onboarding_keepalive_body">Android may stop Stela to save power, which can clear your pinned notes. Exempting Stela from battery optimisation helps them stay put and re-pin after a reboot.</string>
+    <string name="onboarding_keepalive_battery_action">Battery settings</string>
+    <string name="onboarding_keepalive_autostart_action">Auto-start settings</string>
 
     <!-- Launcher app shortcuts -->
     <string name="shortcut_new_note_short">New note</string>

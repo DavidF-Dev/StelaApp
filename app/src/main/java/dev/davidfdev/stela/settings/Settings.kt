@@ -22,4 +22,5 @@ data class Settings(
     val sortOrder: SortOrder = SortOrder.MODIFIED,
     val sortReversed: Boolean = false,
     val noteFilter: NoteFilter = NoteFilter.ALL,
+    val onboardingComplete: Boolean = false,
 )

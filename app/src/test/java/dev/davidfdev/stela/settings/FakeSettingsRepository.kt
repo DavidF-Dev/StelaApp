@@ -40,4 +40,8 @@ class FakeSettingsRepository(initial: Settings = Settings()) : SettingsRepositor
     override suspend fun setNoteFilter(value: NoteFilter) {
         state.update { it.copy(noteFilter = value) }
     }
+
+    override suspend fun setOnboardingComplete(value: Boolean) {
+        state.update { it.copy(onboardingComplete = value) }
+    }
 }

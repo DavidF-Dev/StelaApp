@@ -10,6 +10,9 @@ All notable changes to Stela are documented here. This project adheres to
   (for example a selection in your browser). Sharing text opens a new note prefilled with it — the shared
   title becomes the note's title and the text becomes its description — ready to tweak and save. Like
   everything else in Stela, this stays offline.
+- First-run onboarding: a short, skippable welcome on first launch explains how Stela pins notes as
+  notifications, asks for notification permission with context, and points you to the battery setting that
+  helps pinned notes survive in the background. You can replay it any time from Settings → Show intro again.
 
 ## [1.5.0] - 2026/06/14
 

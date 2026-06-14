@@ -421,8 +421,12 @@ icon. See [CHANGELOG.md](../CHANGELOG.md).
 text from another app opens a new note prefilled with it (subject → title, body → description; pins on
 save). It reuses the existing process-scoped `NoteDraft` hand-off into the editor, so no view-model or
 nav-graph changes were needed. Offline, no new permission. See
-[2026-06-14-share-to-stela.md](2026-06-14-share-to-stela.md). First of the
-[post-v1.5 improvements queue](2026-06-14-post-v1.5-improvements.md).
+[2026-06-14-share-to-stela.md](2026-06-14-share-to-stela.md). **First-run onboarding** — a skippable
+three-pane flow (concept → notifications → keep-alive) shown over the app until complete, gated on a new
+`onboardingComplete` DataStore flag; it owns the contextual `POST_NOTIFICATIONS` request (replacing the
+old silent first-launch request) and reuses the shared `OemGuidanceDialog` for battery/autostart.
+Replayable from Settings → About. See [2026-06-14-first-run-onboarding.md](2026-06-14-first-run-onboarding.md).
+Both are from the [post-v1.5 improvements queue](2026-06-14-post-v1.5-improvements.md).
 
 **Planned features (prioritized, 2026-06-10):** each is its own slice (spec → plan →
 implement); all keep the no-`INTERNET` invariant.

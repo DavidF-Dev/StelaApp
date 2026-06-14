@@ -1,40 +1,36 @@
 package dev.davidfdev.stela
 
-import android.Manifest
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.colorResource
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import dev.davidfdev.stela.settings.Settings
 import dev.davidfdev.stela.settings.ThemeMode
 import dev.davidfdev.stela.ui.Routes
 import dev.davidfdev.stela.ui.StelaNavHost
 import dev.davidfdev.stela.ui.StelaTheme
 import dev.davidfdev.stela.ui.editor.EditorViewModel
-import dev.davidfdev.stela.ui.canPostNotifications
+import dev.davidfdev.stela.ui.onboarding.OnboardingScreen
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
@@ -86,8 +82,17 @@ class MainActivity : AppCompatActivity() {
         }
 
         setContent {
-            val settings by container.settingsRepository.settings.collectAsStateWithLifecycle(initialValue = Settings())
-            val darkTheme = when (settings.themeMode) {
+            val settings by container.settingsRepository.settings.collectAsStateWithLifecycle(initialValue = null)
+            val current = settings
+            // Until the persisted settings load, show a brand-coloured placeholder (matching the splash) so
+            // the onboarding gate — keyed off a flag that defaults to "not complete" — never flashes, and so
+            // the first frame always draws (a held splash deadlocks the Compose test clock).
+            if (current == null) {
+                Box(Modifier.fillMaxSize().background(colorResource(R.color.brand_indigo)))
+                return@setContent
+            }
+
+            val darkTheme = when (current.themeMode) {
                 ThemeMode.LIGHT -> false
                 ThemeMode.DARK -> true
                 ThemeMode.SYSTEM -> isSystemInDarkTheme()
@@ -100,26 +105,36 @@ class MainActivity : AppCompatActivity() {
                 controller.isAppearanceLightNavigationBars = !darkTheme
             }
 
-            QuickAddOnboarding(quickAddEnabled = settings.quickAddEnabled, container = container)
-
             StelaTheme(darkTheme) {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    val controller = rememberNavController()
-                    SideEffect { navController = controller }
-                    // A cold share seeded the draft in onCreate; open the editor once the host is ready.
-                    LaunchedEffect(Unit) {
-                        if (pendingShareNavigation.value) {
-                            pendingShareNavigation.value = false
-                            controller.navigate(Routes.EDITOR_NEW)
+                    if (!current.onboardingComplete) {
+                        OnboardingScreen(
+                            onComplete = {
+                                lifecycleScope.launch { container.settingsRepository.setOnboardingComplete(true) }
+                            },
+                            // On grant, bring up the foreground service so the quick-add notification shows.
+                            onNotificationsGranted = {
+                                lifecycleScope.launch { container.notePinner.reconcileService() }
+                            },
+                        )
+                    } else {
+                        val controller = rememberNavController()
+                        SideEffect { navController = controller }
+                        // A cold share seeded the draft in onCreate; open the editor once the host is ready.
+                        LaunchedEffect(Unit) {
+                            if (pendingShareNavigation.value) {
+                                pendingShareNavigation.value = false
+                                controller.navigate(Routes.EDITOR_NEW)
+                            }
                         }
+                        StelaNavHost(
+                            navController = controller,
+                            finishOnEditorDone = finishOnEditorDone.value,
+                            goToListOnEditorDone = goToListOnEditorDone.value,
+                            onGoToListConsumed = { goToListOnEditorDone.value = false },
+                            onFinish = { finish() },
+                        )
                     }
-                    StelaNavHost(
-                        navController = controller,
-                        finishOnEditorDone = finishOnEditorDone.value,
-                        goToListOnEditorDone = goToListOnEditorDone.value,
-                        onGoToListConsumed = { goToListOnEditorDone.value = false },
-                        onFinish = { finish() },
-                    )
                 }
             }
         }
@@ -218,27 +233,5 @@ class MainActivity : AppCompatActivity() {
 
         private const val KEY_FINISH_ON_EDITOR_DONE = "finish_on_editor_done"
         private const val KEY_GO_TO_LIST_ON_EDITOR_DONE = "go_to_list_on_editor_done"
-    }
-}
-
-/// Quick-add defaults on, so on first launch (API 33+) request POST_NOTIFICATIONS so
-/// the service's quick-add notification can show; reconcile the service on grant.
-@androidx.compose.runtime.Composable
-private fun QuickAddOnboarding(quickAddEnabled: Boolean, container: dev.davidfdev.stela.di.AppContainer) {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    var requested by rememberSaveable { mutableStateOf(false) }
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) scope.launch { container.notePinner.reconcileService() }
-    }
-    LaunchedEffect(quickAddEnabled) {
-        if (!requested &&
-            quickAddEnabled &&
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            !canPostNotifications(context)
-        ) {
-            requested = true
-            launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
-        }
     }
 }

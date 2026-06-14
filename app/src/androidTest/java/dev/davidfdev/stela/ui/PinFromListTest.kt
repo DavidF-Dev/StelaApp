@@ -17,6 +17,7 @@ import dev.davidfdev.stela.MainActivity
 import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -30,6 +31,15 @@ class PinFromListTest {
     private val manager by lazy {
         InstrumentationRegistry.getInstrumentation().targetContext
             .getSystemService(NotificationManager::class.java)
+    }
+
+    companion object {
+        // First-run onboarding gates the UI; mark it complete before the activity launches.
+        @BeforeClass
+        @JvmStatic
+        fun completeOnboarding() {
+            markOnboardingComplete()
+        }
     }
 
     @Before

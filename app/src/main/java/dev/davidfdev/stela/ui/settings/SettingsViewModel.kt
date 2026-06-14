@@ -127,6 +127,12 @@ class SettingsViewModel(
         viewModelScope.launch { repository.setRemovalPreference(value) }
     }
 
+    /// Clears the onboarding-complete flag so the first-run flow shows again; the gate that wraps the app
+    /// content re-displays it on the next recomposition.
+    fun replayOnboarding() {
+        viewModelScope.launch { repository.setOnboardingComplete(false) }
+    }
+
     companion object {
         private const val STOP_TIMEOUT_MILLIS = 5_000L
 

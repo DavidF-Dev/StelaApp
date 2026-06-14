@@ -33,6 +33,7 @@ class EditorBackNavigationTest {
                 InstrumentationRegistry.getInstrumentation().targetContext.packageName,
                 Manifest.permission.POST_NOTIFICATIONS,
             )
+            markOnboardingComplete()
         }
     }
 
