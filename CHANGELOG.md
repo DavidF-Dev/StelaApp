@@ -3,7 +3,7 @@
 All notable changes to Stela are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
-## [1.5.0] - unreleased
+## [1.5.0] - 2026/06/14
 
 ### Added
 - Scheduled pins: a new **Advanced** section in the note editor lets you set a note to **pin at** a chosen
