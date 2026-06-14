@@ -74,6 +74,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -91,6 +92,7 @@ import dev.davidfdev.stela.ui.ButtonTooltip
 import dev.davidfdev.stela.ui.TimeFormatter
 import dev.davidfdev.stela.ui.TooltipIconButton
 import dev.davidfdev.stela.ui.arePinnedNotificationsBlocked
+import dev.davidfdev.stela.ui.performPinToggle
 import dev.davidfdev.stela.ui.openAppNotificationSettings
 import dev.davidfdev.stela.ui.rememberNotificationPermissionGate
 import kotlinx.coroutines.launch
@@ -407,6 +409,7 @@ private fun NoteRow(
 ) {
     // DateUtils formatting is recomputed only when the timestamp changes, not every recomposition.
     val relativeTime = remember(note.updatedAt) { TimeFormatter.relative(note.updatedAt).toString() }
+    val haptic = LocalHapticFeedback.current
     ListItem(
         colors = if (selected) {
             ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
@@ -443,7 +446,7 @@ private fun NoteRow(
                     )
                 }
             } else {
-                IconButton(onClick = onTogglePin) {
+                IconButton(onClick = { haptic.performPinToggle(note.isPinned); onTogglePin() }) {
                     if (note.isPinned) {
                         Icon(Icons.Filled.PushPin, contentDescription = stringResource(R.string.action_unpin))
                     } else {

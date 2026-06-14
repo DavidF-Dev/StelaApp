@@ -63,6 +63,7 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -77,6 +78,7 @@ import com.vanniktech.emoji.EmojiView
 import dev.davidfdev.stela.R
 import dev.davidfdev.stela.ui.ButtonTooltip
 import dev.davidfdev.stela.ui.TooltipIconButton
+import dev.davidfdev.stela.ui.performPinToggle
 import kotlinx.coroutines.flow.drop
 
 /// The shared note-editing core: an emoji-leading Title field and a Description field, plus the emoji
@@ -275,10 +277,11 @@ internal fun RowScope.NoteEditorActions(
     onDuplicate: (() -> Unit)? = null,
     pinModifier: Modifier = Modifier,
 ) {
+    val haptic = LocalHapticFeedback.current
     TooltipIconButton(
         icon = if (state.isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
         label = stringResource(if (state.isPinned) R.string.action_unpin else R.string.action_pin),
-        onClick = onTogglePin,
+        onClick = { haptic.performPinToggle(state.isPinned); onTogglePin() },
         modifier = pinModifier,
     )
     if (state.isEditing) {

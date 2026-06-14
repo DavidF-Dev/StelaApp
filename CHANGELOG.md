@@ -20,6 +20,8 @@ All notable changes to Stela are documented here. This project adheres to
   existing note.
 - Material You: a new "Use system colours" option (Settings → Theme, Android 12+) themes the app from
   your wallpaper's palette. Off by default — the indigo brand stays unless you turn it on.
+- Pinning a note now gives a light haptic tick (on the list and in the editor), with a distinct cue for
+  pin vs unpin. Respects your system haptics setting.
 
 ### Changed
 - The note editor now asks before discarding unsaved changes: pressing Back with edits in progress shows
