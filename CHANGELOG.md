@@ -18,6 +18,8 @@ All notable changes to Stela are documented here. This project adheres to
 - Duplicate a note: the editor's overflow (⋮) menu now has a Duplicate action that creates an
   independent copy (unpinned, unscheduled) and offers Undo. Handy for spinning a variant off an
   existing note.
+- Material You: a new "Use system colours" option (Settings → Theme, Android 12+) themes the app from
+  your wallpaper's palette. Off by default — the indigo brand stays unless you turn it on.
 
 ### Changed
 - The note editor now asks before discarding unsaved changes: pressing Back with edits in progress shows

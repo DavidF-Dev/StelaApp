@@ -69,6 +69,18 @@ class SettingsViewModelTest {
     }
 
     @Test
+    fun setDynamicColor_updatesState() = runTest(dispatcher) {
+        val viewModel = viewModel()
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        advanceUntilIdle()
+
+        viewModel.setDynamicColor(true)
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.dynamicColor)
+    }
+
+    @Test
     fun setQuickAddEnabled_updatesState() = runTest(dispatcher) {
         val viewModel = viewModel()
         backgroundScope.launch { viewModel.uiState.collect {} }

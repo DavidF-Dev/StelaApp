@@ -437,7 +437,11 @@ indicator** — a row whose note has an auto-pin/unpin shows a clock + relative 
 Duplicate item in the editor's ⋮ menu (existing notes) creates an independent copy from the current
 fields (fresh id, unpinned, unscheduled, active) via `NoteRepository.create`, staying on the note with an
 Undo snackbar; editor-only via a nullable `onDuplicate` (not in the popup). See
-[2026-06-14-duplicate-note.md](2026-06-14-duplicate-note.md). All five are from the
+[2026-06-14-duplicate-note.md](2026-06-14-duplicate-note.md). **Material You** — an optional,
+off-by-default "Use system colours" toggle (Settings → Theme, API 31+) themes the in-app UI from the
+wallpaper palette via `dynamicLight/DarkColorScheme`, falling back to the brand palette; splash /
+notification / icon stay brand, and the widget keeps Glance's own default (already dynamic on 12+). See
+[2026-06-14-material-you.md](2026-06-14-material-you.md). All six are from the
 [post-v1.5 improvements queue](2026-06-14-post-v1.5-improvements.md).
 
 **Planned features (prioritized, 2026-06-10):** each is its own slice (spec → plan →

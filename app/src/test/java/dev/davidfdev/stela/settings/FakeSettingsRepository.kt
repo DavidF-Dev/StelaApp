@@ -44,4 +44,8 @@ class FakeSettingsRepository(initial: Settings = Settings()) : SettingsRepositor
     override suspend fun setOnboardingComplete(value: Boolean) {
         state.update { it.copy(onboardingComplete = value) }
     }
+
+    override suspend fun setDynamicColor(value: Boolean) {
+        state.update { it.copy(dynamicColor = value) }
+    }
 }

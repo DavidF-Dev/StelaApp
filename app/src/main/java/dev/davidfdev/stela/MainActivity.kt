@@ -105,7 +105,7 @@ class MainActivity : AppCompatActivity() {
                 controller.isAppearanceLightNavigationBars = !darkTheme
             }
 
-            StelaTheme(darkTheme) {
+            StelaTheme(darkTheme, dynamicColor = current.dynamicColor) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     if (!current.onboardingComplete) {
                         OnboardingScreen(

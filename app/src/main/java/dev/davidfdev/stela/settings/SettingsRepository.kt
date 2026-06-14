@@ -21,6 +21,7 @@ interface SettingsRepository {
     suspend fun setSortReversed(value: Boolean)
     suspend fun setNoteFilter(value: NoteFilter)
     suspend fun setOnboardingComplete(value: Boolean)
+    suspend fun setDynamicColor(value: Boolean)
 }
 
 class DataStoreSettingsRepository(
@@ -64,6 +65,10 @@ class DataStoreSettingsRepository(
     override suspend fun setOnboardingComplete(value: Boolean) {
         dataStore.edit { it[SettingsKeys.ONBOARDING_COMPLETE] = value }
     }
+
+    override suspend fun setDynamicColor(value: Boolean) {
+        dataStore.edit { it[SettingsKeys.DYNAMIC_COLOR] = value }
+    }
 }
 
 internal object SettingsKeys {
@@ -77,6 +82,7 @@ internal object SettingsKeys {
     val SORT_REVERSED = booleanPreferencesKey("sort_reversed")
     val NOTE_FILTER = stringPreferencesKey("note_filter")
     val ONBOARDING_COMPLETE = booleanPreferencesKey("onboarding_complete")
+    val DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
 }
 
 /// Pure mapping from stored preferences to [Settings], applying defaults for absent
@@ -105,5 +111,6 @@ fun settingsFromPreferences(prefs: Preferences): Settings {
         sortReversed = prefs[SettingsKeys.SORT_REVERSED] ?: defaults.sortReversed,
         noteFilter = noteFilter,
         onboardingComplete = prefs[SettingsKeys.ONBOARDING_COMPLETE] ?: defaults.onboardingComplete,
+        dynamicColor = prefs[SettingsKeys.DYNAMIC_COLOR] ?: defaults.dynamicColor,
     )
 }

@@ -21,6 +21,7 @@ class SettingsMappingTest {
         assertFalse(settings.sortReversed)
         assertEquals(NoteFilter.ALL, settings.noteFilter)
         assertFalse(settings.onboardingComplete)
+        assertFalse(settings.dynamicColor)
     }
 
     @Test
@@ -35,6 +36,7 @@ class SettingsMappingTest {
             SettingsKeys.SORT_REVERSED to true,
             SettingsKeys.NOTE_FILTER to NoteFilter.PINNED.name,
             SettingsKeys.ONBOARDING_COMPLETE to true,
+            SettingsKeys.DYNAMIC_COLOR to true,
         )
 
         val settings = settingsFromPreferences(prefs)
@@ -48,6 +50,7 @@ class SettingsMappingTest {
         assertTrue(settings.sortReversed)
         assertEquals(NoteFilter.PINNED, settings.noteFilter)
         assertTrue(settings.onboardingComplete)
+        assertTrue(settings.dynamicColor)
     }
 
     @Test

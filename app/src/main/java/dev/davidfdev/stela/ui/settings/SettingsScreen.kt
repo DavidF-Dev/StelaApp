@@ -139,6 +139,7 @@ fun SettingsRoute(
         batteryExempt = batteryExempt,
         autostartAvailable = autostartAvailable,
         onThemeModeChange = viewModel::setThemeMode,
+        onDynamicColorChange = viewModel::setDynamicColor,
         onHideOnLockScreenChange = viewModel::setHideOnLockScreen,
         onSwipeToRemoveChange = viewModel::setSwipeToRemove,
         onRemovalPreferenceChange = viewModel::setRemovalPreference,
@@ -179,6 +180,7 @@ fun SettingsScreen(
     batteryExempt: Boolean,
     autostartAvailable: Boolean,
     onThemeModeChange: (ThemeMode) -> Unit,
+    onDynamicColorChange: (Boolean) -> Unit,
     onHideOnLockScreenChange: (Boolean) -> Unit,
     onSwipeToRemoveChange: (Boolean) -> Unit,
     onRemovalPreferenceChange: (RemovalPreference) -> Unit,
@@ -220,6 +222,16 @@ fun SettingsScreen(
                     label = stringResource(themeModeLabelRes(mode)),
                     selected = state.themeMode == mode,
                     onSelect = { onThemeModeChange(mode) },
+                )
+            }
+            // Wallpaper-derived Material You colours exist only on API 31+.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.settings_dynamic_color_title)) },
+                    supportingContent = { Text(stringResource(R.string.settings_dynamic_color_summary)) },
+                    trailingContent = {
+                        Switch(checked = state.dynamicColor, onCheckedChange = onDynamicColorChange)
+                    },
                 )
             }
 

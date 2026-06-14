@@ -115,6 +115,10 @@ class SettingsViewModel(
         viewModelScope.launch { repository.setHideOnLockScreen(value) }
     }
 
+    fun setDynamicColor(value: Boolean) {
+        viewModelScope.launch { repository.setDynamicColor(value) }
+    }
+
     fun setQuickAddEnabled(value: Boolean) {
         viewModelScope.launch { repository.setQuickAddEnabled(value) }
     }

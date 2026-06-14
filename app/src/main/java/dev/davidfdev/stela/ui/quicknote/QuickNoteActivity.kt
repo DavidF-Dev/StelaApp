@@ -70,7 +70,7 @@ class QuickNoteActivity : AppCompatActivity() {
             // Keyed on intentVersion so onNewIntent rebuilds with a fresh view-model and note id.
             val version = intentVersion.intValue
             val noteId = remember(version) { currentNoteId() }
-            StelaTheme(darkTheme) {
+            StelaTheme(darkTheme, dynamicColor = settings.dynamicColor) {
                 QuickNotePopup(
                     viewModel = viewModel(key = "quicknote-$version", factory = EditorViewModel.Factory),
                     noteId = noteId,

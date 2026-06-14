@@ -23,4 +23,5 @@ data class Settings(
     val sortReversed: Boolean = false,
     val noteFilter: NoteFilter = NoteFilter.ALL,
     val onboardingComplete: Boolean = false,
+    val dynamicColor: Boolean = false,
 )
