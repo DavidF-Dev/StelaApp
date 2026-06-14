@@ -5,7 +5,11 @@ All notable changes to Stela are documented here. This project adheres to
 
 ## [1.6.0] - unreleased
 
-Empty.
+### Added
+- Share to Stela: Stela now appears in the system share sheet when you share plain text from another app
+  (for example a selection in your browser). Sharing text opens a new note prefilled with it — the shared
+  title becomes the note's title and the text becomes its description — ready to tweak and save. Like
+  everything else in Stela, this stays offline.
 
 ## [1.5.0] - 2026/06/14
 

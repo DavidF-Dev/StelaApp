@@ -52,6 +52,9 @@ class MainActivity : AppCompatActivity() {
     // last-focused field (re-raising the keyboard) as it regains focus. One-shot: clear it on that gain.
     private var clearFocusOnWindowFocusGain = false
 
+    // A cold plain-text share: navigate to a new-note editor once the nav host is composed.
+    private val pendingShareNavigation = mutableStateOf(false)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         // Must precede super.onCreate so the splash theme is swapped for the app theme before the first frame.
         installSplashScreen()
@@ -71,6 +74,17 @@ class MainActivity : AppCompatActivity() {
             goToListOnEditorDone.value = fromExpand
         }
         clearFocusOnWindowFocusGain = isExpandOfExistingNote(intent)
+
+        // A plain-text share opens a new note prefilled with the shared text. Guarded on a null saved
+        // state so a recreation (e.g. rotation) doesn't re-handle the same share intent.
+        if (savedInstanceState == null && isSendTextIntent(intent.action, intent.type)) {
+            container.pendingDraft = sharedNoteDraft(
+                intent.getStringExtra(Intent.EXTRA_SUBJECT),
+                intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString(),
+            )
+            pendingShareNavigation.value = true
+        }
+
         setContent {
             val settings by container.settingsRepository.settings.collectAsStateWithLifecycle(initialValue = Settings())
             val darkTheme = when (settings.themeMode) {
@@ -92,6 +106,13 @@ class MainActivity : AppCompatActivity() {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     val controller = rememberNavController()
                     SideEffect { navController = controller }
+                    // A cold share seeded the draft in onCreate; open the editor once the host is ready.
+                    LaunchedEffect(Unit) {
+                        if (pendingShareNavigation.value) {
+                            pendingShareNavigation.value = false
+                            controller.navigate(Routes.EDITOR_NEW)
+                        }
+                    }
                     StelaNavHost(
                         navController = controller,
                         finishOnEditorDone = finishOnEditorDone.value,
@@ -139,6 +160,18 @@ class MainActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        if (isSendTextIntent(intent.action, intent.type)) {
+            // A warm share: seed a new-note draft and open the editor on top of the current screen, which
+            // is plain in-app navigation (finishing the editor pops back, not finishes the task).
+            (application as StelaApp).container.pendingDraft = sharedNoteDraft(
+                intent.getStringExtra(Intent.EXTRA_SUBJECT),
+                intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString(),
+            )
+            finishOnEditorDone.value = false
+            goToListOnEditorDone.value = false
+            navController?.navigate(Routes.EDITOR_NEW)
+            return
+        }
         // Warm re-delivery: the app was already open, so finishing the editor pops rather than ends the
         // task — unless it came from the popup's Expand, which lands the user on the list.
         goToListOnEditorDone.value = intent.getBooleanExtra(EXTRA_FROM_POPUP_EXPAND, false)

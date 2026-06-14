@@ -161,7 +161,9 @@ data class Note(
    **Edit** action. Save persists via repository (and refreshes the notification
    if pinned). Shows **created and modified** timestamps (absolute) — *Phase 6*.
    A **Share** action sends the note's title + description as plain text via the
-   system share sheet — *Phase 6* (no new permission; Stela stays offline).
+   system share sheet — *Phase 6* (no new permission; Stela stays offline). The reverse —
+   **receiving** shared plain text from another app to create a new prefilled note — is *v1.6.0*
+   (see the v1.6.0 note below).
    The **pin toggle is shown for new notes too** *(v1.2.0)* — for an unsaved note it sets the
    *intended* pin state (no live notification until save), **defaulting to pinned**, and the note is
    pinned on save if notifications are permitted; for an existing note it pins/unpins live. (Delete
@@ -414,6 +416,13 @@ swipe-to-remove), an **action-row overflow** tidy-up, and long-press **tooltips*
 **launcher shortcuts + Quick Settings tile** (New quick note · View notes; see
 [2026-06-12-launcher-shortcut-qs-tile.md](2026-06-12-launcher-shortcut-qs-tile.md)) and matching widget ＋
 icon. See [CHANGELOG.md](../CHANGELOG.md).
+
+**v1.6.0 (unreleased):** **Share to Stela** — the app is now a `text/plain` share target, so sharing
+text from another app opens a new note prefilled with it (subject → title, body → description; pins on
+save). It reuses the existing process-scoped `NoteDraft` hand-off into the editor, so no view-model or
+nav-graph changes were needed. Offline, no new permission. See
+[2026-06-14-share-to-stela.md](2026-06-14-share-to-stela.md). First of the
+[post-v1.5 improvements queue](2026-06-14-post-v1.5-improvements.md).
 
 **Planned features (prioritized, 2026-06-10):** each is its own slice (spec → plan →
 implement); all keep the no-`INTERNET` invariant.
