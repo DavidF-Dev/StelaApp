@@ -8,17 +8,18 @@ No ads. No analytics. **No internet permission** — your notes never leave your
 
 ## Features
 
-- **Notes as notifications** — pin any note as an ongoing status-bar notification.
-- **Quick-add** — an optional persistent notification to jot a new note from the tray.
-- **Self-healing pins** — a swiped-away pinned note re-posts itself.
-- **Survives reboot & app updates** — pinned notes return after a restart or an update.
-- **Resists background kill** — a foreground service keeps pinned notes alive; onboarding
-  guides battery-optimisation and OEM autostart exemptions.
-- **Multi-select** — batch pin/unpin and delete.
-- **Share** — send a note as plain text via the system share sheet.
-- **Timestamps** — relative times in the list, absolute in the editor.
-- **Theming** — Light / Dark / Follow System, with a brand colour scheme.
-- **Localisation-ready** — all strings externalised; per-app language on Android 13+.
+- **Notes as notifications** — pin any note as an ongoing status-bar notification, so what
+  matters stays in front of you.
+- **Persistent by design** — pinned notes self-heal if swiped away, survive reboots and app
+  updates, and resist background kill.
+- **Capture from anywhere** — a quick-add notification, a home-screen widget, launcher
+  shortcuts, and a Quick Settings tile each open a lightweight popup to jot a note fast.
+- **Scheduled pins & snooze** — pin a note at a chosen time, auto-unpin later, or snooze a
+  pinned note to bring it back when you need it.
+- **Archive** — set notes aside without deleting them, then restore or remove them later.
+- **Organise** — search, sort, and filter your notes, and give each a per-note emoji.
+- **Backup** — export and import your notes as a JSON file, fully offline.
+- **Theming** — Light, Dark, or Follow System.
 
 ## Honest persistence
 
