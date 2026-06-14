@@ -139,6 +139,7 @@ fun EditorScreen(
     onBack: () -> Unit,
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showDiscardDialog by remember { mutableStateOf(false) }
 
     // A brief scale "pop" draws the eye to the pin when an unpinned note opens (pinning is the app's
     // purpose). Keyed on noteLoaded so it runs once per open — for an existing note that is when the
@@ -167,8 +168,14 @@ fun EditorScreen(
         keyboardController?.hide()
     }
 
-    // Route system back through the same exit as the back arrow so a cold notification launch finishes the task.
-    BackHandler { dismissKeyboard(); onBack() }
+    // Leaving with unsaved edits confirms first; a clean note exits straight away. Used by both the back
+    // arrow and system back so a cold notification launch still finishes the task once confirmed.
+    val attemptBack = {
+        dismissKeyboard()
+        if (state.isDirty) showDiscardDialog = true else onBack()
+    }
+
+    BackHandler { attemptBack() }
 
     Scaffold(
         topBar = {
@@ -179,7 +186,7 @@ fun EditorScreen(
                     if (!state.isEditing) Text(stringResource(R.string.editor_title_new))
                 },
                 navigationIcon = {
-                    IconButton(onClick = { dismissKeyboard(); onBack() }) {
+                    IconButton(onClick = attemptBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
@@ -275,6 +282,25 @@ fun EditorScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.editor_delete_dialog_cancel)) }
+            },
+        )
+    }
+
+    if (showDiscardDialog) {
+        AlertDialog(
+            onDismissRequest = { showDiscardDialog = false },
+            title = { Text(stringResource(R.string.editor_discard_dialog_title)) },
+            text = { Text(stringResource(R.string.editor_discard_dialog_message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDiscardDialog = false
+                    onBack()
+                }) { Text(stringResource(R.string.editor_discard_dialog_confirm), color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDiscardDialog = false }) {
+                    Text(stringResource(R.string.editor_discard_dialog_cancel))
+                }
             },
         )
     }

@@ -36,7 +36,9 @@ class EditorViewModelTest {
 
     private class Fixture {
         val dao = FakeNoteDao()
-        val repository = NoteRepository(dao) { 1_000L }
+        // Mutable so a test can advance the clock and assert whether a save bumped updatedAt.
+        var now = 1_000L
+        val repository = NoteRepository(dao) { now }
         val controller = FakeNotificationController()
         val pinner = NotePinner(repository, controller, FakeServiceController(), FakeSettingsRepository())
 
@@ -437,5 +439,96 @@ class EditorViewModelTest {
         val updated = f.repository.getById(id)!!
         assertEquals("👑", updated.emoji)
         assertEquals("Foo", updated.title)
+    }
+
+    @Test
+    fun newNote_isDirty_falseUntilContentEntered() = runTest(dispatcher) {
+        val viewModel = Fixture().viewModel()
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.isDirty)
+        viewModel.onTitleChange("Something")
+        assertTrue(viewModel.uiState.value.isDirty)
+    }
+
+    @Test
+    fun existingNote_isDirty_falseAfterLoad_trueAfterEdit_clearsOnRevert() = runTest(dispatcher) {
+        val f = Fixture()
+        val id = f.repository.create(title = "Original", description = "body")
+        val viewModel = f.viewModel(id)
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.isDirty)
+        viewModel.onTitleChange("Edited")
+        assertTrue(viewModel.uiState.value.isDirty)
+        // Reverting to the stored value reads as clean again.
+        viewModel.onTitleChange("Original")
+        assertFalse(viewModel.uiState.value.isDirty)
+    }
+
+    @Test
+    fun existingNote_livePinAndSnooze_doNotMarkDirty() = runTest(dispatcher) {
+        val f = Fixture()
+        val id = f.repository.create(title = "Note", description = "")
+        val viewModel = f.viewModel(id)
+        advanceUntilIdle()
+
+        viewModel.pin()
+        advanceUntilIdle()
+        assertFalse(viewModel.uiState.value.isDirty)
+
+        viewModel.snooze(System.currentTimeMillis() + 3_600_000L)
+        advanceUntilIdle()
+        assertFalse(viewModel.uiState.value.isDirty)
+    }
+
+    @Test
+    fun existingNote_save_withNoChange_doesNotBumpUpdatedAt() = runTest(dispatcher) {
+        val f = Fixture()
+        val id = f.repository.create(title = "Untouched", description = "body")
+        val viewModel = f.viewModel(id)
+        advanceUntilIdle()
+
+        // Advance the clock; a no-op save must not stamp the new time.
+        f.now = 2_000L
+        var completed = false
+        viewModel.save { completed = true }
+        advanceUntilIdle()
+
+        assertTrue(completed)
+        assertEquals(1_000L, f.repository.getById(id)!!.updatedAt)
+    }
+
+    @Test
+    fun existingNote_save_withContentChange_bumpsUpdatedAt() = runTest(dispatcher) {
+        val f = Fixture()
+        val id = f.repository.create(title = "Old", description = "")
+        val viewModel = f.viewModel(id)
+        advanceUntilIdle()
+
+        f.now = 2_000L
+        viewModel.onTitleChange("New")
+        viewModel.save { }
+        advanceUntilIdle()
+
+        assertEquals(2_000L, f.repository.getById(id)!!.updatedAt)
+    }
+
+    @Test
+    fun existingNote_save_scheduleOnly_appliesSchedule_withoutBumpingUpdatedAt() = runTest(dispatcher) {
+        val f = Fixture()
+        val id = f.repository.create(title = "Plan", description = "")
+        val viewModel = f.viewModel(id)
+        advanceUntilIdle()
+
+        f.now = 2_000L
+        val future = System.currentTimeMillis() + 86_400_000L
+        viewModel.onPinAtChange(future)
+        viewModel.save { }
+        advanceUntilIdle()
+
+        val updated = f.repository.getById(id)!!
+        assertEquals(future, updated.pinAt)
+        assertEquals(1_000L, updated.updatedAt)
     }
 }

@@ -14,6 +14,11 @@ All notable changes to Stela are documented here. This project adheres to
   notifications, asks for notification permission with context, and points you to the battery setting that
   helps pinned notes survive in the background. You can replay it any time from Settings → Show intro again.
 
+### Changed
+- The note editor now asks before discarding unsaved changes: pressing Back with edits in progress shows
+  a "Discard changes?" confirmation, while leaving an unchanged note exits straight away. Saving a note
+  you haven't actually changed no longer updates its modified time (so it won't jump to the top of the list).
+
 ## [1.5.0] - 2026/06/14
 
 ### Added

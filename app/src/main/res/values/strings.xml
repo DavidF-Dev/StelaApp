@@ -89,6 +89,10 @@
     <string name="editor_delete_dialog_message">This note will be permanently deleted.</string>
     <string name="editor_delete_dialog_confirm">Delete</string>
     <string name="editor_delete_dialog_cancel">Cancel</string>
+    <string name="editor_discard_dialog_title">Discard changes?</string>
+    <string name="editor_discard_dialog_message">Your unsaved changes will be lost.</string>
+    <string name="editor_discard_dialog_confirm">Discard</string>
+    <string name="editor_discard_dialog_cancel">Keep editing</string>
     <string name="editor_archive_dialog_title">Archive note?</string>
     <string name="editor_archive_dialog_message">This note will be unpinned and moved to the archive. You can restore it later.</string>
     <string name="editor_archive_dialog_confirm">Archive</string>

@@ -426,7 +426,11 @@ three-pane flow (concept → notifications → keep-alive) shown over the app un
 `onboardingComplete` DataStore flag; it owns the contextual `POST_NOTIFICATIONS` request (replacing the
 old silent first-launch request) and reuses the shared `OemGuidanceDialog` for battery/autostart.
 Replayable from Settings → About. See [2026-06-14-first-run-onboarding.md](2026-06-14-first-run-onboarding.md).
-Both are from the [post-v1.5 improvements queue](2026-06-14-post-v1.5-improvements.md).
+**Editor discard-changes confirm** — Back in the full editor confirms before dropping unsaved edits
+(dirty detection via a baseline snapshot on `EditorUiState`); Save stays enabled but is a no-op that
+doesn't bump the modified time when nothing changed, and a schedule-only edit persists without bumping it.
+See [2026-06-14-editor-discard-confirm.md](2026-06-14-editor-discard-confirm.md). All three are from the
+[post-v1.5 improvements queue](2026-06-14-post-v1.5-improvements.md).
 
 **Planned features (prioritized, 2026-06-10):** each is its own slice (spec → plan →
 implement); all keep the no-`INTERNET` invariant.

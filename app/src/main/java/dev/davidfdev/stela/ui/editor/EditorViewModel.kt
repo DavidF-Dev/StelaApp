@@ -20,6 +20,16 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/// The persisted baseline of an existing note's editable fields, against which [EditorUiState.isDirty]
+/// is measured. Null for a new, never-saved note.
+data class EditorSnapshot(
+    val title: String,
+    val description: String,
+    val emoji: String,
+    val pinAt: Long?,
+    val unpinAt: Long?,
+)
+
 data class EditorUiState(
     val title: String = "",
     val description: String = "",
@@ -32,13 +42,30 @@ data class EditorUiState(
     val pinAt: Long? = null,
     val unpinAt: Long? = null,
     val advancedExpanded: Boolean = false,
+    val savedSnapshot: EditorSnapshot? = null,
 ) {
     val canSave: Boolean get() = title.isNotBlank()
 
     // A new note is "loaded" immediately; an existing note only once its row has been read (createdAt
     // set). Gates the title auto-focus so an async load doesn't momentarily look blank.
     val noteLoaded: Boolean get() = !isEditing || createdAt != null
+
+    /// Whether the editable fields differ from what's persisted — drives the back-to-discard confirm.
+    /// Pin/archive state is excluded: it persists immediately, so it is never an unsaved edit. A new note
+    /// (null snapshot) is dirty once it holds any content or a schedule.
+    val isDirty: Boolean
+        get() = savedSnapshot.let { snapshot ->
+            if (snapshot == null) {
+                title.isNotBlank() || description.isNotBlank() || emoji.isNotBlank() ||
+                    pinAt != null || unpinAt != null
+            } else {
+                title != snapshot.title || description != snapshot.description || emoji != snapshot.emoji ||
+                    pinAt != snapshot.pinAt || unpinAt != snapshot.unpinAt
+            }
+        }
 }
+
+private fun Note.snapshot() = EditorSnapshot(title, description, emoji, pinAt, unpinAt)
 
 class EditorViewModel(
     private val repository: NoteRepository,
@@ -87,6 +114,8 @@ class EditorViewModel(
                             updatedAt = note.updatedAt,
                             pinAt = note.pinAt,
                             unpinAt = note.unpinAt,
+                            // Baseline is the stored note, so a carried-over draft's edits read as dirty.
+                            savedSnapshot = note.snapshot(),
                         )
                     }
                 }
@@ -127,7 +156,15 @@ class EditorViewModel(
             // reflect all three so the Advanced "Pin at" row matches what the pinner persisted.
             pinner.pin(note)
             loaded = note.copy(isPinned = true, isArchived = false, pinAt = null)
-            _uiState.update { it.copy(isPinned = true, isArchived = false, pinAt = null) }
+            // pinAt is now persisted as null, so fold it into the baseline lest it read as a dirty edit.
+            _uiState.update {
+                it.copy(
+                    isPinned = true,
+                    isArchived = false,
+                    pinAt = null,
+                    savedSnapshot = it.savedSnapshot?.copy(pinAt = null),
+                )
+            }
         }
     }
 
@@ -140,7 +177,9 @@ class EditorViewModel(
             // Unpinning clears any pending auto-unpin (now fulfilled); reflect it in the Advanced row.
             pinner.unpin(note.id)
             loaded = note.copy(isPinned = false, unpinAt = null)
-            _uiState.update { it.copy(isPinned = false, unpinAt = null) }
+            _uiState.update {
+                it.copy(isPinned = false, unpinAt = null, savedSnapshot = it.savedSnapshot?.copy(unpinAt = null))
+            }
         }
     }
 
@@ -164,7 +203,9 @@ class EditorViewModel(
         viewModelScope.launch {
             pinner.snooze(note.id, untilMillis)
             loaded = note.copy(isPinned = false, pinAt = untilMillis)
-            _uiState.update { it.copy(isPinned = false, pinAt = untilMillis) }
+            _uiState.update {
+                it.copy(isPinned = false, pinAt = untilMillis, savedSnapshot = it.savedSnapshot?.copy(pinAt = untilMillis))
+            }
         }
     }
 
@@ -193,14 +234,22 @@ class EditorViewModel(
                 if (state.isPinned && canPostNotifications()) repository.getById(id)?.let { pinner.pin(it) }
                 pinner.applySchedule(id, state.pinAt, state.unpinAt)
             } else {
-                val updated = existing.copy(
-                    title = title,
-                    description = state.description,
-                    emoji = emoji,
-                )
-                repository.update(updated)
-                pinner.refresh(updated)
-                pinner.applySchedule(existing.id, state.pinAt, state.unpinAt)
+                // Persist only what actually changed: a content edit bumps updatedAt (and refreshes the
+                // live notification); a schedule edit goes through applySchedule, which doesn't bump it; a
+                // save with no real change writes nothing, so the modified time stays put.
+                val contentChanged = title != existing.title ||
+                    state.description != existing.description ||
+                    emoji != existing.emoji
+                val scheduleChanged = state.pinAt != existing.pinAt || state.unpinAt != existing.unpinAt
+                if (contentChanged) {
+                    val updated = existing.copy(title = title, description = state.description, emoji = emoji)
+                    repository.update(updated)
+                    pinner.refresh(updated)
+                    loaded = updated
+                }
+                if (scheduleChanged) {
+                    pinner.applySchedule(existing.id, state.pinAt, state.unpinAt)
+                }
             }
             onComplete()
         }
