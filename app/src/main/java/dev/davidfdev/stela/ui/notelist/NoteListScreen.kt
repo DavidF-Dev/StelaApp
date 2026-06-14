@@ -8,11 +8,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -25,6 +27,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Deselect
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material.icons.filled.Settings
@@ -411,7 +414,10 @@ private fun NoteRow(
             ListItemDefaults.colors()
         },
         overlineContent = {
-            Text(relativeTime)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(relativeTime)
+                note.scheduledEvent()?.let { event -> ScheduleIndicator(event) }
+            }
         },
         headlineContent = {
             Text(note.displayTitle, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -448,6 +454,22 @@ private fun NoteRow(
         },
         modifier = Modifier.combinedClickable(onClick = onClick, onLongClick = onLongClick),
     )
+}
+
+/// A subtle clock + relative-time suffix for the overline, marking a row whose note has an auto-pin or
+/// auto-unpin scheduled (e.g. "Pins in 3h" / "Unpins tomorrow").
+@Composable
+private fun ScheduleIndicator(event: ScheduledEvent) {
+    val whenText = remember(event.atMillis) { TimeFormatter.relative(event.atMillis).toString() }
+    val label = stringResource(
+        if (event.isUnpin) R.string.notelist_unpins_at else R.string.notelist_pins_at,
+        whenText,
+    )
+    val color = MaterialTheme.colorScheme.onSurfaceVariant
+    Text(" · ", color = color)
+    Icon(Icons.Filled.Schedule, contentDescription = null, modifier = Modifier.size(14.dp), tint = color)
+    Spacer(Modifier.width(4.dp))
+    Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis, color = color)
 }
 
 @Composable

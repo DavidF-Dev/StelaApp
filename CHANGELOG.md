@@ -13,6 +13,8 @@ All notable changes to Stela are documented here. This project adheres to
 - First-run onboarding: a short, skippable welcome on first launch explains how Stela pins notes as
   notifications, asks for notification permission with context, and points you to the battery setting that
   helps pinned notes survive in the background. You can replay it any time from Settings → Show intro again.
+- Scheduled notes now show a small clock and a relative time in the list (for example "Pins in 3h" or
+  "Unpins tomorrow"), so a note set to auto-pin or auto-unpin is recognisable at a glance.
 
 ### Changed
 - The note editor now asks before discarding unsaved changes: pressing Back with edits in progress shows

@@ -26,6 +26,9 @@
     <!-- Note list -->
     <string name="notelist_empty">No notes yet.\nTap + to create one.</string>
     <string name="notelist_no_matches">No matching notes.</string>
+    <!-- Schedule indicator in a row's overline; %1$s is a relative time (e.g. "in 3 hours"). -->
+    <string name="notelist_pins_at">Pins %1$s</string>
+    <string name="notelist_unpins_at">Unpins %1$s</string>
     <string name="notelist_notifications_blocked">Notifications are off — pinned notes won\'t show.</string>
     <string name="snackbar_pinning_needs_notifications">Notifications are off — pinning needs them.</string>
 

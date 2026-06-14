@@ -429,7 +429,11 @@ Replayable from Settings → About. See [2026-06-14-first-run-onboarding.md](202
 **Editor discard-changes confirm** — Back in the full editor confirms before dropping unsaved edits
 (dirty detection via a baseline snapshot on `EditorUiState`); Save stays enabled but is a no-op that
 doesn't bump the modified time when nothing changed, and a schedule-only edit persists without bumping it.
-See [2026-06-14-editor-discard-confirm.md](2026-06-14-editor-discard-confirm.md). All three are from the
+See [2026-06-14-editor-discard-confirm.md](2026-06-14-editor-discard-confirm.md). **Scheduled-note list
+indicator** — a row whose note has an auto-pin/unpin shows a clock + relative label ("Pins in 3h" /
+"Unpins tomorrow") inline in the overline (main list only; a pure `NoteRow` change via a small
+`Note.scheduledEvent()` helper). See
+[2026-06-14-scheduled-note-indicator.md](2026-06-14-scheduled-note-indicator.md). All four are from the
 [post-v1.5 improvements queue](2026-06-14-post-v1.5-improvements.md).
 
 **Planned features (prioritized, 2026-06-10):** each is its own slice (spec → plan →
