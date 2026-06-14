@@ -32,6 +32,8 @@ All notable changes to Stela are documented here. This project adheres to
 - The relative times in the note list and archive (such as "Pins in 30 minutes" or "2 hours ago") now
   keep current — they update when you return to the app and once a minute while you're looking at the
   list — instead of staying frozen until you left and re-opened the screen.
+- Deleting or archiving a note no longer leaves its notification stranded in the status bar in the rare
+  case where the note auto-pinned (a scheduled "pin at" time elapsed) while you had it open in the editor.
 
 ## [1.5.0] - 2026/06/14
 

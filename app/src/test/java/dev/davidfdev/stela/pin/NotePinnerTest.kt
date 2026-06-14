@@ -116,18 +116,36 @@ class NotePinnerTest {
     }
 
     @Test
-    fun delete_unpinnedNote_leavesNotificationsUntouched() = runTest {
+    fun delete_unpinnedNote_cancelsIdempotently() = runTest {
         val f = Fixture(quickAddEnabled = false)
         val id = f.repository.create(title = "A", description = "")
 
         f.pinner.delete(f.repository.getById(id)!!)
 
+        // Delete cancels unconditionally (cancel-by-id is a harmless no-op when nothing is posted).
         assertEquals(null, f.repository.getById(id))
-        assertTrue(f.controller.unpinned.isEmpty())
+        assertEquals(listOf(id), f.controller.unpinned)
     }
 
     @Test
-    fun deleteAll_cancelsPinnedOnly_andReconcilesOnce() = runTest {
+    fun delete_staleUnpinnedCopy_ofNowPinnedNote_stillCancelsNotification() = runTest {
+        val f = Fixture(quickAddEnabled = false)
+        val id = f.repository.create(title = "A", description = "")
+        // A copy captured before the pin — mirrors the editor holding an old note while a background
+        // auto-pin fires. The stale copy still reads isPinned = false.
+        val stale = f.repository.getById(id)!!
+        f.pinner.pin(stale)
+
+        f.pinner.delete(stale)
+
+        // Despite the stale flag, the live notification is cancelled — no orphan left behind.
+        assertEquals(null, f.repository.getById(id))
+        assertEquals(listOf(id), f.controller.unpinned)
+        assertEquals(1, f.service.stopCount)
+    }
+
+    @Test
+    fun deleteAll_cancelsEvery_andReconcilesOnce() = runTest {
         val f = Fixture(quickAddEnabled = false)
         val a = f.repository.create(title = "A", description = "")
         val b = f.repository.create(title = "B", description = "")
@@ -146,7 +164,8 @@ class NotePinnerTest {
         assertEquals(null, f.repository.getById(a))
         assertEquals(null, f.repository.getById(b))
         assertEquals(null, f.repository.getById(c))
-        assertEquals(listOf(a, b), f.controller.unpinned)
+        // Every id is cancelled (idempotent for the never-pinned one); one reconcile for the batch.
+        assertEquals(listOf(a, b, c), f.controller.unpinned)
         assertEquals(stopsBefore + 1, f.service.stopCount)
     }
 
@@ -189,18 +208,39 @@ class NotePinnerTest {
     }
 
     @Test
-    fun archive_unpinnedNote_leavesNotificationsUntouched() = runTest {
+    fun archive_unpinnedNote_cancelsIdempotently() = runTest {
         val f = Fixture()
         val id = f.repository.create(title = "A", description = "")
 
         f.pinner.archive(f.repository.getById(id)!!)
 
+        // Archive cancels unconditionally (a harmless no-op when nothing is posted).
         assertTrue(f.repository.getById(id)!!.isArchived)
-        assertTrue(f.controller.unpinned.isEmpty())
+        assertEquals(listOf(id), f.controller.unpinned)
     }
 
     @Test
-    fun archiveAll_cancelsPinnedOnly_andReconcilesOnce() = runTest {
+    fun archive_staleUnpinnedCopy_ofNowPinnedNote_clearsPinAndCancelsNotification() = runTest {
+        val f = Fixture(quickAddEnabled = false)
+        val id = f.repository.create(title = "A", description = "")
+        // A copy captured before the pin — mirrors the editor holding an old note while a background
+        // auto-pin fires. The stale copy still reads isPinned = false.
+        val stale = f.repository.getById(id)!!
+        f.pinner.pin(stale)
+
+        f.pinner.archive(stale)
+
+        val note = f.repository.getById(id)!!
+        // The pin is cleared (upholding never-both-archived-and-pinned) and the notification cancelled,
+        // even though the passed copy claimed it was already unpinned.
+        assertTrue(note.isArchived)
+        assertFalse(note.isPinned)
+        assertEquals(listOf(id), f.controller.unpinned)
+        assertEquals(1, f.service.stopCount)
+    }
+
+    @Test
+    fun archiveAll_cancelsEvery_andReconcilesOnce() = runTest {
         val f = Fixture(quickAddEnabled = false)
         val a = f.repository.create(title = "A", description = "")
         val b = f.repository.create(title = "B", description = "")
@@ -211,7 +251,8 @@ class NotePinnerTest {
 
         assertTrue(f.repository.getById(a)!!.isArchived)
         assertTrue(f.repository.getById(b)!!.isArchived)
-        assertEquals(listOf(a), f.controller.unpinned)
+        // Every id is cancelled (idempotent for the never-pinned one); one reconcile for the batch.
+        assertEquals(listOf(a, b), f.controller.unpinned)
         assertEquals(stopsBefore + 1, f.service.stopCount)
     }
 

@@ -59,19 +59,19 @@ class NotePinner(
     /// Restores a note from the archive. See [unarchiveAll].
     suspend fun unarchive(note: Note) = unarchiveAll(listOf(note))
 
-    /// Archives every note: unpins and cancels the notification of any that were pinned,
-    /// then sets the archive flag, and reconciles the service once for the batch. Archived
-    /// notes are hidden from the list and can never be pinned (pinning restores them first,
-    /// see [pinAll]). The schedule and its alarms are kept but dormant: a fired timer only
-    /// clears its spent time (the receiver and [PinSchedule] no-op on an archived note), so the
-    /// schedule self-expires rather than going stale, and [unarchiveAll] reconciles it on restore.
+    /// Archives every note: unpins and cancels the notification, then sets the archive flag, and
+    /// reconciles the service once for the batch. Archived notes are hidden from the list and can
+    /// never be pinned (pinning restores them first, see [pinAll]). The schedule and its alarms are
+    /// kept but dormant: a fired timer only clears its spent time (the receiver and [PinSchedule]
+    /// no-op on an archived note), so the schedule self-expires rather than going stale, and
+    /// [unarchiveAll] reconciles it on restore.
     suspend fun archiveAll(notes: List<Note>) {
         notes.forEach { note ->
-            if (note.isPinned) {
-                // Raw unpin (not unpinAll) so archiving keeps unpinAt and the rest of the schedule.
-                repository.setPinned(note.id, false)
-                controller.unpin(note.id)
-            }
+            // Unconditionally clear the pin (not unpinAll, so archiving keeps unpinAt and the rest of
+            // the schedule): the caller's note may be a stale copy that pre-dates a background auto-pin,
+            // so trusting its isPinned flag could strand a live notification. cancel-by-id is idempotent.
+            repository.setPinned(note.id, false)
+            controller.unpin(note.id)
             repository.setArchived(note.id, true)
         }
         reconcileService()
@@ -92,7 +92,10 @@ class NotePinner(
     /// alarms, then reconciles the service once for the whole batch.
     suspend fun deleteAll(notes: List<Note>) {
         notes.forEach { note ->
-            if (note.isPinned) controller.unpin(note.id)
+            // Cancel unconditionally: the caller's note may be a stale copy that pre-dates a background
+            // auto-pin, so trusting its isPinned flag could orphan a live notification. cancel-by-id is
+            // idempotent, so a redundant cancel on a genuinely-unpinned note is harmless.
+            controller.unpin(note.id)
             pinScheduler.cancelPin(note.id)
             pinScheduler.cancelUnpin(note.id)
             repository.delete(note)
