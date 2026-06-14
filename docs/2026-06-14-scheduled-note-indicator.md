@@ -95,8 +95,10 @@ overlineContent = {
 
 ## Edge cases
 
-- **Past-due before reconcile:** a `pinAt` that just elapsed shows roughly "Pins now" until the alarm /
-  reconcile fires (imminently). Acceptable; no special-casing.
+- **Sub-minute / past-due (late inexact alarm):** the label is floored to "in 1 minute" rather than
+  showing "Pins in 0 minutes" or a past-tense "Pins N minutes ago". *(Follow-up 2026-06-14:
+  `TimeFormatter.relativeUpcoming` clamps the formatted instant to `max(eventTime, now + 1 min)`; the pure
+  clamp `upcomingInstant` is unit-tested.)*
 - **Both `pinAt` and `unpinAt` on an unpinned note:** shows the pin (the sooner, next event); once it
   auto-pins, the row would then show the `unpinAt`.
 - **Long relative strings + narrow screens:** the overline is single-line and ellipsizes; the modified

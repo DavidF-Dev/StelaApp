@@ -93,6 +93,7 @@ import dev.davidfdev.stela.ui.TimeFormatter
 import dev.davidfdev.stela.ui.TooltipIconButton
 import dev.davidfdev.stela.ui.arePinnedNotificationsBlocked
 import dev.davidfdev.stela.ui.performPinToggle
+import dev.davidfdev.stela.ui.rememberCurrentTimeMillis
 import dev.davidfdev.stela.ui.openAppNotificationSettings
 import dev.davidfdev.stela.ui.rememberNotificationPermissionGate
 import kotlinx.coroutines.launch
@@ -215,6 +216,8 @@ fun NoteListScreen(
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var searchActive by remember { mutableStateOf(false) }
     var showSortFilter by remember { mutableStateOf(false) }
+    // Ticks on resume and each minute, so the rows' relative times stay current without leaving the screen.
+    val now = rememberCurrentTimeMillis()
 
     val closeSearch = {
         searchActive = false
@@ -292,6 +295,7 @@ fun NoteListScreen(
                         items(state.notes, key = { it.id }) { note ->
                             NoteRow(
                                 note = note,
+                                now = now,
                                 selected = note.id in state.selectedIds,
                                 selectionMode = state.inSelectionMode,
                                 onClick = {
@@ -401,14 +405,15 @@ private fun NotificationsBlockedBanner(onOpenSettings: () -> Unit) {
 @Composable
 private fun NoteRow(
     note: Note,
+    now: Long,
     selected: Boolean,
     selectionMode: Boolean,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
     onTogglePin: () -> Unit,
 ) {
-    // DateUtils formatting is recomputed only when the timestamp changes, not every recomposition.
-    val relativeTime = remember(note.updatedAt) { TimeFormatter.relative(note.updatedAt).toString() }
+    // Recomputed when the timestamp or the ticking [now] changes, so the relative span stays current.
+    val relativeTime = remember(note.updatedAt, now) { TimeFormatter.relative(note.updatedAt, now).toString() }
     val haptic = LocalHapticFeedback.current
     ListItem(
         colors = if (selected) {
@@ -419,7 +424,7 @@ private fun NoteRow(
         overlineContent = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(relativeTime)
-                note.scheduledEvent()?.let { event -> ScheduleIndicator(event) }
+                note.scheduledEvent()?.let { event -> ScheduleIndicator(event, now) }
             }
         },
         headlineContent = {
@@ -462,8 +467,8 @@ private fun NoteRow(
 /// A subtle clock + relative-time suffix for the overline, marking a row whose note has an auto-pin or
 /// auto-unpin scheduled (e.g. "Pins in 3h" / "Unpins tomorrow").
 @Composable
-private fun ScheduleIndicator(event: ScheduledEvent) {
-    val whenText = remember(event.atMillis) { TimeFormatter.relative(event.atMillis).toString() }
+private fun ScheduleIndicator(event: ScheduledEvent, now: Long) {
+    val whenText = remember(event.atMillis, now) { TimeFormatter.relativeUpcoming(event.atMillis, now).toString() }
     val label = stringResource(
         if (event.isUnpin) R.string.notelist_unpins_at else R.string.notelist_pins_at,
         whenText,

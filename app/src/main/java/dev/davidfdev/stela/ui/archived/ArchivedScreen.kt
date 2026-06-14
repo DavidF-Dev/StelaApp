@@ -52,6 +52,7 @@ import dev.davidfdev.stela.data.Note
 import dev.davidfdev.stela.data.displayTitle
 import dev.davidfdev.stela.ui.TimeFormatter
 import dev.davidfdev.stela.ui.TooltipIconButton
+import dev.davidfdev.stela.ui.rememberCurrentTimeMillis
 
 @Composable
 fun ArchivedRoute(
@@ -108,6 +109,8 @@ fun ArchivedScreen(
     snackbarHostState: SnackbarHostState,
 ) {
     var showDeleteConfirm by remember { mutableStateOf(false) }
+    // Ticks on resume and each minute, so the rows' relative times stay current without leaving the screen.
+    val now = rememberCurrentTimeMillis()
 
     BackHandler(enabled = state.inSelectionMode) { onClearSelection() }
 
@@ -150,6 +153,7 @@ fun ArchivedScreen(
                     items(state.notes, key = { it.id }) { note ->
                         ArchivedRow(
                             note = note,
+                            now = now,
                             selected = note.id in state.selectedIds,
                             selectionMode = state.inSelectionMode,
                             onClick = {
@@ -211,12 +215,14 @@ private fun ArchivedSelectionTopBar(
 @Composable
 private fun ArchivedRow(
     note: Note,
+    now: Long,
     selected: Boolean,
     selectionMode: Boolean,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
 ) {
-    val relativeTime = remember(note.updatedAt) { TimeFormatter.relative(note.updatedAt).toString() }
+    // Recomputed when the timestamp or the ticking [now] changes, so the relative span stays current.
+    val relativeTime = remember(note.updatedAt, now) { TimeFormatter.relative(note.updatedAt, now).toString() }
     ListItem(
         colors = if (selected) {
             ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.secondaryContainer)

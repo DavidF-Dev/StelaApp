@@ -38,4 +38,25 @@ class TimeFormatterTest {
         // 14:32 UTC is 23:32 in Tokyo, so the rendered strings must differ.
         assertTrue(utc != tokyo)
     }
+
+    @Test
+    fun upcomingInstant_keepsAFarFutureTimeUnchanged() {
+        val now = 1_000_000L
+        val future = now + 30 * 60_000L
+        assertEquals(future, TimeFormatter.upcomingInstant(future, now))
+    }
+
+    @Test
+    fun upcomingInstant_floorsASubMinuteTimeToOneMinuteAhead() {
+        val now = 1_000_000L
+        // 30 seconds away would round to "in 0 minutes"; floor it to a full minute ahead.
+        assertEquals(now + 60_000L, TimeFormatter.upcomingInstant(now + 30_000L, now))
+    }
+
+    @Test
+    fun upcomingInstant_floorsAnOverdueTimeToOneMinuteAhead() {
+        val now = 1_000_000L
+        // A late (inexact) alarm leaves the time in the past; still read it as imminent, not past.
+        assertEquals(now + 60_000L, TimeFormatter.upcomingInstant(now - 120_000L, now))
+    }
 }

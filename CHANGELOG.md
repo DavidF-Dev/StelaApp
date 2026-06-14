@@ -28,6 +28,11 @@ All notable changes to Stela are documented here. This project adheres to
   a "Discard changes?" confirmation, while leaving an unchanged note exits straight away. Saving a note
   you haven't actually changed no longer updates its modified time (so it won't jump to the top of the list).
 
+### Fixed
+- The relative times in the note list and archive (such as "Pins in 30 minutes" or "2 hours ago") now
+  keep current — they update when you return to the app and once a minute while you're looking at the
+  list — instead of staying frozen until you left and re-opened the screen.
+
 ## [1.5.0] - 2026/06/14
 
 ### Added
