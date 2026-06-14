@@ -99,6 +99,8 @@ fun EditorRoute(
             }
         },
     )
+    val duplicatedMessage = stringResource(R.string.editor_duplicated)
+    val undoLabel = stringResource(R.string.action_undo)
 
     EditorScreen(
         state = state,
@@ -114,6 +116,14 @@ fun EditorRoute(
         onSave = { viewModel.save(onDone) },
         onDelete = { viewModel.delete(onDone) },
         onSnooze = viewModel::snooze,
+        onDuplicate = {
+            viewModel.duplicate {
+                scope.launch {
+                    val result = snackbarHostState.showSnackbar(duplicatedMessage, undoLabel)
+                    if (result == SnackbarResult.ActionPerformed) viewModel.undoDuplicate()
+                }
+            }
+        },
         onToggleAdvanced = viewModel::setAdvancedExpanded,
         onBack = onDone,
     )
@@ -135,6 +145,7 @@ fun EditorScreen(
     onSave: () -> Unit,
     onDelete: () -> Unit,
     onSnooze: (Long) -> Unit,
+    onDuplicate: () -> Unit,
     onToggleAdvanced: (Boolean) -> Unit,
     onBack: () -> Unit,
 ) {
@@ -200,6 +211,7 @@ fun EditorScreen(
                         onDelete = { showDeleteDialog = true },
                         onSave = { dismissKeyboard(); onSave() },
                         onSnooze = onSnooze,
+                        onDuplicate = onDuplicate,
                         pinModifier = Modifier.graphicsLayer { scaleX = pinPop.value; scaleY = pinPop.value },
                     )
                 },

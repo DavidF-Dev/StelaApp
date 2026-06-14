@@ -43,6 +43,7 @@ class AdvancedSectionTest {
                     onSave = {},
                     onDelete = {},
                     onSnooze = {},
+                    onDuplicate = {},
                     onToggleAdvanced = { advancedExpanded = it },
                     onBack = {},
                 )

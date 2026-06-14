@@ -21,6 +21,7 @@ import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.OpenInFull
@@ -271,6 +272,7 @@ internal fun RowScope.NoteEditorActions(
     onSave: () -> Unit,
     onSnooze: (Long) -> Unit,
     onExpand: (() -> Unit)? = null,
+    onDuplicate: (() -> Unit)? = null,
     pinModifier: Modifier = Modifier,
 ) {
     TooltipIconButton(
@@ -282,10 +284,17 @@ internal fun RowScope.NoteEditorActions(
     if (state.isEditing) {
         TooltipIconButton(Icons.Filled.Delete, stringResource(R.string.action_delete), onDelete)
     }
-    // Shown only when it would hold at least one item (Expand for the popup, or Share/Archive for an
-    // existing note).
+    // Shown only when it would hold at least one item (Expand for the popup, or Share/Duplicate/Archive
+    // for an existing note).
     if (onExpand != null || state.isEditing) {
-        NoteOverflowMenu(state = state, onExpand = onExpand, onShare = onShare, onArchive = onArchive, onSnooze = onSnooze)
+        NoteOverflowMenu(
+            state = state,
+            onExpand = onExpand,
+            onShare = onShare,
+            onArchive = onArchive,
+            onSnooze = onSnooze,
+            onDuplicate = onDuplicate,
+        )
     }
     // Filled so it reads as the primary action and stands out; an icon keeps its width locale-stable.
     ButtonTooltip(stringResource(R.string.editor_save)) {
@@ -302,6 +311,7 @@ private fun NoteOverflowMenu(
     onShare: () -> Unit,
     onArchive: () -> Unit,
     onSnooze: (Long) -> Unit,
+    onDuplicate: (() -> Unit)?,
 ) {
     var expanded by remember { mutableStateOf(false) }
     var showSnooze by remember { mutableStateOf(false) }
@@ -331,6 +341,13 @@ private fun NoteOverflowMenu(
                     enabled = state.title.isNotBlank() || state.description.isNotBlank(),
                     onClick = { expanded = false; onShare() },
                 )
+                onDuplicate?.let { duplicate ->
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.action_duplicate)) },
+                        leadingIcon = { Icon(Icons.Filled.ContentCopy, contentDescription = null) },
+                        onClick = { expanded = false; duplicate() },
+                    )
+                }
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.action_snooze)) },
                     leadingIcon = { Icon(Icons.Filled.Snooze, contentDescription = null) },

@@ -14,6 +14,7 @@
     <string name="action_delete">Delete</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_share">Share</string>
+    <string name="action_duplicate">Duplicate</string>
     <string name="action_close_selection">Close selection</string>
     <string name="action_select_all">Select all</string>
     <string name="action_deselect_all">Deselect all</string>
@@ -96,6 +97,7 @@
     <string name="editor_discard_dialog_message">Your unsaved changes will be lost.</string>
     <string name="editor_discard_dialog_confirm">Discard</string>
     <string name="editor_discard_dialog_cancel">Keep editing</string>
+    <string name="editor_duplicated">Note duplicated</string>
     <string name="editor_archive_dialog_title">Archive note?</string>
     <string name="editor_archive_dialog_message">This note will be unpinned and moved to the archive. You can restore it later.</string>
     <string name="editor_archive_dialog_confirm">Archive</string>

@@ -15,6 +15,9 @@ All notable changes to Stela are documented here. This project adheres to
   helps pinned notes survive in the background. You can replay it any time from Settings → Show intro again.
 - Scheduled notes now show a small clock and a relative time in the list (for example "Pins in 3h" or
   "Unpins tomorrow"), so a note set to auto-pin or auto-unpin is recognisable at a glance.
+- Duplicate a note: the editor's overflow (⋮) menu now has a Duplicate action that creates an
+  independent copy (unpinned, unscheduled) and offers Undo. Handy for spinning a variant off an
+  existing note.
 
 ### Changed
 - The note editor now asks before discarding unsaved changes: pressing Back with edits in progress shows

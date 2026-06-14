@@ -531,4 +531,83 @@ class EditorViewModelTest {
         assertEquals(future, updated.pinAt)
         assertEquals(1_000L, updated.updatedAt)
     }
+
+    @Test
+    fun duplicate_createsIndependentUnpinnedCopy_leavingOriginal() = runTest(dispatcher) {
+        val f = Fixture()
+        val id = f.repository.create(title = "Original", description = "body")
+        f.repository.setPinned(id, true)
+        val viewModel = f.viewModel(id)
+        advanceUntilIdle()
+
+        var notified = false
+        viewModel.duplicate { notified = true }
+        advanceUntilIdle()
+
+        assertTrue(notified)
+        val notes = f.repository.notes.first()
+        assertEquals(2, notes.size)
+        val copy = notes.first { it.id != id }
+        assertEquals("Original", copy.title)
+        assertEquals("body", copy.description)
+        assertFalse(copy.isPinned)
+        // The original is untouched.
+        assertTrue(f.repository.getById(id)!!.isPinned)
+    }
+
+    @Test
+    fun duplicate_copiesCurrentEdits_andDropsSchedule() = runTest(dispatcher) {
+        val f = Fixture()
+        val future = System.currentTimeMillis() + 86_400_000L
+        val id = f.repository.create(title = "Old", description = "")
+        f.repository.setSchedule(id, pinAt = future, unpinAt = null)
+        val viewModel = f.viewModel(id)
+        advanceUntilIdle()
+
+        viewModel.onTitleChange("Edited")
+        viewModel.duplicate { }
+        advanceUntilIdle()
+
+        val copy = f.repository.notes.first().first { it.id != id }
+        assertEquals("Edited", copy.title)
+        assertNull(copy.pinAt)
+        assertNull(copy.unpinAt)
+        // The original keeps its stored title (the edit was not saved) and its schedule.
+        assertEquals("Old", f.repository.getById(id)!!.title)
+        assertEquals(future, f.repository.getById(id)!!.pinAt)
+    }
+
+    @Test
+    fun duplicate_promotesLeadingTitleEmoji() = runTest(dispatcher) {
+        val f = Fixture()
+        val id = f.repository.create(title = "plain", description = "")
+        val viewModel = f.viewModel(id, detectEmojiRanges = crownDetector)
+        advanceUntilIdle()
+
+        viewModel.onTitleChange("👑 Foo")
+        viewModel.duplicate { }
+        advanceUntilIdle()
+
+        val copy = f.repository.notes.first().first { it.id != id }
+        assertEquals("👑", copy.emoji)
+        assertEquals("Foo", copy.title)
+    }
+
+    @Test
+    fun undoDuplicate_removesTheCopy() = runTest(dispatcher) {
+        val f = Fixture()
+        val id = f.repository.create(title = "Original", description = "")
+        val viewModel = f.viewModel(id)
+        advanceUntilIdle()
+
+        viewModel.duplicate { }
+        advanceUntilIdle()
+        assertEquals(2, f.repository.notes.first().size)
+
+        viewModel.undoDuplicate()
+        advanceUntilIdle()
+
+        val remaining = f.repository.notes.first()
+        assertEquals(id, remaining.single().id)
+    }
 }

@@ -37,6 +37,7 @@ class DescriptionFieldTest {
                     onSave = {},
                     onDelete = {},
                     onSnooze = {},
+                    onDuplicate = {},
                     onToggleAdvanced = {},
                     onBack = {},
                 )

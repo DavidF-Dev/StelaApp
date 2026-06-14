@@ -433,7 +433,11 @@ See [2026-06-14-editor-discard-confirm.md](2026-06-14-editor-discard-confirm.md)
 indicator** — a row whose note has an auto-pin/unpin shows a clock + relative label ("Pins in 3h" /
 "Unpins tomorrow") inline in the overline (main list only; a pure `NoteRow` change via a small
 `Note.scheduledEvent()` helper). See
-[2026-06-14-scheduled-note-indicator.md](2026-06-14-scheduled-note-indicator.md). All four are from the
+[2026-06-14-scheduled-note-indicator.md](2026-06-14-scheduled-note-indicator.md). **Duplicate note** — a
+Duplicate item in the editor's ⋮ menu (existing notes) creates an independent copy from the current
+fields (fresh id, unpinned, unscheduled, active) via `NoteRepository.create`, staying on the note with an
+Undo snackbar; editor-only via a nullable `onDuplicate` (not in the popup). See
+[2026-06-14-duplicate-note.md](2026-06-14-duplicate-note.md). All five are from the
 [post-v1.5 improvements queue](2026-06-14-post-v1.5-improvements.md).
 
 **Planned features (prioritized, 2026-06-10):** each is its own slice (spec → plan →

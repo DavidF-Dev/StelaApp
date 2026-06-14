@@ -267,6 +267,30 @@ class EditorViewModel(
         }
     }
 
+    // The most recent duplicate, retained so [undoDuplicate] can remove it.
+    private var lastDuplicateId: Long? = null
+
+    /// Creates an independent copy of the current fields — fresh id, unpinned, unscheduled, active, fresh
+    /// timestamps (all from [NoteRepository.create]) — leaving the edited note untouched. [onDuplicated]
+    /// runs after it lands, so the caller can offer Undo.
+    fun duplicate(onDuplicated: () -> Unit) {
+        viewModelScope.launch {
+            val state = _uiState.value
+            val promotion = promoteLeadingEmoji(state.title, state.emoji, detectEmojiRanges(state.title))
+            val title = promotion?.title ?: state.title
+            val emoji = promotion?.emoji ?: state.emoji
+            lastDuplicateId = repository.create(title, state.description, emoji = emoji)
+            onDuplicated()
+        }
+    }
+
+    /// Removes the most recent duplicate (the Undo for [duplicate]).
+    fun undoDuplicate() {
+        val id = lastDuplicateId ?: return
+        lastDuplicateId = null
+        viewModelScope.launch { repository.getById(id)?.let { pinner.delete(it) } }
+    }
+
     companion object {
         const val NOTE_ID_KEY = "noteId"
         const val PIN_KEY = "pin"
