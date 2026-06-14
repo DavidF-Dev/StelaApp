@@ -137,8 +137,13 @@ private fun DateTimePickerDialog(
 
     if (pickedDateMillis == null) {
         val earliestDay = Instant.ofEpochMilli(earliestMillis).atZone(zone).toLocalDate()
+        // DatePicker interprets its millis as UTC, so a raw local instant would highlight the day on the
+        // UTC side of the zone offset (e.g. "yesterday", greyed out). Snap the local calendar day to UTC
+        // midnight so the initial selection lands on the right day and stays selectable.
+        val initialDay = Instant.ofEpochMilli(initialMillis).atZone(zone).toLocalDate()
+        val initialSelectedUtc = initialDay.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
         val dateState = rememberDatePickerState(
-            initialSelectedDateMillis = initialMillis,
+            initialSelectedDateMillis = initialSelectedUtc,
             selectableDates = object : SelectableDates {
                 override fun isSelectableDate(utcTimeMillis: Long): Boolean =
                     !Instant.ofEpochMilli(utcTimeMillis).atZone(ZoneOffset.UTC).toLocalDate().isBefore(earliestDay)

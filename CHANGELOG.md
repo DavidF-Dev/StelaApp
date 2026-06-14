@@ -34,6 +34,8 @@ All notable changes to Stela are documented here. This project adheres to
   list — instead of staying frozen until you left and re-opened the screen.
 - Deleting or archiving a note no longer leaves its notification stranded in the status bar in the rare
   case where the note auto-pinned (a scheduled "pin at" time elapsed) while you had it open in the editor.
+- The "Pin at" / "Unpin at" date picker no longer opens with a greyed-out past day pre-selected for users
+  in time zones ahead of UTC; it now reliably defaults to the correct, selectable day.
 
 ## [1.5.0] - 2026/06/14
 
