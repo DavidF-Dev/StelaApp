@@ -37,9 +37,10 @@ history has accumulated.
 
 ## Phase 1 — Repo-side prep (most can be done *while still private*)
 
-1. **Declare GPL-3.0-or-later.** Update the README **License** section (and, optionally, add the standard
-   per-file header to source files) to state the app is licensed under "the GNU General Public License,
-   version 3, or (at your option) any later version." This makes the `GPL-3.0-or-later` metadata accurate.
+1. **Declare GPL-3.0-or-later.** **Done in the LICENSE file** — a copyright + "version 3 or (at your option)
+   any later version" grant notice now precedes the GPLv3 text, making the `GPL-3.0-or-later` metadata
+   accurate. Remaining (optional polish): mirror the wording in the README **License** section and, if
+   desired, add the standard short header to source files.
 2. **Add the fastlane metadata tree** under `fastlane/metadata/android/en-US/`:
    - `title.txt` — `Stela`
    - `short_description.txt` — one line, **≤80 chars** (e.g. "Pin your notes as persistent notifications.
@@ -68,10 +69,13 @@ F-Droid is not push-based. Open a Merge Request against `gitlab.com/fdroid/fdroi
 Categories:
   - Writing
 License: GPL-3.0-or-later
-AuthorName: David F
+AuthorName: David F Dev
+AuthorEmail: contact@davidfdev.com
 SourceCode: https://github.com/DavidF-Dev/StelaApp
 IssueTracker: https://github.com/DavidF-Dev/StelaApp/issues
 Changelog: https://github.com/DavidF-Dev/StelaApp/blob/HEAD/CHANGELOG.md
+# No WebSite/AuthorWebSite: the repo is already declared via SourceCode. Add a personal
+# homepage here only if one exists (it should not duplicate the SourceCode link).
 
 RepoType: git
 Repo: https://github.com/DavidF-Dev/StelaApp.git
