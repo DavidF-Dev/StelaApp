@@ -17,6 +17,7 @@ import dev.davidfdev.stela.ui.canPostNotifications
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -99,28 +100,31 @@ class EditorViewModel(
     // Retained so a save preserves fields the editor doesn't expose (createdAt, iconId, isPinned).
     private var loaded: Note? = null
 
+    // Set true when the observed note vanishes after having loaded — i.e. it was deleted out from under
+    // the editor; the screen watches this and finishes itself.
+    private val _closed = MutableStateFlow(false)
+    val closed: StateFlow<Boolean> = _closed.asStateFlow()
+
+    // Set when this editor deletes its own note, so the resulting null emission isn't mistaken for an
+    // external deletion (which would double-fire navigation).
+    private var selfDeleted = false
+
     init {
         if (noteId != null) {
+            // Observe the row (not a one-shot read) so a change made elsewhere — a background auto-pin /
+            // auto-unpin, a snooze, or a notification action — stays reflected here and can't be silently
+            // overwritten on save.
             viewModelScope.launch {
-                repository.getById(noteId)?.let { note ->
-                    loaded = note
-                    _uiState.update {
-                        it.copy(
-                            // A draft overlays its unsaved field edits on top of the stored note.
-                            title = draft?.title ?: note.title,
-                            description = draft?.description ?: note.description,
-                            emoji = draft?.emoji ?: note.emoji,
-                            isPinned = note.isPinned,
-                            isArchived = note.isArchived,
-                            createdAt = note.createdAt,
-                            updatedAt = note.updatedAt,
-                            pinAt = note.pinAt,
-                            unpinAt = note.unpinAt,
-                            alertOnPin = note.alertOnPin,
-                            // Baseline is the stored note, so a carried-over draft's edits read as dirty.
-                            savedSnapshot = note.snapshot(),
-                        )
+                repository.observeById(noteId).collect { note ->
+                    when {
+                        note == null -> {
+                            if (loaded != null && !selfDeleted) _closed.value = true
+                            return@collect
+                        }
+                        loaded == null -> seedFrom(note, draft)
+                        else -> refreshAuthoritativeFields(note)
                     }
+                    loaded = note
                 }
             }
         } else if (draft != null) {
@@ -128,6 +132,52 @@ class EditorViewModel(
             _uiState.update {
                 it.copy(title = draft.title, description = draft.description, emoji = draft.emoji)
             }
+        }
+    }
+
+    /// Seeds the editor from the first load of an existing note. A [draft] (carried in from the popup's
+    /// Expand) overlays its unsaved field edits on top of the stored note, which stays the dirty baseline.
+    private fun seedFrom(note: Note, draft: NoteDraft?) {
+        _uiState.update {
+            it.copy(
+                title = draft?.title ?: note.title,
+                description = draft?.description ?: note.description,
+                emoji = draft?.emoji ?: note.emoji,
+                isPinned = note.isPinned,
+                isArchived = note.isArchived,
+                createdAt = note.createdAt,
+                updatedAt = note.updatedAt,
+                pinAt = note.pinAt,
+                unpinAt = note.unpinAt,
+                alertOnPin = note.alertOnPin,
+                savedSnapshot = note.snapshot(),
+            )
+        }
+    }
+
+    /// Folds an external change (a background auto-pin/unpin, a snooze, or an archive from a notification
+    /// action) into the editor without disturbing the user's in-progress text or a pending schedule edit.
+    /// Pin/archive state and the modified time are authoritative from the store. `pinAt`/`unpinAt` are
+    /// unsaved-editable, so they are adopted only when the user hasn't edited them — or when the new pin
+    /// state disables their row (a now-unreachable pending edit is dropped rather than left dangling). The
+    /// dirty baseline always tracks the stored schedule, so a preserved edit still reads dirty.
+    private fun refreshAuthoritativeFields(note: Note) {
+        _uiState.update { state ->
+            val pinAtClean = state.pinAt == state.savedSnapshot?.pinAt
+            // "Pin at" is disabled once the note is pinned, so drop any pending edit it can no longer show.
+            val newPinAt = if (pinAtClean || note.isPinned) note.pinAt else state.pinAt
+            val unpinAtClean = state.unpinAt == state.savedSnapshot?.unpinAt
+            // "Unpin at" needs a pin (live or scheduled) to act on; drop a pending edit its row can't show.
+            val unpinApplicable = note.isPinned || newPinAt != null
+            val newUnpinAt = if (unpinAtClean || !unpinApplicable) note.unpinAt else state.unpinAt
+            state.copy(
+                isPinned = note.isPinned,
+                isArchived = note.isArchived,
+                updatedAt = note.updatedAt,
+                pinAt = newPinAt,
+                unpinAt = newUnpinAt,
+                savedSnapshot = state.savedSnapshot?.copy(pinAt = note.pinAt, unpinAt = note.unpinAt),
+            )
         }
     }
 
@@ -250,10 +300,12 @@ class EditorViewModel(
                 val scheduleChanged = state.pinAt != existing.pinAt || state.unpinAt != existing.unpinAt
                 val alertChanged = state.alertOnPin != existing.alertOnPin
                 if (contentChanged) {
-                    val updated = existing.copy(title = title, description = state.description, emoji = emoji)
-                    repository.update(updated)
-                    pinner.refresh(updated)
-                    loaded = updated
+                    // Field-scoped write: never round-trips pin/schedule fields, so a content save can't
+                    // revert a background change (the row may have auto-pinned while the editor was open).
+                    repository.updateContent(existing.id, title, state.description, emoji)
+                    val refreshed = existing.copy(title = title, description = state.description, emoji = emoji)
+                    pinner.refresh(refreshed)
+                    loaded = refreshed
                 }
                 if (scheduleChanged) {
                     pinner.applySchedule(existing.id, state.pinAt, state.unpinAt)
@@ -274,6 +326,9 @@ class EditorViewModel(
             return
         }
         viewModelScope.launch {
+            // Mark before deleting so the observer's resulting null emission isn't read as an external
+            // deletion (which would fire the close signal on top of this navigation).
+            selfDeleted = true
             pinner.delete(existing)
             onComplete()
         }

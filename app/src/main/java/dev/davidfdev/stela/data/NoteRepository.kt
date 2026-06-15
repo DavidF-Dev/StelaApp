@@ -13,6 +13,10 @@ class NoteRepository(
 
     suspend fun getById(id: Long): Note? = dao.getById(id)
 
+    /// Observes a single note as a [Flow], emitting on every change and `null` once it is deleted.
+    /// Lets a screen stay consistent with changes made elsewhere (e.g. a background auto-pin).
+    fun observeById(id: Long): Flow<Note?> = dao.observeById(id)
+
     /// Creates a new note, stamping [Note.createdAt] and [Note.updatedAt] to now.
     /// Returns the generated id.
     suspend fun create(
@@ -39,6 +43,13 @@ class NoteRepository(
     /// Persists edits to an existing note, bumping [Note.updatedAt] to now while
     /// preserving its original [Note.createdAt].
     suspend fun update(note: Note): Long = dao.upsert(note.copy(updatedAt = now()))
+
+    /// Persists content edits (title/description/emoji) only, bumping [Note.updatedAt] to now. Unlike
+    /// the flag/schedule setters this advances the modified time, but it leaves pin/archive/schedule
+    /// columns untouched — so a content save can't revert a change (e.g. a background auto-pin) made
+    /// while the editor was open.
+    suspend fun updateContent(noteId: Long, title: String, description: String, emoji: String) =
+        dao.setContent(noteId, title, description, emoji, now())
 
     /// Sets a note's pin flag without bumping updatedAt — pinning is not a content
     /// edit and must not reorder the list.

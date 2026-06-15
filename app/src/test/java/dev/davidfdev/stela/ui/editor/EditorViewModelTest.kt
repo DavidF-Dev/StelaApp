@@ -652,6 +652,122 @@ class EditorViewModelTest {
     }
 
     @Test
+    fun existingNote_backgroundAutoPin_reflectedLive_withoutDirtying() = runTest(dispatcher) {
+        val f = Fixture()
+        val future = System.currentTimeMillis() + 86_400_000L
+        val id = f.repository.create(title = "Scheduled", description = "")
+        f.repository.setSchedule(id, pinAt = future, unpinAt = null)
+        val viewModel = f.viewModel(id)
+        advanceUntilIdle()
+        assertFalse(viewModel.uiState.value.isPinned)
+        assertEquals(future, viewModel.uiState.value.pinAt)
+
+        // The auto-pin alarm fires in the background while the editor is open.
+        f.repository.setPinned(id, true)
+        f.repository.clearPinAt(id)
+        advanceUntilIdle()
+
+        // The editor reflects the new state and doesn't read as an unsaved edit.
+        assertTrue(viewModel.uiState.value.isPinned)
+        assertNull(viewModel.uiState.value.pinAt)
+        assertFalse(viewModel.uiState.value.isDirty)
+    }
+
+    @Test
+    fun existingNote_backgroundAutoPin_thenContentSave_keepsPinState() = runTest(dispatcher) {
+        val f = Fixture()
+        val id = f.repository.create(title = "Old", description = "")
+        val viewModel = f.viewModel(id)
+        advanceUntilIdle()
+
+        // Background auto-pin, then the user edits the body and saves.
+        f.repository.setPinned(id, true)
+        advanceUntilIdle()
+        viewModel.onTitleChange("Edited")
+        viewModel.save { }
+        advanceUntilIdle()
+
+        // The content save must not revert the background pin (the corruption this fix prevents).
+        val saved = f.repository.getById(id)!!
+        assertTrue(saved.isPinned)
+        assertEquals("Edited", saved.title)
+    }
+
+    @Test
+    fun existingNote_backgroundPin_dropsNowUnreachablePinAtEdit() = runTest(dispatcher) {
+        val f = Fixture()
+        val future = System.currentTimeMillis() + 86_400_000L
+        val id = f.repository.create(title = "Note", description = "")
+        val viewModel = f.viewModel(id)
+        advanceUntilIdle()
+
+        // The user is mid-way through setting a "Pin at" when the note pins itself in the background.
+        viewModel.onPinAtChange(future)
+        assertTrue(viewModel.uiState.value.isDirty)
+        f.repository.setPinned(id, true)
+        advanceUntilIdle()
+
+        // The "Pin at" row disabled underneath the edit, so the pending value is dropped, not stranded.
+        assertTrue(viewModel.uiState.value.isPinned)
+        assertNull(viewModel.uiState.value.pinAt)
+        assertFalse(viewModel.uiState.value.isDirty)
+    }
+
+    @Test
+    fun existingNote_backgroundPin_preservesStillApplicableUnpinAtEdit() = runTest(dispatcher) {
+        val f = Fixture()
+        val future = System.currentTimeMillis() + 86_400_000L
+        val until = future + 3_600_000L
+        val id = f.repository.create(title = "Note", description = "")
+        // Scheduled to pin later, so the "Unpin at" row is enabled (there is a pin to end).
+        f.repository.setSchedule(id, pinAt = future, unpinAt = null)
+        val viewModel = f.viewModel(id)
+        advanceUntilIdle()
+
+        // The user sets a pending "Unpin at"; then the note auto-pins early.
+        viewModel.onUnpinAtChange(until)
+        f.repository.setPinned(id, true)
+        f.repository.clearPinAt(id)
+        advanceUntilIdle()
+
+        // Still pinned, so the "Unpin at" row stays applicable — the pending edit survives the refresh.
+        assertTrue(viewModel.uiState.value.isPinned)
+        assertNull(viewModel.uiState.value.pinAt)
+        assertEquals(until, viewModel.uiState.value.unpinAt)
+        assertTrue(viewModel.uiState.value.isDirty)
+    }
+
+    @Test
+    fun existingNote_externalDelete_firesClosedSignal() = runTest(dispatcher) {
+        val f = Fixture()
+        val id = f.repository.create(title = "Doomed", description = "")
+        val viewModel = f.viewModel(id)
+        advanceUntilIdle()
+        assertFalse(viewModel.closed.value)
+
+        // Deleted out from under the editor (e.g. a notification Remove with Removal Preference = Delete).
+        f.repository.delete(f.repository.getById(id)!!)
+        advanceUntilIdle()
+
+        assertTrue(viewModel.closed.value)
+    }
+
+    @Test
+    fun existingNote_selfDelete_doesNotFireClosedSignal() = runTest(dispatcher) {
+        val f = Fixture()
+        val id = f.repository.create(title = "Temp", description = "")
+        val viewModel = f.viewModel(id)
+        advanceUntilIdle()
+
+        viewModel.delete { }
+        advanceUntilIdle()
+
+        // A delete the editor initiated navigates via its own callback; the close signal must stay clear
+        // so navigation isn't double-fired.
+        assertFalse(viewModel.closed.value)
+    }
+
+    @Test
     fun undoDuplicate_removesTheCopy() = runTest(dispatcher) {
         val f = Fixture()
         val id = f.repository.create(title = "Original", description = "")

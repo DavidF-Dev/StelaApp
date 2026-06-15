@@ -36,6 +36,9 @@ All notable changes to Stela are documented here. This project adheres to
   case where the note auto-pinned (a scheduled "pin at" time elapsed) while you had it open in the editor.
 - The "Pin at" / "Unpin at" date picker no longer opens with a greyed-out past day pre-selected for users
   in time zones ahead of UTC; it now reliably defaults to the correct, selectable day.
+- The editor now stays in sync with a note that pins or unpins itself in the background (a scheduled time
+  elapsing while you have it open): the Pin toggle and schedule rows update live, and saving an edit no
+  longer reverts that change. If the note is deleted from elsewhere while open, the editor closes itself.
 
 ## [1.5.0] - 2026/06/14
 

@@ -17,6 +17,15 @@ class FakeNoteDao : NoteDao {
     override suspend fun getById(id: Long): Note? =
         rows.value.firstOrNull { it.id == id }
 
+    override fun observeById(id: Long): Flow<Note?> =
+        rows.map { list -> list.firstOrNull { it.id == id } }
+
+    override suspend fun setContent(id: Long, title: String, description: String, emoji: String, updatedAt: Long) {
+        rows.value = rows.value.map {
+            if (it.id == id) it.copy(title = title, description = description, emoji = emoji, updatedAt = updatedAt) else it
+        }
+    }
+
     override suspend fun upsert(note: Note): Long {
         val current = rows.value.toMutableList()
         return if (note.id == 0L) {

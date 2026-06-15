@@ -83,6 +83,10 @@ fun EditorRoute(
     viewModel: EditorViewModel = viewModel(factory = EditorViewModel.Factory),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    // Finish the editor if its note is deleted out from under it (e.g. a notification Remove action while
+    // it's open) — saving a since-deleted note would be meaningless.
+    val closed by viewModel.closed.collectAsStateWithLifecycle()
+    LaunchedEffect(closed) { if (closed) onDone() }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current

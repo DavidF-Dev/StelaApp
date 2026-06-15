@@ -45,6 +45,40 @@ class NoteRepositoryTest {
     }
 
     @Test
+    fun updateContent_bumpsUpdatedAt_butLeavesPinAndSchedule() = runTest {
+        now = 1_000L
+        val id = repository.create(title = "Old", description = "old body")
+        repository.setPinned(id, true)
+        repository.setSchedule(id, pinAt = 5_000L, unpinAt = 9_000L)
+
+        now = 7_000L
+        repository.updateContent(id, title = "New", description = "new body", emoji = "📝")
+
+        val updated = dao.getById(id)!!
+        assertEquals("New", updated.title)
+        assertEquals("new body", updated.description)
+        assertEquals("📝", updated.emoji)
+        assertEquals(7_000L, updated.updatedAt)
+        // A content write must not touch pin/schedule — the guarantee that makes a stale-editor save safe.
+        assertTrue(updated.isPinned)
+        assertEquals(5_000L, updated.pinAt)
+        assertEquals(9_000L, updated.unpinAt)
+    }
+
+    @Test
+    fun observeById_reflectsMutations_andNullsAfterDelete() = runTest {
+        val id = repository.create(title = "Watched", description = "")
+
+        assertEquals("Watched", repository.observeById(id).first()!!.title)
+
+        repository.setPinned(id, true)
+        assertTrue(repository.observeById(id).first()!!.isPinned)
+
+        repository.delete(dao.getById(id)!!)
+        assertNull(repository.observeById(id).first())
+    }
+
+    @Test
     fun notes_emitsMostRecentlyUpdatedFirst() = runTest {
         now = 1_000L
         repository.create(title = "Older", description = "")

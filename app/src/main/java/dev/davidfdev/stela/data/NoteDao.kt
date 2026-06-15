@@ -16,6 +16,16 @@ interface NoteDao {
     @Query("SELECT * FROM notes WHERE id = :id")
     suspend fun getById(id: Long): Note?
 
+    /// Observes a single note, emitting on every change to its row and `null` once it is deleted.
+    @Query("SELECT * FROM notes WHERE id = :id")
+    fun observeById(id: Long): Flow<Note?>
+
+    /// Writes content fields (title/description/emoji) and bumps updatedAt. Unlike the flag/schedule
+    /// setters this is a real content edit, so the modified time advances; pin/archive/schedule columns
+    /// are deliberately left untouched, so a content save can't clobber a change made elsewhere.
+    @Query("UPDATE notes SET title = :title, description = :description, emoji = :emoji, updatedAt = :updatedAt WHERE id = :id")
+    suspend fun setContent(id: Long, title: String, description: String, emoji: String, updatedAt: Long)
+
     /// Flips only the pin flag. Pinning is not a content edit, so this deliberately
     /// leaves updatedAt untouched and the list order unchanged.
     @Query("UPDATE notes SET isPinned = :isPinned WHERE id = :id")

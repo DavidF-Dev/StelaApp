@@ -115,4 +115,36 @@ class NoteDaoTest {
         assertNull(dao.getById(id))
         assertTrue(dao.observeAll().first().isEmpty())
     }
+
+    @Test
+    fun observeById_reflectsUpdate_andEmitsNullAfterDelete() = runTest {
+        val id = dao.upsert(note(title = "Watched", updatedAt = 1_000L))
+
+        assertEquals("Watched", dao.observeById(id).first()!!.title)
+
+        dao.setPinned(id, true)
+        assertEquals(true, dao.observeById(id).first()!!.isPinned)
+
+        dao.delete(dao.getById(id)!!)
+        assertNull(dao.observeById(id).first())
+    }
+
+    @Test
+    fun setContent_updatesContentFields_bumpsUpdatedAt_leavesOthers() = runTest {
+        val id = dao.upsert(note(title = "Old", description = "old body", updatedAt = 1_000L))
+        dao.setPinned(id, true)
+        dao.setSchedule(id, pinAt = 5_000L, unpinAt = 9_000L)
+
+        dao.setContent(id, title = "New", description = "new body", emoji = "📝", updatedAt = 2_000L)
+
+        val stored = dao.getById(id)!!
+        assertEquals("New", stored.title)
+        assertEquals("new body", stored.description)
+        assertEquals("📝", stored.emoji)
+        assertEquals(2_000L, stored.updatedAt)
+        // Pin/schedule columns are untouched by a content write.
+        assertEquals(true, stored.isPinned)
+        assertEquals(5_000L, stored.pinAt)
+        assertEquals(9_000L, stored.unpinAt)
+    }
 }
