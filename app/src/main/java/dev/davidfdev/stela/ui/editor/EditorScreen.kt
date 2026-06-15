@@ -271,17 +271,20 @@ fun EditorScreen(
                     expanded = state.advancedExpanded,
                     onToggle = onToggleAdvanced,
                 ) {
-                    ScheduleControls(
-                        pinAt = state.pinAt,
-                        unpinAt = state.unpinAt,
-                        isPinned = state.isPinned,
-                        onPinAtChange = onPinAtChange,
-                        onUnpinAtChange = onUnpinAtChange,
-                    )
-                    PinAlertControl(
-                        alertOnPin = state.alertOnPin,
-                        onAlertOnPinChange = onAlertOnPinChange,
-                    )
+                    // The section's content slot is a single Box, so stack the controls in a Column.
+                    Column {
+                        ScheduleControls(
+                            pinAt = state.pinAt,
+                            unpinAt = state.unpinAt,
+                            isPinned = state.isPinned,
+                            onPinAtChange = onPinAtChange,
+                            onUnpinAtChange = onUnpinAtChange,
+                        )
+                        PinAlertControl(
+                            alertOnPin = state.alertOnPin,
+                            onAlertOnPinChange = onAlertOnPinChange,
+                        )
+                    }
                 }
 
                 // Breathing room so the last control can scroll clear of the bottom, as Settings does.
