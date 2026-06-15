@@ -242,6 +242,10 @@ One service, one baseline notification, no redundancy.
 
 - **Channels** (API 26+):
   - `pinned_notes` — default importance, silent, no badge; hosts pinned notes.
+  - `pinned_notes_alerting` — default importance **with sound + vibration**, no badge; hosts notes that
+    opted into "Alert when pinned" (the editor's Advanced toggle). A separate channel because a channel's
+    alerting can't change after creation; a note alerts once on a genuine pin (see
+    [2026-06-15-pin-alert-setting.md](2026-06-15-pin-alert-setting.md)).
   - `quick_add` — low importance; hosts the quick-add / service notification.
   - A user can *disable a channel*, silently breaking pinning. Detect this state
     (`areNotificationsEnabled` / channel importance == NONE) and prompt to

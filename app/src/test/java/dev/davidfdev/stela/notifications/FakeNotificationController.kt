@@ -7,6 +7,9 @@ import dev.davidfdev.stela.settings.RemovalPreference
 /// platform NotificationManager.
 class FakeNotificationController : NotificationController {
     val pinned = mutableListOf<Note>()
+    // The notes that actually alerted — mirroring the real controller, a pin only makes a sound when the
+    // alert was requested *and* the note opted in. Kept separate from [pinned] so it survives a clear().
+    val alertedPins = mutableListOf<Note>()
     val unpinned = mutableListOf<Long>()
     val refreshed = mutableListOf<Note>()
     val serviceReasserts = mutableListOf<Boolean>()
@@ -15,7 +18,10 @@ class FakeNotificationController : NotificationController {
     override var swipeToRemove: Boolean = false
     override var removalPreference: RemovalPreference = RemovalPreference.UNPIN
 
-    override fun pin(note: Note) { pinned += note }
+    override fun pin(note: Note, alert: Boolean) {
+        pinned += note
+        if (alert && note.alertOnPin) alertedPins += note
+    }
     override fun unpin(noteId: Long) { unpinned += noteId }
     override fun refresh(note: Note) { refreshed += note }
 

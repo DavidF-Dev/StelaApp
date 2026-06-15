@@ -533,6 +533,64 @@ class EditorViewModelTest {
     }
 
     @Test
+    fun newNote_save_persistsAlertOnPinFlag() = runTest(dispatcher) {
+        val f = Fixture()
+        val viewModel = f.viewModel(initialPinned = false)
+
+        viewModel.onTitleChange("Loud")
+        viewModel.onAlertOnPinChange(true)
+        viewModel.save { }
+        advanceUntilIdle()
+
+        assertTrue(f.repository.notes.first().single().alertOnPin)
+    }
+
+    @Test
+    fun newNote_pinOnSave_optedIn_requestsAlert() = runTest(dispatcher) {
+        val f = Fixture()
+        val viewModel = f.viewModel(initialPinned = true)
+
+        viewModel.onTitleChange("Loud")
+        viewModel.onAlertOnPinChange(true)
+        viewModel.save { }
+        advanceUntilIdle()
+
+        assertEquals(listOf("Loud"), f.controller.alertedPins.map { it.title })
+    }
+
+    @Test
+    fun existingNote_save_alertOnPinOnly_persists_withoutBumpingUpdatedAt() = runTest(dispatcher) {
+        val f = Fixture()
+        val id = f.repository.create(title = "Plan", description = "")
+        val viewModel = f.viewModel(id)
+        advanceUntilIdle()
+
+        f.now = 2_000L
+        viewModel.onAlertOnPinChange(true)
+        viewModel.save { }
+        advanceUntilIdle()
+
+        val updated = f.repository.getById(id)!!
+        assertTrue(updated.alertOnPin)
+        assertEquals(1_000L, updated.updatedAt)
+    }
+
+    @Test
+    fun existingNote_isDirty_trueAfterAlertOnPinToggle() = runTest(dispatcher) {
+        val f = Fixture()
+        val id = f.repository.create(title = "Plan", description = "")
+        val viewModel = f.viewModel(id)
+        advanceUntilIdle()
+        assertFalse(viewModel.uiState.value.isDirty)
+
+        viewModel.onAlertOnPinChange(true)
+        assertTrue(viewModel.uiState.value.isDirty)
+
+        viewModel.onAlertOnPinChange(false)
+        assertFalse(viewModel.uiState.value.isDirty)
+    }
+
+    @Test
     fun duplicate_createsIndependentUnpinnedCopy_leavingOriginal() = runTest(dispatcher) {
         val f = Fixture()
         val id = f.repository.create(title = "Original", description = "body")

@@ -20,6 +20,7 @@ class NoteRepository(
         description: String,
         iconId: String = Note.DEFAULT_ICON_ID,
         emoji: String = "",
+        alertOnPin: Boolean = false,
     ): Long {
         val timestamp = now()
         return dao.upsert(
@@ -30,6 +31,7 @@ class NoteRepository(
                 emoji = emoji,
                 createdAt = timestamp,
                 updatedAt = timestamp,
+                alertOnPin = alertOnPin,
             ),
         )
     }
@@ -56,6 +58,10 @@ class NoteRepository(
 
     /// Clears a note's auto-unpin time (unpinning fulfils it).
     suspend fun clearUnpinAt(noteId: Long) = dao.clearUnpinAt(noteId)
+
+    /// Sets a note's alert-on-pin flag without bumping updatedAt — it is not a content edit
+    /// and must not reorder the list.
+    suspend fun setAlertOnPin(noteId: Long, alertOnPin: Boolean) = dao.setAlertOnPin(noteId, alertOnPin)
 
     suspend fun countPinned(): Int = dao.countPinned()
 

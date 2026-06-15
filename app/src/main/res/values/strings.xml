@@ -114,6 +114,10 @@
     <string name="schedule_next">Next</string>
     <string name="schedule_done">Done</string>
 
+    <!-- Editor — alert when pinned -->
+    <string name="alert_on_pin_label">Alert when pinned</string>
+    <string name="alert_on_pin_supporting">Play a sound or vibration when this note pins</string>
+
     <!-- Editor — snooze -->
     <string name="snooze_title">Snooze for</string>
     <string name="snooze_30_minutes">30 minutes</string>
@@ -242,6 +246,7 @@
 
     <!-- Notification channels -->
     <string name="channel_pinned_name">Pinned notes</string>
+    <string name="channel_pinned_alerting_name">Pinned note alerts</string>
     <string name="channel_quick_add_name">Quick add</string>
     <string name="channel_service_status_name">Running in background</string>
 

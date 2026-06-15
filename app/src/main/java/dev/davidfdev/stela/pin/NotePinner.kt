@@ -17,7 +17,10 @@ class NotePinner(
     private val pinScheduler: PinScheduler = NoopPinScheduler,
     private val now: () -> Long = System::currentTimeMillis,
 ) {
-    suspend fun pin(note: Note) = pinAll(listOf(note))
+    /// Pins a note. [alert] requests a one-time sound/vibration, honoured only when the note opted in
+    /// ([Note.alertOnPin]); the genuine pin seams (manual pin, scheduled fire) pass true, silent
+    /// reposts/catch-ups leave it false.
+    suspend fun pin(note: Note, alert: Boolean = false) = pinAll(listOf(note), alert)
 
     suspend fun unpin(noteId: Long) = unpinAll(listOf(noteId))
 
@@ -28,12 +31,14 @@ class NotePinner(
 
     /// Pins every note, posting each notification, then reconciles the service once
     /// for the whole batch. Pinning also unarchives, since a note is never both pinned
-    /// and archived, and clears any pending auto-pin (now fulfilled).
-    suspend fun pinAll(notes: List<Note>) {
+    /// and archived, and clears any pending auto-pin (now fulfilled). [alert] is honoured only on a
+    /// single-note pin — a batch never alerts, however it was invoked.
+    suspend fun pinAll(notes: List<Note>, alert: Boolean = false) {
+        val alertThis = alert && notes.size == 1
         notes.forEach { note ->
             repository.setArchived(note.id, false)
             repository.setPinned(note.id, true)
-            controller.pin(note.copy(isPinned = true, isArchived = false))
+            controller.pin(note.copy(isPinned = true, isArchived = false), alertThis)
             repository.clearPinAt(note.id)
             pinScheduler.cancelPin(note.id)
         }

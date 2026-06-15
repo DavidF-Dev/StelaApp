@@ -18,6 +18,7 @@ class BackupCodecTest {
         updatedAt: Long = 200,
         pinAt: Long? = null,
         unpinAt: Long? = null,
+        alertOnPin: Boolean = false,
     ) = Note(
         id = id,
         title = title,
@@ -29,6 +30,7 @@ class BackupCodecTest {
         updatedAt = updatedAt,
         pinAt = pinAt,
         unpinAt = unpinAt,
+        alertOnPin = alertOnPin,
     )
 
     @Test
@@ -70,7 +72,7 @@ class BackupCodecTest {
     @Test
     fun encode_writesVersionAndIsValidJson() {
         val text = BackupCodec.encode(listOf(note()))
-        assertTrue(text.contains("\"version\": 3"))
+        assertTrue(text.contains("\"version\": 4"))
     }
 
     @Test
@@ -81,6 +83,23 @@ class BackupCodecTest {
         ).getOrThrow()
 
         assertEquals(listOf(true, false), decoded.map { it.isArchived })
+    }
+
+    @Test
+    fun encodeThenDecode_preservesAlertOnPinFlag() {
+        // Like the archive flag, alert-on-pin is note data and survives a round-trip.
+        val decoded = BackupCodec.decode(
+            BackupCodec.encode(listOf(note(title = "Loud", alertOnPin = true), note(title = "Quiet"))),
+        ).getOrThrow()
+
+        assertEquals(listOf(true, false), decoded.map { it.alertOnPin })
+    }
+
+    @Test
+    fun decode_olderFileWithoutAlertFlag_defaultsToSilent() {
+        // A v3 file predates the flag; the missing field decodes as false (silent).
+        val v3 = """{"version":3,"notes":[{"title":"A","description":"","createdAt":1,"updatedAt":2}]}"""
+        assertFalse(BackupCodec.decode(v3).getOrThrow().single().alertOnPin)
     }
 
     @Test

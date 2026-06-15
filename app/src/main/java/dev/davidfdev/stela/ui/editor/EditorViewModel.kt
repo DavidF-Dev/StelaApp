@@ -28,6 +28,7 @@ data class EditorSnapshot(
     val emoji: String,
     val pinAt: Long?,
     val unpinAt: Long?,
+    val alertOnPin: Boolean,
 )
 
 data class EditorUiState(
@@ -41,6 +42,7 @@ data class EditorUiState(
     val updatedAt: Long? = null,
     val pinAt: Long? = null,
     val unpinAt: Long? = null,
+    val alertOnPin: Boolean = false,
     val advancedExpanded: Boolean = false,
     val savedSnapshot: EditorSnapshot? = null,
 ) {
@@ -57,15 +59,15 @@ data class EditorUiState(
         get() = savedSnapshot.let { snapshot ->
             if (snapshot == null) {
                 title.isNotBlank() || description.isNotBlank() || emoji.isNotBlank() ||
-                    pinAt != null || unpinAt != null
+                    pinAt != null || unpinAt != null || alertOnPin
             } else {
                 title != snapshot.title || description != snapshot.description || emoji != snapshot.emoji ||
-                    pinAt != snapshot.pinAt || unpinAt != snapshot.unpinAt
+                    pinAt != snapshot.pinAt || unpinAt != snapshot.unpinAt || alertOnPin != snapshot.alertOnPin
             }
         }
 }
 
-private fun Note.snapshot() = EditorSnapshot(title, description, emoji, pinAt, unpinAt)
+private fun Note.snapshot() = EditorSnapshot(title, description, emoji, pinAt, unpinAt, alertOnPin)
 
 class EditorViewModel(
     private val repository: NoteRepository,
@@ -114,6 +116,7 @@ class EditorViewModel(
                             updatedAt = note.updatedAt,
                             pinAt = note.pinAt,
                             unpinAt = note.unpinAt,
+                            alertOnPin = note.alertOnPin,
                             // Baseline is the stored note, so a carried-over draft's edits read as dirty.
                             savedSnapshot = note.snapshot(),
                         )
@@ -138,6 +141,8 @@ class EditorViewModel(
 
     fun onUnpinAtChange(value: Long?) = _uiState.update { it.copy(unpinAt = value) }
 
+    fun onAlertOnPinChange(value: Boolean) = _uiState.update { it.copy(alertOnPin = value) }
+
     /// Expands or collapses the editor's Advanced section, remembering the choice process-wide (so it
     /// survives reopening the editor, but not a cold start).
     fun setAdvancedExpanded(expanded: Boolean) {
@@ -153,8 +158,9 @@ class EditorViewModel(
         }
         viewModelScope.launch {
             // Pinning an archived note restores it first, and clears any pending auto-pin (now fulfilled);
-            // reflect all three so the Advanced "Pin at" row matches what the pinner persisted.
-            pinner.pin(note)
+            // reflect all three so the Advanced "Pin at" row matches what the pinner persisted. A manual pin
+            // is a genuine transition — alert if the note opted in.
+            pinner.pin(note, alert = true)
             loaded = note.copy(isPinned = true, isArchived = false, pinAt = null)
             // pinAt is now persisted as null, so fold it into the baseline lest it read as a dirty edit.
             _uiState.update {
@@ -229,18 +235,20 @@ class EditorViewModel(
             val emoji = promotion?.emoji ?: state.emoji
             val existing = loaded
             if (existing == null) {
-                val id = repository.create(title, state.description, emoji = emoji)
-                // Mirror the other pin entry points: only pin when notifications can post.
-                if (state.isPinned && canPostNotifications()) repository.getById(id)?.let { pinner.pin(it) }
+                val id = repository.create(title, state.description, emoji = emoji, alertOnPin = state.alertOnPin)
+                // Mirror the other pin entry points: only pin when notifications can post. A pin-on-save is a
+                // genuine transition — alert if the note opted in.
+                if (state.isPinned && canPostNotifications()) repository.getById(id)?.let { pinner.pin(it, alert = true) }
                 pinner.applySchedule(id, state.pinAt, state.unpinAt)
             } else {
                 // Persist only what actually changed: a content edit bumps updatedAt (and refreshes the
-                // live notification); a schedule edit goes through applySchedule, which doesn't bump it; a
-                // save with no real change writes nothing, so the modified time stays put.
+                // live notification); a schedule or alert-flag edit doesn't bump it; a save with no real
+                // change writes nothing, so the modified time stays put.
                 val contentChanged = title != existing.title ||
                     state.description != existing.description ||
                     emoji != existing.emoji
                 val scheduleChanged = state.pinAt != existing.pinAt || state.unpinAt != existing.unpinAt
+                val alertChanged = state.alertOnPin != existing.alertOnPin
                 if (contentChanged) {
                     val updated = existing.copy(title = title, description = state.description, emoji = emoji)
                     repository.update(updated)
@@ -249,6 +257,10 @@ class EditorViewModel(
                 }
                 if (scheduleChanged) {
                     pinner.applySchedule(existing.id, state.pinAt, state.unpinAt)
+                }
+                if (alertChanged) {
+                    repository.setAlertOnPin(existing.id, state.alertOnPin)
+                    loaded = loaded?.copy(alertOnPin = state.alertOnPin)
                 }
             }
             onComplete()

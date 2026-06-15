@@ -104,8 +104,38 @@ class NotificationControllerTest {
         assertFalse(posted.isOngoing)
     }
 
-    private fun pinnedNote(id: Long) =
-        Note(id = id, title = "Title $id", description = "Body $id", isPinned = true, createdAt = 0, updatedAt = 0)
+    @Test
+    fun alertingChannel_exists_atDefaultImportance_andIsNotSilenced() {
+        val channel = manager.getNotificationChannel(AndroidNotificationController.CHANNEL_PINNED_ALERTING)
+        assertEquals(NotificationManager.IMPORTANCE_DEFAULT, channel.importance)
+        // Left at channel defaults — a sound is set and vibration is on (the user can later adjust either).
+        assertTrue(channel.sound != null)
+        assertTrue(channel.shouldVibrate())
+    }
+
+    @Test
+    fun pin_routesOptedInNoteToAlertingChannel_andOthersToSilentChannel() {
+        controller.pin(pinnedNote(11L, alertOnPin = true))
+        controller.pin(pinnedNote(12L, alertOnPin = false))
+
+        waitUntil { manager.activeNotifications.any { it.id == notificationId(11L) } }
+        waitUntil { manager.activeNotifications.any { it.id == notificationId(12L) } }
+        val alerting = manager.activeNotifications.first { it.id == notificationId(11L) }
+        val silent = manager.activeNotifications.first { it.id == notificationId(12L) }
+        assertEquals(AndroidNotificationController.CHANNEL_PINNED_ALERTING, alerting.notification.channelId)
+        assertEquals(AndroidNotificationController.CHANNEL_PINNED, silent.notification.channelId)
+    }
+
+    private fun pinnedNote(id: Long, alertOnPin: Boolean = false) =
+        Note(
+            id = id,
+            title = "Title $id",
+            description = "Body $id",
+            isPinned = true,
+            createdAt = 0,
+            updatedAt = 0,
+            alertOnPin = alertOnPin,
+        )
 
     private fun waitUntil(timeoutMs: Long = 3_000, condition: () -> Boolean) {
         val end = System.currentTimeMillis() + timeoutMs

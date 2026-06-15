@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [Note::class], version = 4, exportSchema = true)
+@Database(entities = [Note::class], version = 5, exportSchema = true)
 abstract class StelaDatabase : RoomDatabase() {
     abstract fun noteDao(): NoteDao
 
@@ -29,6 +29,13 @@ abstract class StelaDatabase : RoomDatabase() {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE notes ADD COLUMN pinAt INTEGER")
                 db.execSQL("ALTER TABLE notes ADD COLUMN unpinAt INTEGER")
+            }
+        }
+
+        // v5 adds the alert-on-pin flag; existing rows default to silent.
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE notes ADD COLUMN alertOnPin INTEGER NOT NULL DEFAULT 0")
             }
         }
     }

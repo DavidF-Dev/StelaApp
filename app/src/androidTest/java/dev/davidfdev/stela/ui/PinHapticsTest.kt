@@ -88,6 +88,7 @@ class PinHapticsTest {
                         onEmojiChange = {},
                         onPinAtChange = {},
                         onUnpinAtChange = {},
+                        onAlertOnPinChange = {},
                         onTogglePin = {},
                         onToggleArchive = {},
                         onShare = {},

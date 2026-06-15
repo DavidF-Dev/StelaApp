@@ -156,6 +156,30 @@ class NoteListViewModelTest {
     }
 
     @Test
+    fun singlePin_alertsOptedInNote_butBatchPinStaysSilent() = runTest(dispatcher) {
+        val repository = NoteRepository(FakeNoteDao()) { 1_000L }
+        val a = repository.create(title = "A", description = "", alertOnPin = true)
+        val b = repository.create(title = "B", description = "", alertOnPin = true)
+        val controller = FakeNotificationController()
+        val viewModel = viewModel(repository, controller)
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        advanceUntilIdle()
+
+        viewModel.pin(repository.getById(a)!!)
+        advanceUntilIdle()
+        assertEquals(listOf(a), controller.alertedPins.map { it.id })
+
+        viewModel.toggleSelection(a)
+        viewModel.toggleSelection(b)
+        advanceUntilIdle()
+        viewModel.batchTogglePin()
+        advanceUntilIdle()
+
+        // The batch pinned b but added no further alert — only the single pin of a alerted.
+        assertEquals(listOf(a), controller.alertedPins.map { it.id })
+    }
+
+    @Test
     fun batchTogglePin_unpinsAll_whenEverySelectedPinned() = runTest(dispatcher) {
         val repository = NoteRepository(FakeNoteDao()) { 1_000L }
         val a = repository.create(title = "A", description = "")

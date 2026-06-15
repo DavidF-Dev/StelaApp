@@ -24,7 +24,8 @@ class PinAlarmReceiver : BroadcastReceiver() {
                 val note = container.noteRepository.getById(noteId) ?: return@launch
                 when (action) {
                     ACTION_PIN -> {
-                        if (!note.isPinned && !note.isArchived) container.notePinner.pin(note)
+                        // A scheduled fire is the unattended pin moment — alert if the note opted in.
+                        if (!note.isPinned && !note.isArchived) container.notePinner.pin(note, alert = true)
                         container.noteRepository.setSchedule(noteId, pinAt = null, unpinAt = note.unpinAt)
                     }
                     ACTION_UNPIN -> {

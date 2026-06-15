@@ -21,7 +21,8 @@ data class NoteBackup(
     val isArchived: Boolean = false,
     val pinAt: Long? = null,
     val unpinAt: Long? = null,
+    val alertOnPin: Boolean = false,
 )
 
-// v3 adds the schedule times; v2 and earlier files lack them and decode as unscheduled.
-const val BACKUP_VERSION = 3
+// v4 adds the alert-on-pin flag; v3 and earlier files lack it and decode as silent.
+const val BACKUP_VERSION = 4

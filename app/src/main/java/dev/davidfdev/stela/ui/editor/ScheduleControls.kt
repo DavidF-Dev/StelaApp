@@ -12,6 +12,7 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SelectableDates
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
@@ -70,6 +71,30 @@ fun ScheduleControls(
             enabled = isPinned || pinAt != null,
             onChange = onUnpinAtChange,
         )
+    }
+}
+
+/// The editor's "Alert when pinned" toggle (an Advanced control): when on, the note's notification plays
+/// the system default sound/vibration once each time it pins — manual or scheduled. Always enabled, since
+/// it applies to any future pin.
+@Composable
+fun PinAlertControl(
+    alertOnPin: Boolean,
+    onAlertOnPinChange: (Boolean) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(stringResource(R.string.alert_on_pin_label), style = MaterialTheme.typography.bodyLarge)
+            Text(
+                text = stringResource(R.string.alert_on_pin_supporting),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Switch(checked = alertOnPin, onCheckedChange = onAlertOnPinChange)
     }
 }
 

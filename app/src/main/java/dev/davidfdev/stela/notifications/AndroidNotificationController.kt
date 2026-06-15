@@ -38,6 +38,13 @@ class AndroidNotificationController(private val context: Context) : Notification
             .setVibrationEnabled(false)
             .setSound(null, null)
             .build()
+        // A separate sounding/vibrating channel for opted-in notes, because a channel's alerting can't be
+        // changed after creation. Vibration must be enabled explicitly; the default sound is on already.
+        val pinnedAlerting = NotificationChannelCompat.Builder(CHANNEL_PINNED_ALERTING, NotificationManagerCompat.IMPORTANCE_DEFAULT)
+            .setName(context.getString(R.string.channel_pinned_alerting_name))
+            .setShowBadge(false)
+            .setVibrationEnabled(true)
+            .build()
         val quickAdd = NotificationChannelCompat.Builder(CHANNEL_QUICK_ADD, NotificationManagerCompat.IMPORTANCE_LOW)
             .setName(context.getString(R.string.channel_quick_add_name))
             .setShowBadge(false)
@@ -51,13 +58,15 @@ class AndroidNotificationController(private val context: Context) : Notification
             .setSound(null, null)
             .build()
         manager.createNotificationChannel(pinned)
+        manager.createNotificationChannel(pinnedAlerting)
         manager.createNotificationChannel(quickAdd)
         manager.createNotificationChannel(serviceStatus)
     }
 
-    override fun pin(note: Note) = post(note)
+    override fun pin(note: Note, alert: Boolean) = post(note, alert)
 
-    override fun refresh(note: Note) = post(note)
+    // A refresh updates an already-posted notification, so it must never re-alert.
+    override fun refresh(note: Note) = post(note, alert = false)
 
     override fun unpin(noteId: Long) = manager.cancel(notificationId(noteId))
 
@@ -70,10 +79,13 @@ class AndroidNotificationController(private val context: Context) : Notification
 
     // The caller gates posting behind POST_NOTIFICATIONS; lint cannot see that.
     @SuppressLint("MissingPermission")
-    private fun post(note: Note) {
+    private fun post(note: Note, alert: Boolean) {
         val visibility =
             if (hideOnLockScreen) NotificationCompat.VISIBILITY_SECRET else NotificationCompat.VISIBILITY_PUBLIC
-        val builder = NotificationCompat.Builder(context, CHANNEL_PINNED)
+        // An opted-in note lives on the alerting channel for its whole lifetime; whether a given post makes
+        // a sound is decided here by the silent flag, since a posted notification can't change channels.
+        val channel = if (note.alertOnPin) CHANNEL_PINNED_ALERTING else CHANNEL_PINNED
+        val builder = NotificationCompat.Builder(context, channel)
             .setSmallIcon(R.drawable.ic_stela_pin)
             .setColor(context.getColor(R.color.brand_indigo))
             .setContentTitle(note.displayTitle)
@@ -81,7 +93,8 @@ class AndroidNotificationController(private val context: Context) : Notification
             // Non-ongoing (swipeable) when the user opted into swipe-to-remove.
             .setOngoing(!swipeToRemove)
             .setOnlyAlertOnce(true)
-            .setSilent(true)
+            // Alert (sound/vibration) only for an opt-in note on a genuine pin; everything else is silent.
+            .setSilent(!(alert && note.alertOnPin))
             .setShowWhen(false)
             .setVisibility(visibility)
             // On swipe: remove per the preference if the user opted in, else self-heal by re-posting.
@@ -184,6 +197,7 @@ class AndroidNotificationController(private val context: Context) : Notification
 
     companion object {
         const val CHANNEL_PINNED = "pinned_notes"
+        const val CHANNEL_PINNED_ALERTING = "pinned_notes_alerting"
         const val CHANNEL_QUICK_ADD = "quick_add"
         const val CHANNEL_SERVICE_STATUS = "service_status"
         // Deep-link base is scheme://host; the scheme alone identifies our intents.

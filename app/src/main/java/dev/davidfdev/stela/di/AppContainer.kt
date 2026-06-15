@@ -32,6 +32,7 @@ class AppContainer(context: Context) {
                 StelaDatabase.MIGRATION_1_2,
                 StelaDatabase.MIGRATION_2_3,
                 StelaDatabase.MIGRATION_3_4,
+                StelaDatabase.MIGRATION_4_5,
             )
             .build()
 

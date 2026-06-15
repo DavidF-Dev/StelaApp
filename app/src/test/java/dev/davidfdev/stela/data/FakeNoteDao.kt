@@ -52,6 +52,10 @@ class FakeNoteDao : NoteDao {
         rows.value = rows.value.map { if (it.id == id) it.copy(unpinAt = null) else it }
     }
 
+    override suspend fun setAlertOnPin(id: Long, alertOnPin: Boolean) {
+        rows.value = rows.value.map { if (it.id == id) it.copy(alertOnPin = alertOnPin) else it }
+    }
+
     override suspend fun countPinned(): Int = rows.value.count { it.isPinned }
 
     override suspend fun delete(note: Note) {

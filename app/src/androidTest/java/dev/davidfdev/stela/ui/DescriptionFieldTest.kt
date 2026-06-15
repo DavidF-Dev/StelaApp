@@ -31,6 +31,7 @@ class DescriptionFieldTest {
                     onEmojiChange = {},
                     onPinAtChange = {},
                     onUnpinAtChange = {},
+                    onAlertOnPinChange = {},
                     onTogglePin = {},
                     onToggleArchive = {},
                     onShare = {},

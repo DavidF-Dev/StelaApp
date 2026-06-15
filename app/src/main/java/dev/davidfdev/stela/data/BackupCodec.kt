@@ -19,7 +19,7 @@ object BackupCodec {
     /// Parses backup JSON into notes. Returns a failure for malformed or non-backup input.
     /// Imported notes get a fresh id (so they never clobber existing rows) and come in
     /// unpinned and unscheduled (so a bulk import never floods the status bar or arms surprise
-    /// alarms); other fields — including the archived flag — are preserved.
+    /// alarms); other fields — including the archived and alert-on-pin flags — are preserved.
     fun decode(text: String): Result<List<Note>> = runCatching {
         // Strip a leading UTF-8 byte-order mark; some editors prepend one and the parser chokes on it.
         json.decodeFromString(NotesBackup.serializer(), text.removePrefix("\uFEFF")).notes.map { it.toNote() }
@@ -36,6 +36,7 @@ private fun Note.toBackup() = NoteBackup(
     isArchived = isArchived,
     pinAt = pinAt,
     unpinAt = unpinAt,
+    alertOnPin = alertOnPin,
 )
 
 private fun NoteBackup.toNote() = Note(
@@ -45,4 +46,5 @@ private fun NoteBackup.toNote() = Note(
     createdAt = createdAt,
     updatedAt = updatedAt,
     isArchived = isArchived,
+    alertOnPin = alertOnPin,
 )

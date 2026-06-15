@@ -459,4 +459,64 @@ class NotePinnerTest {
         assertEquals(9_000L, note.unpinAt)
         assertEquals(5_000L, f.scheduler.scheduledPins[id])
     }
+
+    @Test
+    fun pin_singleOptedInNote_requestsAlert() = runTest {
+        val f = Fixture()
+        val id = f.repository.create(title = "A", description = "", alertOnPin = true)
+
+        f.pinner.pin(f.repository.getById(id)!!, alert = true)
+
+        assertEquals(listOf(id), f.controller.alertedPins.map { it.id })
+    }
+
+    @Test
+    fun pin_noteNotOptedIn_doesNotAlert() = runTest {
+        val f = Fixture()
+        val id = f.repository.create(title = "A", description = "")
+
+        f.pinner.pin(f.repository.getById(id)!!, alert = true)
+
+        assertTrue(f.controller.alertedPins.isEmpty())
+    }
+
+    @Test
+    fun pinAll_batch_neverAlerts_evenWhenOptedIn() = runTest {
+        val f = Fixture()
+        val a = f.repository.create(title = "A", description = "", alertOnPin = true)
+        val b = f.repository.create(title = "B", description = "", alertOnPin = true)
+
+        f.pinner.pinAll(listOf(f.repository.getById(a)!!, f.repository.getById(b)!!), alert = true)
+
+        // The single-note guard suppresses the alert for any multi-note batch.
+        assertTrue(f.controller.alertedPins.isEmpty())
+    }
+
+    @Test
+    fun restore_optedInPinnedNote_doesNotAlert() = runTest {
+        val f = Fixture()
+        val id = f.repository.create(title = "A", description = "", alertOnPin = true)
+        f.pinner.pin(f.repository.getById(id)!!)
+        val deleted = listOf(f.repository.getById(id)!!)
+        f.pinner.deleteAll(deleted)
+        f.controller.alertedPins.clear()
+
+        f.pinner.restore(deleted)
+
+        // Restoring re-posts the notification but is not a fresh pin moment.
+        assertTrue(f.controller.alertedPins.isEmpty())
+    }
+
+    @Test
+    fun reconcileAll_catchUpPin_doesNotAlert() = runTest {
+        val f = Fixture(now = 1_000L)
+        val id = f.repository.create(title = "A", description = "", alertOnPin = true)
+        f.repository.setSchedule(id, pinAt = 500L, unpinAt = null)
+
+        f.pinner.reconcileAll()
+
+        assertTrue(f.repository.getById(id)!!.isPinned)
+        // A late catch-up at boot/app-start must not buzz.
+        assertTrue(f.controller.alertedPins.isEmpty())
+    }
 }

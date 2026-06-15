@@ -18,6 +18,7 @@ data class Note(
     val isArchived: Boolean = false,
     val pinAt: Long? = null,
     val unpinAt: Long? = null,
+    val alertOnPin: Boolean = false,
 ) {
     companion object {
         // Defaulted so a future icon set can be added without a schema migration.

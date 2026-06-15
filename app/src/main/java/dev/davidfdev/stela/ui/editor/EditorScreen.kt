@@ -110,6 +110,7 @@ fun EditorRoute(
         onEmojiChange = viewModel::onEmojiChange,
         onPinAtChange = viewModel::onPinAtChange,
         onUnpinAtChange = viewModel::onUnpinAtChange,
+        onAlertOnPinChange = viewModel::onAlertOnPinChange,
         onTogglePin = { if (state.isPinned) viewModel.unpin() else gate { viewModel.pin() } },
         onToggleArchive = { if (state.isArchived) viewModel.unarchive() else viewModel.archive() },
         onShare = { shareNote(context, displayTitle(state.emoji, state.title), state.description) },
@@ -139,6 +140,7 @@ fun EditorScreen(
     onEmojiChange: (String) -> Unit,
     onPinAtChange: (Long?) -> Unit,
     onUnpinAtChange: (Long?) -> Unit,
+    onAlertOnPinChange: (Boolean) -> Unit,
     onTogglePin: () -> Unit,
     onToggleArchive: () -> Unit,
     onShare: () -> Unit,
@@ -271,6 +273,10 @@ fun EditorScreen(
                         isPinned = state.isPinned,
                         onPinAtChange = onPinAtChange,
                         onUnpinAtChange = onUnpinAtChange,
+                    )
+                    PinAlertControl(
+                        alertOnPin = state.alertOnPin,
+                        onAlertOnPinChange = onAlertOnPinChange,
                     )
                 }
 

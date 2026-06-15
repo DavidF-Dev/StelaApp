@@ -106,7 +106,9 @@ class NoteListViewModel(
     }
 
     fun pin(note: Note) {
-        viewModelScope.launch { pinner.pin(note) }
+        // A single-note pin from the list is a genuine, attended transition — alert if the note opted in
+        // (the batch toggle stays silent).
+        viewModelScope.launch { pinner.pin(note, alert = true) }
     }
 
     fun unpin(note: Note) {

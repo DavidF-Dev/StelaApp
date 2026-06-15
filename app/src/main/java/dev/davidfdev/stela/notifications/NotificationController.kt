@@ -19,7 +19,10 @@ interface NotificationController {
     /// note. Set from the user's preference; applied to notifications built afterward.
     var removalPreference: RemovalPreference
 
-    fun pin(note: Note)
+    /// Posts a note's ongoing notification. [alert] requests a one-time sound/vibration on this post,
+    /// honoured only when the note opted in ([Note.alertOnPin]); reposts and refreshes pass false so a
+    /// healed or edited notification never re-alerts.
+    fun pin(note: Note, alert: Boolean = false)
     fun unpin(noteId: Long)
     fun refresh(note: Note)
 

@@ -81,6 +81,26 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun migrate4To5_addsSilentAlertFlag_andPreservesRows() {
+        helper.createDatabase(DB_NAME, 4).apply {
+            execSQL(
+                "INSERT INTO notes (title, description, iconId, isPinned, createdAt, updatedAt, emoji, isArchived) " +
+                    "VALUES ('Old note', 'body', 'default', 1, 1000, 2000, '📌', 0)",
+            )
+            close()
+        }
+
+        val db = helper.runMigrationsAndValidate(DB_NAME, 5, true, StelaDatabase.MIGRATION_4_5)
+
+        db.query("SELECT title, alertOnPin FROM notes").use { cursor ->
+            assertEquals(1, cursor.count)
+            cursor.moveToFirst()
+            assertEquals("Old note", cursor.getString(0))
+            assertEquals(0, cursor.getInt(1))
+        }
+    }
+
     private companion object {
         const val DB_NAME = "migration-test.db"
     }

@@ -39,6 +39,11 @@ interface NoteDao {
     @Query("UPDATE notes SET unpinAt = NULL WHERE id = :id")
     suspend fun clearUnpinAt(id: Long)
 
+    /// Flips only the alert-on-pin flag. Like the pin/archive flags, this is not a content edit,
+    /// so it leaves updatedAt untouched and the list order unchanged.
+    @Query("UPDATE notes SET alertOnPin = :alertOnPin WHERE id = :id")
+    suspend fun setAlertOnPin(id: Long, alertOnPin: Boolean)
+
     @Query("SELECT COUNT(*) FROM notes WHERE isPinned = 1")
     suspend fun countPinned(): Int
 
