@@ -1,6 +1,6 @@
 # Relative-time refresh on the list — fix
 
-> Status: **Implemented** · v1.6.0 (unreleased) · 2026-06-14. A device-testing fix, not a queued feature.
+> Status: **Implemented** · v1.6.0 · 2026-06-14. A device-testing fix, not a queued feature.
 
 ## Problem
 

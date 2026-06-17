@@ -421,7 +421,7 @@ swipe-to-remove), an **action-row overflow** tidy-up, and long-press **tooltips*
 [2026-06-12-launcher-shortcut-qs-tile.md](2026-06-12-launcher-shortcut-qs-tile.md)) and matching widget ＋
 icon. See [CHANGELOG.md](../CHANGELOG.md).
 
-**v1.6.0 (unreleased):** **Share to Stela** — the app is now a `text/plain` share target, so sharing
+**v1.6.0:** **Share to Stela** — the app is now a `text/plain` share target, so sharing
 text from another app opens a new note prefilled with it (subject → title, body → description; pins on
 save). It reuses the existing process-scoped `NoteDraft` hand-off into the editor, so no view-model or
 nav-graph changes were needed. Offline, no new permission. See

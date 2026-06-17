@@ -1,6 +1,6 @@
 # Haptics on pin toggle — implementation plan
 
-> Status: **Implemented** · v1.6.0 (unreleased) · 2026-06-14. Built as the plan below. The last item in
+> Status: **Implemented** · v1.6.0 · 2026-06-14. Built as the plan below. The last item in
 > the [post-v1.5 improvements queue](2026-06-14-post-v1.5-improvements.md). As-built notes at the end.
 
 ## Goal
