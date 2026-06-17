@@ -3,7 +3,7 @@
 All notable changes to Stela are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
-## [1.6.0] - unreleased
+## [1.6.0] - 2026/06/17
 
 ### Added
 - Share to Stela: Stela now appears in the system share sheet when you share plain text from another app
