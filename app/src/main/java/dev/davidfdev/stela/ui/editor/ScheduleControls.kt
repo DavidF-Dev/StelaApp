@@ -150,7 +150,7 @@ private fun ScheduleRow(
 /// allowed and simply takes effect immediately on save (a past time fires at once).
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DateTimePickerDialog(
+internal fun DateTimePickerDialog(
     initialMillis: Long,
     earliestMillis: Long,
     onConfirm: (Long) -> Unit,

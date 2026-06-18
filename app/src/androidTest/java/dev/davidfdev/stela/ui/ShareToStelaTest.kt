@@ -56,6 +56,31 @@ class ShareToStelaTest {
         }
     }
 
+    @Test
+    fun sharingTextWithoutSubject_usesTextAsTitle() {
+        val stamp = System.currentTimeMillis()
+        val text = "Short title $stamp"
+        val intent = Intent(context, MainActivity::class.java).apply {
+            action = Intent.ACTION_SEND
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, text)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+
+        ActivityScenario.launch<MainActivity>(intent).use {
+            composeRule.waitUntil(timeoutMillis = 5_000) {
+                composeRule.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()
+            }
+            composeRule.onNodeWithText(text).assertIsDisplayed()
+
+            composeRule.onNodeWithContentDescription("Save").performClick()
+            composeRule.waitUntil(timeoutMillis = 5_000) {
+                composeRule.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()
+            }
+            composeRule.onNodeWithText(text).assertIsDisplayed()
+        }
+    }
+
     companion object {
         // Granted before launch so save-time pinning is permitted and no permission dialog steals focus.
         @BeforeClass

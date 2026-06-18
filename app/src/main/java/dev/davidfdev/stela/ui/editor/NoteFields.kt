@@ -318,6 +318,7 @@ private fun NoteOverflowMenu(
 ) {
     var expanded by remember { mutableStateOf(false) }
     var showSnooze by remember { mutableStateOf(false) }
+    var showSnoozeUntil by remember { mutableStateOf(false) }
     // A non-focusable popup no longer captures back, so restore back-to-dismiss while the menu is open.
     BackHandler(enabled = expanded) { expanded = false }
     // Box so the menu anchors to the icon button's bounds and drops down aligned to it.
@@ -352,11 +353,16 @@ private fun NoteOverflowMenu(
                     )
                 }
                 DropdownMenuItem(
-                    text = { Text(stringResource(R.string.action_snooze)) },
+                    text = { Text(stringResource(R.string.action_snooze_for)) },
                     leadingIcon = { Icon(Icons.Filled.Snooze, contentDescription = null) },
-                    // Snooze hides a note that's in the tray, so it only applies to a pinned note.
                     enabled = state.isPinned,
                     onClick = { expanded = false; showSnooze = true },
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.action_snooze_until)) },
+                    leadingIcon = { Icon(Icons.Filled.Snooze, contentDescription = null) },
+                    enabled = state.isPinned,
+                    onClick = { expanded = false; showSnoozeUntil = true },
                 )
                 DropdownMenuItem(
                     text = {
@@ -378,6 +384,16 @@ private fun NoteOverflowMenu(
         SnoozeChooser(
             onPick = { until -> showSnooze = false; onSnooze(until) },
             onDismiss = { showSnooze = false },
+        )
+    }
+
+    if (showSnoozeUntil) {
+        val now = System.currentTimeMillis()
+        DateTimePickerDialog(
+            initialMillis = now,
+            earliestMillis = now,
+            onConfirm = { until -> showSnoozeUntil = false; onSnooze(until) },
+            onDismiss = { showSnoozeUntil = false },
         )
     }
 }

@@ -22,8 +22,10 @@ intent needs no permission and no `INTERNET`.
   purpose is to float over *other* apps — is the wrong surface. This matches the existing rule that a
   trigger routes in-app when Stela is on screen. The editor opens on top of the list.
 - **Content mapping:** `EXTRA_SUBJECT` → **title**, `EXTRA_TEXT` → **description**. When there is no
-  subject (the common plain-text case), the **title is left empty** — the editor already auto-focuses
-  an empty title, so the user lands ready to type/confirm a title with the body already filled.
+  subject (the common plain-text case), the shared text is split into title and description via
+  `splitSharedText()`: a short first line (≤ 80 chars) becomes the title with the remaining lines as
+  the description; a single short line becomes the title with an empty description; long text gets a
+  truncated title (first 50 chars + "…") with the full text preserved in the description.
 - **New notes default to pinned**, consistent with every other new-note entry point
   (`EditorViewModel` seeds `isPinned = true` for new notes). The user can flip the pin toggle before
   saving; pinning on save is still gated by `canPostNotifications()`.
@@ -143,9 +145,7 @@ fun isSendTextIntent(action: String?, type: String?): Boolean =
 
 ## Open questions
 
-- **Title-from-first-line?** When there's no subject, should the first line of the text become the
-  title and the rest the description, instead of leaving the title empty? Locked to *empty title* for
-  v1 (simpler, predictable; editor focuses it). Revisit if it feels clunky on-device.
+- ~~**Title-from-first-line?**~~ Resolved in v1.7.0 — see "Title splitting" below.
 - **Share-target label / icon** in the sheet: defaults to the app label + launcher icon. A dedicated
   `android:label` on the filter is optional polish, not needed for v1.
 
@@ -165,3 +165,21 @@ Built exactly as planned, with these specifics worth recording:
   and the manifest filter. No `EditorViewModel` / nav-graph changes, as planned.
 - **Tests:** `ShareEntryTest` (JVM — mapping + recognition) and `ShareToStelaTest` (instrumented —
   share intent → prefilled editor → save → note in list).
+
+## Title splitting (2026-06-18, v1.7.0)
+
+When no `EXTRA_SUBJECT` is present (the common case), `sharedNoteDraft` now splits the shared text
+into title and description via `splitSharedText()` instead of leaving the title empty:
+
+- **Short first line** (≤ 80 chars) with more lines after it → first line becomes the title, the
+  rest becomes the description.
+- **Single short line** (≤ 80 chars, no newline) → all title, empty description.
+- **Long text** (first line > 80 chars, or single line > 80 chars) → first 50 chars + "…" as
+  the title, full text preserved as the description.
+
+When `EXTRA_SUBJECT` is present, the original mapping is unchanged (subject → title, text →
+description).
+
+`splitSharedText` is `internal` and pure (takes pre-trimmed text, returns a `Pair<String, String>`),
+covered by 9 unit tests in `ShareEntryTest`. An instrumented test for the text-only share path was
+added to `ShareToStelaTest`.

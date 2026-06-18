@@ -10,7 +10,8 @@
     <string name="action_unpin">Unpin</string>
     <string name="action_archive">Archive</string>
     <string name="action_restore">Restore</string>
-    <string name="action_snooze">Snooze</string>
+    <string name="action_snooze_for">Snooze for…</string>
+    <string name="action_snooze_until">Snooze until…</string>
     <string name="action_delete">Delete</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_share">Share</string>

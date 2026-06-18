@@ -5,7 +5,17 @@ All notable changes to Stela are documented here. This project adheres to
 
 ## [1.7.0] - unreleased
 
-Empty.
+### Added
+- Snooze until: pinned notes can now be snoozed until a specific date and time (via a "Snooze until..."
+  option in the overflow menu), in addition to the existing relative duration picker (now labelled
+  "Snooze for...").
+
+### Changed
+- Share to Stela now pre-fills the title instead of leaving it empty when the sharing app doesn't
+  provide a subject. A short, single-line share becomes the title directly; multi-line text uses
+  the first line as the title (if it's 80 characters or fewer) with the rest as the description;
+  very long text gets a truncated title with the full text preserved in the description. Shares
+  that include a subject (such as from email) keep the existing behaviour.
 
 ## [1.6.0] - 2026/06/17
 

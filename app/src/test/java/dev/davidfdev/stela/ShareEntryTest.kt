@@ -49,11 +49,19 @@ class ShareEntryTest {
     }
 
     @Test
-    fun draft_missingSubject_leavesTitleEmpty() {
+    fun draft_missingSubject_shortText_goesToTitle() {
         val draft = sharedNoteDraft(subject = null, text = "just a body")
 
-        assertEquals("", draft.title)
-        assertEquals("just a body", draft.description)
+        assertEquals("just a body", draft.title)
+        assertEquals("", draft.description)
+    }
+
+    @Test
+    fun draft_missingSubject_multiLine_splitsAtFirstLine() {
+        val draft = sharedNoteDraft(subject = null, text = "First line\nSecond line")
+
+        assertEquals("First line", draft.title)
+        assertEquals("Second line", draft.description)
     }
 
     @Test
@@ -63,5 +71,74 @@ class ShareEntryTest {
         assertEquals("", draft.title)
         assertEquals("", draft.description)
         assertTrue(draft.pinOnSave)
+    }
+
+    @Test
+    fun split_shortSingleLine_allTitle() {
+        val (title, description) = splitSharedText("Buy milk")
+        assertEquals("Buy milk", title)
+        assertEquals("", description)
+    }
+
+    @Test
+    fun split_multiLine_shortFirstLine_splitsAtNewline() {
+        val (title, description) = splitSharedText("Shopping list\nMilk\nEggs\nBread")
+        assertEquals("Shopping list", title)
+        assertEquals("Milk\nEggs\nBread", description)
+    }
+
+    @Test
+    fun split_longSingleLine_truncatesTitle_fullDescription() {
+        val long = "A".repeat(100)
+        val (title, description) = splitSharedText(long)
+        assertEquals("A".repeat(50) + "…", title)
+        assertEquals(long, description)
+    }
+
+    @Test
+    fun split_multiLine_longFirstLine_truncatesTitle_fullDescription() {
+        val longFirst = "B".repeat(100)
+        val rest = "Second line"
+        val full = "$longFirst\n$rest"
+        val (title, description) = splitSharedText(full)
+        assertEquals("B".repeat(50) + "…", title)
+        assertEquals(full, description)
+    }
+
+    @Test
+    fun split_firstLineExactly80_usesAsTitle() {
+        val line = "C".repeat(80)
+        val (title, description) = splitSharedText("$line\nMore")
+        assertEquals(line, title)
+        assertEquals("More", description)
+    }
+
+    @Test
+    fun split_firstLine81_truncates() {
+        val line = "D".repeat(81)
+        val (title, description) = splitSharedText("$line\nMore")
+        assertEquals("D".repeat(50) + "…", title)
+        assertEquals("$line\nMore", description)
+    }
+
+    @Test
+    fun split_trimsFirstLineTrailingSpaces() {
+        val (title, description) = splitSharedText("Title with spaces   \nBody")
+        assertEquals("Title with spaces", title)
+        assertEquals("Body", description)
+    }
+
+    @Test
+    fun split_trimsDescriptionLeadingNewlines() {
+        val (title, description) = splitSharedText("Title\n\n\nBody after blanks")
+        assertEquals("Title", title)
+        assertEquals("Body after blanks", description)
+    }
+
+    @Test
+    fun split_truncation_trimsTrailingSpaceBeforeEllipsis() {
+        val text = "word ".repeat(20)
+        val (title, _) = splitSharedText(text)
+        assertEquals("word word word word word word word word word word…", title)
     }
 }

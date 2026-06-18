@@ -487,10 +487,10 @@ implement); all keep the no-`INTERNET` invariant.
    - **Slice 2 *(done — see [2026-06-12-scheduled-pins.md](2026-06-12-scheduled-pins.md))*:** **pin-at** and
      **unpin-at** controls (schema v4; `PinScheduler` as the sole `AlarmManager` toucher; `PinSchedule`
      reconcile; backup v3 with schedules dropped on import).
-   - **Slice 3 — Snooze *(done — see [2026-06-12-snooze.md](2026-06-12-snooze.md))*:** an overflow **Snooze**
-     action (presets + custom duration) that hides a pinned note and re-pins it later by reusing `pinAt`;
-     pinning now clears `pinAt` and unpinning clears `unpinAt`. (Recurring pins and a notification Snooze
-     action remain deferred.)
+   - **Slice 3 — Snooze *(done — see [2026-06-12-snooze.md](2026-06-12-snooze.md))*:** two overflow actions —
+     **"Snooze for..."** (presets + custom duration) and **"Snooze until..."** (absolute date/time picker) —
+     that hide a pinned note and re-pin it later by reusing `pinAt`; pinning now clears `pinAt` and
+     unpinning clears `unpinAt`. (Recurring pins and a notification Snooze action remain deferred.)
    - **Archive interaction *(done — see [2026-06-12-archive-schedule-interaction.md](2026-06-12-archive-schedule-interaction.md))*:**
      archiving keeps a note's schedule **dormant** (alarms armed but no-op while archived) rather than
      clearing it, and restoring reconciles it (catch-up).
