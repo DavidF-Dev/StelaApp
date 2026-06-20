@@ -3,7 +3,9 @@
 All notable changes to Stela are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
-## [1.7.0] - unreleased
+## [Unreleased]
+
+## [1.7.0] - 2026-06-21
 
 ### Added
 - Snooze until: pinned notes can now be snoozed until a specific date and time (via a "Snooze until..."
@@ -17,7 +19,7 @@ All notable changes to Stela are documented here. This project adheres to
   very long text gets a truncated title with the full text preserved in the description. Shares
   that include a subject (such as from email) keep the existing behaviour.
 
-## [1.6.0] - 2026/06/17
+## [1.6.0] - 2026-06-17
 
 ### Added
 - Share to Stela: Stela now appears in the system share sheet when you share plain text from another app
@@ -54,7 +56,7 @@ All notable changes to Stela are documented here. This project adheres to
   elapsing while you have it open): the Pin toggle and schedule rows update live, and saving an edit no
   longer reverts that change. If the note is deleted from elsewhere while open, the editor closes itself.
 
-## [1.5.0] - 2026/06/14
+## [1.5.0] - 2026-06-14
 
 ### Added
 - Scheduled pins: a new **Advanced** section in the note editor lets you set a note to **pin at** a chosen
@@ -100,7 +102,7 @@ All notable changes to Stela are documented here. This project adheres to
 - Expanding the quick-note popup into the full editor for an existing note no longer sometimes opens it with
   the description focused and the keyboard popping up — the editor now opens quietly, as it does elsewhere.
 
-## [1.4.0] - 2026/06/12
+## [1.4.0] - 2026-06-12
 
 ### Added
 - Quick-note popup: a lightweight editor that floats over whatever is on screen for jotting or quickly
@@ -137,7 +139,7 @@ All notable changes to Stela are documented here. This project adheres to
 - The home-screen widget's add button now uses the same ＋ icon as the new "New quick note" launcher
   shortcut, instead of a plain text character.
 
-## [1.3.0] - 2026/06/11
+## [1.3.0] - 2026-06-11
 
 ### Added
 - Archive notes: a reversible way to set a note aside without deleting it. Archive from the
@@ -164,7 +166,7 @@ All notable changes to Stela are documented here. This project adheres to
 - On a full note list, the last note's pin button is no longer hidden behind the New-note button —
   there's now room to scroll it into view.
 
-## [1.2.0] - 2026/06/11
+## [1.2.0] - 2026-06-11
 
 ### Added
 - Undo delete: after deleting notes from the list, a snackbar offers to undo and restore
@@ -190,7 +192,7 @@ All notable changes to Stela are documented here. This project adheres to
   notifications became dismissible), matching pinned notes. To remove it, turn off quick-add
   in Settings.
 
-## [1.1.0] - 2026/06/10
+## [1.1.0] - 2026-06-10
 
 ### Added
 - Per-note emoji, shown before the title in the note list and the notification; chosen with
@@ -210,7 +212,7 @@ All notable changes to Stela are documented here. This project adheres to
 - Opening the editor from a notification when the app was closed now returns you to your
   home screen on save or back, instead of dropping you on a note list you never opened.
 
-## [1.0.0] — 2026/06/09
+## [1.0.0] — 2026-06-09
 
 First public release.
 
