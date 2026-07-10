@@ -56,6 +56,8 @@ import dev.davidfdev.stela.settings.Settings
 import dev.davidfdev.stela.settings.ThemeMode
 import dev.davidfdev.stela.ui.tile.AddTileResult
 import dev.davidfdev.stela.ui.tile.requestAddQuickNoteTile
+import dev.davidfdev.stela.StelaApp
+import dev.davidfdev.stela.pin.ServiceLifecycle
 import dev.davidfdev.stela.ui.openAppNotificationSettings
 import dev.davidfdev.stela.ui.openServiceStatusChannelSettings
 import dev.davidfdev.stela.ui.rememberNotificationPermissionGate
@@ -128,6 +130,15 @@ fun SettingsRoute(
     var batteryExempt by remember { mutableStateOf(DeviceResilience.isIgnoringBatteryOptimizations(context)) }
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         batteryExempt = DeviceResilience.isIgnoringBatteryOptimizations(context)
+        if (!state.quickAddEnabled) {
+            scope.launch {
+                val container = (context.applicationContext as StelaApp).container
+                val pinnedCount = container.noteRepository.countPinned()
+                if (ServiceLifecycle.shouldRun(pinnedCount, false)) {
+                    container.notificationController.reassertServiceNotification(false)
+                }
+            }
+        }
     }
     val autostartIntent = remember { DeviceResilience.autostartIntent() }
     // Shown for any known aggressive-OEM target; the dialog handles a stale component.

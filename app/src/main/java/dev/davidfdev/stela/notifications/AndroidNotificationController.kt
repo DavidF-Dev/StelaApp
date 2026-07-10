@@ -77,6 +77,7 @@ class AndroidNotificationController(private val context: Context) : Notification
         manager.notify(QUICK_ADD_NOTIFICATION_ID, notification)
     }
 
+
     // The caller gates posting behind POST_NOTIFICATIONS; lint cannot see that.
     @SuppressLint("MissingPermission")
     private fun post(note: Note, alert: Boolean) {
