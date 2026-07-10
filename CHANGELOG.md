@@ -5,6 +5,11 @@ All notable changes to Stela are documented here. This project adheres to
 
 ## [Unreleased]
 
+### Added
+- Settings now shows a hint (below the Quick-add toggle, when it is off) explaining how to hide
+  the persistent "Stela is running" notification. Tapping the hint opens the system notification
+  channel settings directly.
+
 ## [1.7.0] - 2026-06-21
 
 ### Added

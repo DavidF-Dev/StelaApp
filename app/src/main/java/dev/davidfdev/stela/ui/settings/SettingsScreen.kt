@@ -57,6 +57,7 @@ import dev.davidfdev.stela.settings.ThemeMode
 import dev.davidfdev.stela.ui.tile.AddTileResult
 import dev.davidfdev.stela.ui.tile.requestAddQuickNoteTile
 import dev.davidfdev.stela.ui.openAppNotificationSettings
+import dev.davidfdev.stela.ui.openServiceStatusChannelSettings
 import dev.davidfdev.stela.ui.rememberNotificationPermissionGate
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -243,6 +244,17 @@ fun SettingsScreen(
                     Switch(checked = state.quickAddEnabled, onCheckedChange = onQuickAddEnabledChange)
                 },
             )
+            if (!state.quickAddEnabled) {
+                val hideContext = LocalContext.current
+                Text(
+                    text = stringResource(R.string.settings_hide_service_notification),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .clickable { openServiceStatusChannelSettings(hideContext) }
+                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                )
+            }
             // requestAddTileService — the in-app add-tile prompt — exists only from API 33.
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 ListItem(

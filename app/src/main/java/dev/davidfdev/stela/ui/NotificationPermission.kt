@@ -66,3 +66,12 @@ fun openAppNotificationSettings(context: Context) {
         .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
     context.startActivity(intent)
 }
+
+/// Opens the system settings page for the service-status notification channel,
+/// so the user can disable the persistent "running" notification directly.
+fun openServiceStatusChannelSettings(context: Context) {
+    val intent = Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
+        .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+        .putExtra(Settings.EXTRA_CHANNEL_ID, AndroidNotificationController.CHANNEL_SERVICE_STATUS)
+    context.startActivity(intent)
+}
