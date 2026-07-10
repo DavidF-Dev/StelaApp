@@ -246,13 +246,10 @@ fun SettingsScreen(
             )
             if (!state.quickAddEnabled) {
                 val hideContext = LocalContext.current
-                Text(
-                    text = stringResource(R.string.settings_hide_service_notification),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier
-                        .clickable { openServiceStatusChannelSettings(hideContext) }
-                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.settings_hide_service_title)) },
+                    supportingContent = { Text(stringResource(R.string.settings_hide_service_summary)) },
+                    modifier = Modifier.clickable { openServiceStatusChannelSettings(hideContext) },
                 )
             }
             // requestAddTileService — the in-app add-tile prompt — exists only from API 33.
