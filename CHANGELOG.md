@@ -3,7 +3,7 @@
 All notable changes to Stela are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.8.1] - 2026-09-18
 
 ### Fixed
 - The scheduled-note label in the list no longer reads "Pins In 2 hours" with a stray capital; it now
