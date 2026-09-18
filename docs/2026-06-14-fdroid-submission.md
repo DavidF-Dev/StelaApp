@@ -1,11 +1,21 @@
 # F-Droid submission — plan
 
-> Status: **Planned** · 2026-06-14 · gated on the repo going **public**. Not implemented.
+> Status: **Prepared, not submitted** · updated 2026-09-18 · deliberately held until the Play
+> `specialUse` declaration is accepted.
 >
-> Context: Stela is currently distributed as a signed APK on GitHub Releases. This plan adds F-Droid
-> as a distribution channel. Eligibility was assessed first (see "Eligibility" below) and is clean; the
-> work is packaging and process, not app changes. The source repo is **still private** and will be made
-> public later, after further self-testing — every outward step here is blocked on that.
+> Context: Stela is distributed as a signed APK on GitHub Releases. This plan adds F-Droid as a
+> distribution channel. Eligibility was assessed first (see "Eligibility" below) and is clean; the work is
+> packaging and process, not app changes.
+>
+> **As of 2026-09-18:** the repo is public (Phase 0 done), the fastlane metadata tree and screenshots
+> exist (Phase 1 done bar the licence-id decision), and the recipe is drafted at
+> [`fdroid/dev.davidfdev.stela.yml`](../fdroid/dev.davidfdev.stela.yml). What remains is opening the MR.
+>
+> **Why it is being held:** the Play foreground-service review is the one outstanding thing that could
+> still change the app's architecture. If `specialUse` is refused and the service is restructured,
+> F-Droid should build the settled version rather than publish one that is immediately superseded — and
+> F-Droid users update slowly, so a short-lived version lingers there. Submit once that declaration is
+> accepted.
 
 ## Decisions locked
 
@@ -28,29 +38,24 @@
 - **Tag-based releases:** `vX.Y.Z` tags with an auto-derived `versionCode` — a natural fit for F-Droid's
   tag-driven update checking.
 
-## Phase 0 — Gate: make the repo public
+## Phase 0 — Gate: make the repo public — **done**
 
-Everything below is blocked on this. The pre-public secret scan is already done and clean (no keystore,
-`keystore.properties`, or credentials in history; author identity is a project email). When testing is
-finished, flipping visibility is the only action. Re-run a quick secrets check first if significant new
-history has accumulated.
+The repo is public. The pre-public secret scan was clean (no keystore, `keystore.properties`, or
+credentials in history; author identity is a project email).
 
 ## Phase 1 — Repo-side prep (most can be done *while still private*)
 
-1. **Declare GPL-3.0-or-later.** **Done in the LICENSE file** — a copyright + "version 3 or (at your option)
-   any later version" grant notice now precedes the GPLv3 text, making the `GPL-3.0-or-later` metadata
-   accurate. Remaining (optional polish): mirror the wording in the README **License** section and, if
-   desired, add the standard short header to source files.
-2. **Add the fastlane metadata tree** under `fastlane/metadata/android/en-US/`:
-   - `title.txt` — `Stela`
-   - `short_description.txt` — one line, **≤80 chars** (e.g. "Pin your notes as persistent notifications.
-     Fully offline.")
-   - `full_description.txt` — longer listing copy (≤4000 chars); adapt the README intro + curated features.
-   - `changelogs/<versionCode>.txt` — per-version notes, filename is the **versionCode** (e.g. `10500.txt`
-     for 1.5.0). Lift from `CHANGELOG.md`.
-   - `images/icon.png` (512×512), optional `images/featureGraphic.png` (1024×500), and
-     `images/phoneScreenshots/1.png …` — **screenshots need a device/emulator capture pass** (small
-     logistics task; Pixel_8 AVD is available).
+1. **Declare GPL-3.0-or-later** — **done**, twice over. The copyright + "version 3 or (at your option) any
+   later version" grant notice precedes the GPLv3 text in `LICENSE`, which is what makes the *or-later*
+   metadata accurate rather than merely asserted. Note that this notice was once removed in passing by
+   commit `6af78d7` ("Update LICENSE", 11 Jul 2026) and restored on 2026-09-18: the file reads as a
+   complete licence either way, so its absence is easy to miss. If the recipe's `License:` field and this
+   notice ever disagree, the notice is the thing that decides.
+2. **The fastlane metadata tree** under `fastlane/metadata/android/en-US/` — **done**, and shared with the
+   Play listing rather than written twice: `title.txt`, `short_description.txt`, `full_description.txt`,
+   `changelogs/<versionCode>.txt` (the short user-facing note, which `scripts/release-aab.ps1` also reads),
+   and five `images/phoneScreenshots/`. Still missing and optional here: `images/icon.png` (512×512) and
+   `images/featureGraphic.png` (1024×500) — Play wants the latter regardless.
 3. **Public-repo polish (optional but recommended):** a short `CONTRIBUTING` note and confirm the GitHub
    issue tracker is enabled (the metadata points users there).
 
@@ -63,39 +68,20 @@ builds — see end — would change this.)
 ## Phase 3 — Submit to `fdroiddata`
 
 F-Droid is not push-based. Open a Merge Request against `gitlab.com/fdroid/fdroiddata` adding
-`metadata/dev.davidfdev.stela.yml`. Skeleton recipe (fill `commit`/version to the submission tag):
+`metadata/dev.davidfdev.stela.yml`.
 
-```yaml
-Categories:
-  - Writing
-License: GPL-3.0-or-later
-AuthorName: David F Dev
-AuthorEmail: contact@davidfdev.com
-SourceCode: https://github.com/DavidF-Dev/StelaApp
-IssueTracker: https://github.com/DavidF-Dev/StelaApp/issues
-Changelog: https://github.com/DavidF-Dev/StelaApp/blob/HEAD/CHANGELOG.md
-# No WebSite/AuthorWebSite: the repo is already declared via SourceCode. Add a personal
-# homepage here only if one exists (it should not duplicate the SourceCode link).
+**The recipe is kept in this repo at [`fdroid/dev.davidfdev.stela.yml`](../fdroid/dev.davidfdev.stela.yml)**,
+ready to copy into that MR. It is not read by anything here — the app's own build ignores it — so it exists
+purely so the submission is a copy rather than a composition. It deliberately carries no `Summary` or
+`Description`: F-Droid takes those from `fastlane/metadata/android/en-US/`, which is the same tree the Play
+listing is written from, so there is one source for both. No `WebSite`/`AuthorWebSite` either, since
+`SourceCode` already declares the repo.
 
-RepoType: git
-Repo: https://github.com/DavidF-Dev/StelaApp.git
-
-Builds:
-  - versionName: 1.5.0
-    versionCode: 10500
-    commit: v1.5.0
-    subdir: app
-    gradle:
-      - yes
-
-AutoUpdateMode: Version v%v
-UpdateCheckMode: Tags
-CurrentVersion: 1.5.0
-CurrentVersionCode: 10500
-```
-
-- **Submit at a stable tag, not 1.6.0-in-progress.** F-Droid builds the `commit:` tag. Use whatever stable
-  tag exists at submission time (v1.5.0 today, or a later release) and set the matching `versionCode`.
+- **Refresh the version fields at submission time.** The recipe pins `commit`, `versionName`,
+  `versionCode`, `CurrentVersion` and `CurrentVersionCode` to a stable tag — v1.8.0 as drafted. F-Droid
+  builds whatever `commit:` names, so point all five at whatever stable tag exists when the MR goes up.
+- **Confirm the licence id still matches `LICENSE`** (see Phase 1), since that is the field most likely to
+  have drifted between drafting and submitting.
 - F-Droid CI (`fdroid lint` / a test build) plus a maintainer review run on the MR.
 
 ## Phase 4 — Review iteration & steady state

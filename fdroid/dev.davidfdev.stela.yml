@@ -1,0 +1,24 @@
+Categories:
+  - Writing
+License: GPL-3.0-or-later
+AuthorName: David F Dev
+AuthorEmail: contact@davidfdev.com
+SourceCode: https://github.com/DavidF-Dev/StelaApp
+IssueTracker: https://github.com/DavidF-Dev/StelaApp/issues
+Changelog: https://github.com/DavidF-Dev/StelaApp/blob/HEAD/CHANGELOG.md
+
+RepoType: git
+Repo: https://github.com/DavidF-Dev/StelaApp.git
+
+Builds:
+  - versionName: 1.8.0
+    versionCode: 10800
+    commit: v1.8.0
+    subdir: app
+    gradle:
+      - yes
+
+AutoUpdateMode: Version v%v
+UpdateCheckMode: Tags
+CurrentVersion: 1.8.0
+CurrentVersionCode: 10800
