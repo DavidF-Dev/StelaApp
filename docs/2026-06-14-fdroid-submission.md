@@ -54,8 +54,9 @@ credentials in history; author identity is a project email).
 2. **The fastlane metadata tree** under `fastlane/metadata/android/en-US/` — **done**, and shared with the
    Play listing rather than written twice: `title.txt`, `short_description.txt`, `full_description.txt`,
    `changelogs/<versionCode>.txt` (the short user-facing note, which `scripts/release-aab.ps1` also reads),
-   and five `images/phoneScreenshots/`. Still missing and optional here: `images/icon.png` (512×512) and
-   `images/featureGraphic.png` (1024×500) — Play wants the latter regardless.
+   five `images/phoneScreenshots/`, and `images/icon.png` (512×512, rendered from the adaptive launcher
+   icon — F-Droid would otherwise extract one from the APK, but Play requires the file). Still missing:
+   `images/featureGraphic.png` (1024×500), which is optional here and required by Play.
 3. **Public-repo polish** — **settled**. The GitHub issue tracker is enabled, which the recipe's
    `IssueTracker` field depends on. A `CONTRIBUTING` note was considered and deliberately skipped: F-Droid
    recommends but does not require one, and the README already states the refusals that matter to a
