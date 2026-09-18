@@ -17,9 +17,15 @@
     -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove" />
 
+    <!--
+      allowBackup is off so Android's automatic backup never uploads the notes database to the user's
+      cloud storage. From Android 12 the attribute governs cloud backups alone, so a direct
+      phone-to-phone transfer can still carry notes across; excluding that as well would take a
+      dataExtractionRules resource.
+    -->
     <application
         android:name=".StelaApp"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:enableOnBackInvokedCallback="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"

@@ -29,6 +29,9 @@ All notable changes to Stela are documented here. This project adheres to
 - Stela no longer asks for the "view network connections" permission. The app never used it — it came in
   with a library behind the home-screen widget — so it has been stripped from the build. As ever, Stela
   has no internet permission and does no networking whatsoever.
+- Stela no longer takes part in Android's automatic backup, so your notes are never uploaded to cloud
+  storage — they stay on the device, which is what the app has always promised. To move notes to a new
+  phone, use Settings → Export notes to save them to a file, then Import notes on the new device.
 
 ## [1.7.0] - 2026-06-21
 
