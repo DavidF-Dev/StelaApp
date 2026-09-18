@@ -48,6 +48,7 @@ class PinFromListTest {
             InstrumentationRegistry.getInstrumentation().targetContext.packageName,
             Manifest.permission.POST_NOTIFICATIONS,
         )
+        composeRule.awaitNoteList()
     }
 
     @After
@@ -64,9 +65,7 @@ class PinFromListTest {
         // New notes default to pinned; create this one unpinned so the test can pin it from the list.
         composeRule.onNodeWithContentDescription("Unpin").performClick()
         composeRule.onNodeWithContentDescription("Save").performClick()
-        composeRule.waitUntil(timeoutMillis = 5_000) {
-            composeRule.onAllNodesWithText(title).fetchSemanticsNodes().isNotEmpty()
-        }
+        composeRule.awaitSavedNoteOnList(title)
 
         // The newly created note is the most-recently-updated, so it is the top row.
         composeRule.onAllNodesWithContentDescription("Pin").onFirst().performClick()

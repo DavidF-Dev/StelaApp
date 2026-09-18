@@ -197,8 +197,8 @@ fun EditorScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                // Heading only for a new note, which has room (just Pin + Save); an existing note's
-                // full action row (Share/Pin/Archive/Delete/Save) needs the width, so it shows none.
+                // Heading only for a new note, whose shorter action row leaves room for it; an existing
+                // note also carries Delete, which needs the width, so it shows no heading.
                 title = {
                     if (!state.isEditing) Text(stringResource(R.string.editor_title_new))
                 },
@@ -208,7 +208,6 @@ fun EditorScreen(
                     }
                 },
                 actions = {
-                    // Share is hidden on a brand-new note; greyed when an existing note has no content.
                     NoteEditorActions(
                         state = state,
                         onShare = onShare,

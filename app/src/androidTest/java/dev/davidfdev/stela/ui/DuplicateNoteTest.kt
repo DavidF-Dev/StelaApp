@@ -12,6 +12,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.davidfdev.stela.MainActivity
+import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
@@ -23,6 +24,9 @@ class DuplicateNoteTest {
     @get:Rule
     val composeRule = createAndroidComposeRule<MainActivity>()
 
+    @Before
+    fun awaitAppReady() = composeRule.awaitNoteList()
+
     @Test
     fun duplicate_fromEditorOverflow_addsACopyToTheList() {
         // Unique per run so the count assertion is unambiguous against the on-device db.
@@ -32,12 +36,11 @@ class DuplicateNoteTest {
         composeRule.onNodeWithContentDescription("New note").performClick()
         composeRule.onNodeWithText("Title").performTextInput(title)
         composeRule.onNodeWithContentDescription("Save").performClick()
-        composeRule.waitUntil(timeoutMillis = 5_000) {
-            composeRule.onAllNodesWithText(title).fetchSemanticsNodes().isNotEmpty()
-        }
+        composeRule.awaitSavedNoteOnList(title)
 
         // Open it, then duplicate from the overflow menu.
         composeRule.onNodeWithText(title).performClick()
+        composeRule.awaitEditorFromList()
         composeRule.onNodeWithContentDescription("More").performClick()
         composeRule.onNodeWithText("Duplicate").performClick()
         composeRule.onNodeWithText("Note duplicated").assertIsDisplayed()

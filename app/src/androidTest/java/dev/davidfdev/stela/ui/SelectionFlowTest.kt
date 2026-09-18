@@ -15,6 +15,7 @@ import androidx.compose.ui.test.longClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.davidfdev.stela.MainActivity
+import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
@@ -25,6 +26,9 @@ class SelectionFlowTest {
 
     @get:Rule
     val composeRule = createAndroidComposeRule<MainActivity>()
+
+    @Before
+    fun awaitAppReady() = composeRule.awaitNoteList()
 
     companion object {
         // Granted before the Activity launches so first-run onboarding never raises the
@@ -47,9 +51,7 @@ class SelectionFlowTest {
         composeRule.onNodeWithContentDescription("New note").performClick()
         composeRule.onNodeWithText("Title").performTextInput(title)
         composeRule.onNodeWithContentDescription("Save").performClick()
-        composeRule.waitUntil(timeoutMillis = 5_000) {
-            composeRule.onAllNodesWithText(title).fetchSemanticsNodes().isNotEmpty()
-        }
+        composeRule.awaitSavedNoteOnList(title)
 
         composeRule.onNodeWithText(title).performTouchInput { longClick() }
 
@@ -127,8 +129,6 @@ class SelectionFlowTest {
         composeRule.onNodeWithContentDescription("New note").performClick()
         composeRule.onNodeWithText("Title").performTextInput(title)
         composeRule.onNodeWithContentDescription("Save").performClick()
-        composeRule.waitUntil(timeoutMillis = 5_000) {
-            composeRule.onAllNodesWithText(title).fetchSemanticsNodes().isNotEmpty()
-        }
+        composeRule.awaitSavedNoteOnList(title)
     }
 }

@@ -17,6 +17,7 @@ import dev.davidfdev.stela.settings.NoteFilter
 import dev.davidfdev.stela.settings.SortOrder
 import kotlinx.coroutines.runBlocking
 import org.junit.After
+import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
@@ -27,6 +28,9 @@ class ListQueryFlowTest {
 
     @get:Rule
     val composeRule = createAndroidComposeRule<MainActivity>()
+
+    @Before
+    fun awaitAppReady() = composeRule.awaitNoteList()
 
     companion object {
         @BeforeClass
@@ -147,8 +151,6 @@ class ListQueryFlowTest {
         // New notes default to pinned; these query tests assume plain unpinned notes.
         composeRule.onNodeWithContentDescription("Unpin").performClick()
         composeRule.onNodeWithContentDescription("Save").performClick()
-        composeRule.waitUntil(timeoutMillis = 5_000) {
-            composeRule.onAllNodesWithText(title).fetchSemanticsNodes().isNotEmpty()
-        }
+        composeRule.awaitSavedNoteOnList(title)
     }
 }

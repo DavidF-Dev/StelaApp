@@ -89,6 +89,7 @@ import dev.davidfdev.stela.data.displayTitle
 import dev.davidfdev.stela.settings.NoteFilter
 import dev.davidfdev.stela.settings.SortOrder
 import dev.davidfdev.stela.ui.ButtonTooltip
+import dev.davidfdev.stela.ui.ScheduledEvent
 import dev.davidfdev.stela.ui.TimeFormatter
 import dev.davidfdev.stela.ui.TooltipIconButton
 import dev.davidfdev.stela.ui.arePinnedNotificationsBlocked
@@ -96,6 +97,7 @@ import dev.davidfdev.stela.ui.performPinToggle
 import dev.davidfdev.stela.ui.rememberCurrentTimeMillis
 import dev.davidfdev.stela.ui.openAppNotificationSettings
 import dev.davidfdev.stela.ui.rememberNotificationPermissionGate
+import dev.davidfdev.stela.ui.scheduledEvent
 import kotlinx.coroutines.launch
 
 @Composable
@@ -470,7 +472,7 @@ private fun NoteRow(
 private fun ScheduleIndicator(event: ScheduledEvent, now: Long) {
     val whenText = remember(event.atMillis, now) { TimeFormatter.relativeUpcoming(event.atMillis, now).toString() }
     val label = stringResource(
-        if (event.isUnpin) R.string.notelist_unpins_at else R.string.notelist_pins_at,
+        if (event.isUnpin) R.string.schedule_unpins_at else R.string.schedule_pins_at,
         whenText,
     )
     val color = MaterialTheme.colorScheme.onSurfaceVariant

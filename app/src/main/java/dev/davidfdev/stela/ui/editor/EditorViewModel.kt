@@ -201,9 +201,10 @@ class EditorViewModel(
     }
 
     fun pin() {
-        // New note (not yet persisted): record the intent; it is pinned on save, not live.
+        // New note (not yet persisted): record the intent; it is pinned on save, not live. Any pending
+        // auto-pin is dropped with it — a note is never saved both pinned and waiting to pin.
         val note = loaded ?: run {
-            _uiState.update { it.copy(isPinned = true) }
+            _uiState.update { it.copy(isPinned = true, pinAt = null) }
             return
         }
         viewModelScope.launch {
@@ -252,10 +253,14 @@ class EditorViewModel(
         }
     }
 
-    /// Snoozes an existing note: hides it now and re-pins it at [untilMillis] (reusing `pinAt`). Keeps any
-    /// auto-unpin window. A no-op for an unsaved note (the action is disabled until it's pinned).
+    /// Snoozes a note: hides it now and re-pins it at [untilMillis] (reusing `pinAt`). Keeps any auto-unpin
+    /// window. An unsaved note has nothing to hide yet, so it records the time as the note's first auto-pin
+    /// instead — dropping the pin-on-save intent — and [save] applies it.
     fun snooze(untilMillis: Long) {
-        val note = loaded ?: return
+        val note = loaded ?: run {
+            _uiState.update { it.copy(isPinned = false, pinAt = untilMillis) }
+            return
+        }
         viewModelScope.launch {
             pinner.snooze(note.id, untilMillis)
             loaded = note.copy(isPinned = false, pinAt = untilMillis)

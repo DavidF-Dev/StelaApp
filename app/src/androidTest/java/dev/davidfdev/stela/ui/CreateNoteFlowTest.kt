@@ -9,6 +9,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.davidfdev.stela.MainActivity
+import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
@@ -19,6 +20,9 @@ class CreateNoteFlowTest {
 
     @get:Rule
     val composeRule = createAndroidComposeRule<MainActivity>()
+
+    @Before
+    fun awaitAppReady() = composeRule.awaitNoteList()
 
     companion object {
         // First-run onboarding gates the UI; mark it complete before the activity launches.

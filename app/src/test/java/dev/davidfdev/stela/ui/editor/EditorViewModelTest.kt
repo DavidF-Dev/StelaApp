@@ -363,6 +363,104 @@ class EditorViewModelTest {
     }
 
     @Test
+    fun newNote_snooze_defersTheFirstPin() = runTest(dispatcher) {
+        val f = Fixture()
+        val viewModel = f.viewModel()
+        val until = System.currentTimeMillis() + 3_600_000L
+
+        viewModel.snooze(until)
+        advanceUntilIdle()
+
+        // Nothing to hide yet, so the snooze becomes the pending first pin rather than a live unpin.
+        assertFalse(viewModel.uiState.value.isPinned)
+        assertEquals(until, viewModel.uiState.value.pinAt)
+        assertTrue(f.repository.notes.first().isEmpty())
+    }
+
+    @Test
+    fun newNote_snooze_thenSave_createsUnpinnedNoteWithScheduledPin() = runTest(dispatcher) {
+        val f = Fixture()
+        val viewModel = f.viewModel()
+        val until = System.currentTimeMillis() + 3_600_000L
+
+        viewModel.onTitleChange("Later")
+        viewModel.snooze(until)
+        viewModel.save { }
+        advanceUntilIdle()
+
+        val note = f.repository.notes.first().single()
+        assertFalse(note.isPinned)
+        assertEquals(until, note.pinAt)
+        assertTrue(f.controller.pinned.isEmpty())
+    }
+
+    @Test
+    fun newNote_snooze_thenPin_clearsThePendingPinTime() = runTest(dispatcher) {
+        val f = Fixture()
+        val viewModel = f.viewModel()
+        viewModel.snooze(System.currentTimeMillis() + 3_600_000L)
+
+        viewModel.pin()
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.isPinned)
+        assertNull(viewModel.uiState.value.pinAt)
+
+        // A note is never saved both pinned and waiting to pin, which would fire a redundant later pin.
+        viewModel.onTitleChange("Now")
+        viewModel.save { }
+        advanceUntilIdle()
+        val note = f.repository.notes.first().single()
+        assertTrue(note.isPinned)
+        assertNull(note.pinAt)
+    }
+
+    @Test
+    fun newNote_snooze_canBeRetimedBeforeSaving() = runTest(dispatcher) {
+        val viewModel = Fixture().viewModel()
+        val first = System.currentTimeMillis() + 3_600_000L
+
+        viewModel.snooze(first)
+        val second = first + 3_600_000L
+        viewModel.snooze(second)
+
+        assertFalse(viewModel.uiState.value.isPinned)
+        assertEquals(second, viewModel.uiState.value.pinAt)
+    }
+
+    @Test
+    fun existingScheduledNote_snooze_retimesThePendingPin() = runTest(dispatcher) {
+        val f = Fixture()
+        val original = System.currentTimeMillis() + 3_600_000L
+        val id = f.repository.create(title = "Scheduled", description = "")
+        f.repository.setSchedule(id, pinAt = original, unpinAt = null)
+        val viewModel = f.viewModel(id)
+        advanceUntilIdle()
+        assertEquals(original, viewModel.uiState.value.pinAt)
+
+        // Snoozing an unpinned note that is already waiting to pin moves that pin rather than adding one.
+        val later = original + 3_600_000L
+        viewModel.snooze(later)
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.isPinned)
+        assertEquals(later, viewModel.uiState.value.pinAt)
+        assertEquals(later, f.repository.getById(id)!!.pinAt)
+        assertFalse(viewModel.uiState.value.isDirty)
+    }
+
+    @Test
+    fun newNote_snooze_isDirty() = runTest(dispatcher) {
+        val viewModel = Fixture().viewModel()
+        assertFalse(viewModel.uiState.value.isDirty)
+
+        viewModel.snooze(System.currentTimeMillis() + 3_600_000L)
+
+        // The schedule is the only thing entered, and it is lost unless the note is saved.
+        assertTrue(viewModel.uiState.value.isDirty)
+    }
+
+    @Test
     fun newNote_save_withFuturePinAt_persistsTheSchedule() = runTest(dispatcher) {
         val f = Fixture()
         val viewModel = f.viewModel(initialPinned = false)

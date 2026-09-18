@@ -257,13 +257,13 @@ private fun Modifier.drawScrollThumb(scrollState: ScrollState, color: Color): Mo
         )
     }
 
-/// The shared editor action cluster — Pin/Unpin · Delete · ⋮ (Expand · Share · Archive/Restore) · Save —
-/// used by both the full editor's app bar and the quick-note popup so the two stay in lockstep. Delete,
-/// and the overflow's Share + Archive/Restore, show only for an existing note (`isEditing`); the surface
-/// decides what each callback does (e.g. the popup confirms Archive/Delete and the editor toggles Archive
-/// directly). The secondary actions live in an overflow menu to keep the row from crowding the
-/// width-stable Save. [onExpand] is null for the full editor (no Expand there); [pinModifier] lets the
-/// editor apply its pin "pop".
+/// The shared editor action cluster — Pin/Unpin · Delete · ⋮ (Expand · Share · Duplicate · Snooze ·
+/// Archive/Restore) · Save — used by both the full editor's app bar and the quick-note popup so the two
+/// stay in lockstep. Delete, and the overflow's Duplicate + Archive/Restore, act on a stored row and so
+/// show only for an existing note (`isEditing`); the surface decides what each callback does (e.g. the
+/// popup confirms Archive/Delete and the editor toggles Archive directly). The secondary actions live in
+/// an overflow menu to keep the row from crowding the width-stable Save. [onExpand] is null for the full
+/// editor (no Expand there); [pinModifier] lets the editor apply its pin "pop".
 @Composable
 internal fun RowScope.NoteEditorActions(
     state: EditorUiState,
@@ -287,18 +287,14 @@ internal fun RowScope.NoteEditorActions(
     if (state.isEditing) {
         TooltipIconButton(Icons.Filled.Delete, stringResource(R.string.action_delete), onDelete)
     }
-    // Shown only when it would hold at least one item (Expand for the popup, or Share/Duplicate/Archive
-    // for an existing note).
-    if (onExpand != null || state.isEditing) {
-        NoteOverflowMenu(
-            state = state,
-            onExpand = onExpand,
-            onShare = onShare,
-            onArchive = onArchive,
-            onSnooze = onSnooze,
-            onDuplicate = onDuplicate,
-        )
-    }
+    NoteOverflowMenu(
+        state = state,
+        onExpand = onExpand,
+        onShare = onShare,
+        onArchive = onArchive,
+        onSnooze = onSnooze,
+        onDuplicate = onDuplicate,
+    )
     // Filled so it reads as the primary action and stands out; an icon keeps its width locale-stable.
     ButtonTooltip(stringResource(R.string.editor_save)) {
         FilledIconButton(onClick = onSave, enabled = state.canSave) {
@@ -337,14 +333,14 @@ private fun NoteOverflowMenu(
                     onClick = { expanded = false; expand() },
                 )
             }
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.action_share)) },
+                leadingIcon = { Icon(Icons.Filled.Share, contentDescription = null) },
+                // Greyed when there is no content to share.
+                enabled = state.title.isNotBlank() || state.description.isNotBlank(),
+                onClick = { expanded = false; onShare() },
+            )
             if (state.isEditing) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.action_share)) },
-                    leadingIcon = { Icon(Icons.Filled.Share, contentDescription = null) },
-                    // Greyed when an existing note has no content to share.
-                    enabled = state.title.isNotBlank() || state.description.isNotBlank(),
-                    onClick = { expanded = false; onShare() },
-                )
                 onDuplicate?.let { duplicate ->
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.action_duplicate)) },
@@ -352,18 +348,24 @@ private fun NoteOverflowMenu(
                         onClick = { expanded = false; duplicate() },
                     )
                 }
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.action_snooze_for)) },
-                    leadingIcon = { Icon(Icons.Filled.Snooze, contentDescription = null) },
-                    enabled = state.isPinned,
-                    onClick = { expanded = false; showSnooze = true },
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.action_snooze_until)) },
-                    leadingIcon = { Icon(Icons.Filled.Snooze, contentDescription = null) },
-                    enabled = state.isPinned,
-                    onClick = { expanded = false; showSnoozeUntil = true },
-                )
+            }
+            // Snoozing needs a pin to act on, live or pending: it hides a live one and re-pins later, defers
+            // an unsaved note's pin-on-save, or retimes a pin that is already waiting (including one an
+            // earlier snooze set, which would otherwise be unreachable from here).
+            val canSnooze = state.isPinned || state.pinAt != null
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.action_snooze_for)) },
+                leadingIcon = { Icon(Icons.Filled.Snooze, contentDescription = null) },
+                enabled = canSnooze,
+                onClick = { expanded = false; showSnooze = true },
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.action_snooze_until)) },
+                leadingIcon = { Icon(Icons.Filled.Snooze, contentDescription = null) },
+                enabled = canSnooze,
+                onClick = { expanded = false; showSnoozeUntil = true },
+            )
+            if (state.isEditing) {
                 DropdownMenuItem(
                     text = {
                         Text(stringResource(if (state.isArchived) R.string.action_restore else R.string.action_archive))
@@ -390,7 +392,8 @@ private fun NoteOverflowMenu(
     if (showSnoozeUntil) {
         val now = System.currentTimeMillis()
         DateTimePickerDialog(
-            initialMillis = now,
+            // Opens on a pin that is already waiting, so retiming it starts from the time it holds.
+            initialMillis = (state.pinAt ?: now).coerceAtLeast(now),
             earliestMillis = now,
             onConfirm = { until -> showSnoozeUntil = false; onSnooze(until) },
             onDismiss = { showSnoozeUntil = false },

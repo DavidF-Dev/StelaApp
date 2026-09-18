@@ -28,9 +28,6 @@
     <!-- Note list -->
     <string name="notelist_empty">No notes yet.\nTap + to create one.</string>
     <string name="notelist_no_matches">No matching notes.</string>
-    <!-- Schedule indicator in a row's overline; %1$s is a relative time (e.g. "in 3 hours"). -->
-    <string name="notelist_pins_at">Pins %1$s</string>
-    <string name="notelist_unpins_at">Unpins %1$s</string>
     <string name="notelist_notifications_blocked">Notifications are off — pinned notes won\'t show.</string>
     <string name="snackbar_pinning_needs_notifications">Notifications are off — pinning needs them.</string>
 
@@ -105,7 +102,7 @@
     <string name="editor_timestamps">Created %1$s · Updated %2$s</string>
     <string name="editor_advanced">Advanced</string>
 
-    <!-- Editor — scheduled pins -->
+    <!-- Scheduled pins -->
     <string name="schedule_pin_at">Pin at</string>
     <string name="schedule_unpin_at">Unpin at</string>
     <string name="schedule_not_set">Not set</string>
@@ -114,6 +111,9 @@
     <string name="schedule_clear">Clear</string>
     <string name="schedule_next">Next</string>
     <string name="schedule_done">Done</string>
+    <!-- A pending auto-pin / auto-unpin; %1$s is a relative time (e.g. "in 3 hours"). -->
+    <string name="schedule_pins_at">Pins %1$s</string>
+    <string name="schedule_unpins_at">Unpins %1$s</string>
 
     <!-- Editor — alert when pinned -->
     <string name="alert_on_pin_label">Alert when pinned</string>

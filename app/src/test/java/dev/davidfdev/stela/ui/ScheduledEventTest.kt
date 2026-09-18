@@ -1,4 +1,4 @@
-package dev.davidfdev.stela.ui.notelist
+package dev.davidfdev.stela.ui
 
 import dev.davidfdev.stela.data.Note
 import org.junit.Assert.assertEquals
@@ -53,5 +53,15 @@ class ScheduledEventTest {
     fun unpinnedWithOnlyUnpinAt_hasNoEvent() {
         // An anomalous combination the editor prevents; defensively shows nothing.
         assertNull(note(isPinned = false, unpinAt = 9_000L).scheduledEvent())
+    }
+
+    @Test
+    fun looseFields_resolveByTheSameRuleAsAStoredNote() {
+        // The editor's unsaved state has no note to hand, so it resolves from the fields directly.
+        assertEquals(
+            ScheduledEvent(5_000L, isUnpin = false),
+            scheduledEvent(isPinned = false, pinAt = 5_000L, unpinAt = null),
+        )
+        assertNull(scheduledEvent(isPinned = true, pinAt = 5_000L, unpinAt = null))
     }
 }

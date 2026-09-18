@@ -21,13 +21,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -55,12 +59,16 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.davidfdev.stela.R
 import dev.davidfdev.stela.data.displayTitle
+import dev.davidfdev.stela.ui.ScheduledEvent
+import dev.davidfdev.stela.ui.TimeFormatter
+import dev.davidfdev.stela.ui.TooltipIconButton
 import dev.davidfdev.stela.ui.editor.EditorViewModel
 import dev.davidfdev.stela.ui.editor.NoteDraft
 import dev.davidfdev.stela.ui.editor.NoteEditorActions
 import dev.davidfdev.stela.ui.editor.NoteFields
 import dev.davidfdev.stela.ui.openAppNotificationSettings
 import dev.davidfdev.stela.ui.rememberNotificationPermissionGate
+import dev.davidfdev.stela.ui.scheduledEvent
 import dev.davidfdev.stela.ui.shareNote
 import kotlinx.coroutines.launch
 
@@ -215,6 +223,17 @@ internal fun QuickNotePopup(
                             modifier = Modifier.padding(top = 8.dp),
                             alwaysFocusTitle = true,
                         )
+                        scheduledEvent(state.isPinned, state.pinAt, state.unpinAt)?.let { event ->
+                            ScheduleSummary(
+                                event = event,
+                                // Clears the whole schedule: an unpinned note's auto-unpin has nothing left
+                                // to end once its pending pin is gone, and a pinned one holds no pin time.
+                                onClear = {
+                                    viewModel.onPinAtChange(null)
+                                    viewModel.onUnpinAtChange(null)
+                                },
+                            )
+                        }
                     }
                     SnackbarHost(snackbarHostState)
                 }
@@ -254,5 +273,31 @@ internal fun QuickNotePopup(
                 TextButton(onClick = { showArchiveDialog = false }) { Text(stringResource(R.string.editor_delete_dialog_cancel)) }
             },
         )
+    }
+}
+
+/// A one-line statement of the note's pending auto-pin or auto-unpin, with a button to clear it. This card
+/// has no Advanced section, so without it the only trace of a just-picked snooze would be the pin icon
+/// turning hollow. Clearing is an unsaved field edit, applied on Save like the other fields.
+@Composable
+private fun ScheduleSummary(event: ScheduledEvent, onClear: () -> Unit) {
+    val whenText = remember(event.atMillis) { TimeFormatter.relativeUpcoming(event.atMillis).toString() }
+    val color = MaterialTheme.colorScheme.onSurfaceVariant
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(Icons.Filled.Schedule, contentDescription = null, modifier = Modifier.size(16.dp), tint = color)
+        Spacer(Modifier.width(8.dp))
+        Text(
+            text = stringResource(
+                if (event.isUnpin) R.string.schedule_unpins_at else R.string.schedule_pins_at,
+                whenText,
+            ),
+            style = MaterialTheme.typography.bodyMedium,
+            color = color,
+            modifier = Modifier.weight(1f),
+        )
+        TooltipIconButton(Icons.Filled.Close, stringResource(R.string.schedule_clear), onClear)
     }
 }

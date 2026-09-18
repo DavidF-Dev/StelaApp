@@ -3,6 +3,7 @@ package dev.davidfdev.stela.ui
 import android.Manifest
 import android.content.Intent
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -16,6 +17,8 @@ import dev.davidfdev.stela.StelaApp
 import dev.davidfdev.stela.ui.quicknote.QuickNoteActivity
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.BeforeClass
 import org.junit.Rule
@@ -51,6 +54,71 @@ class QuickNotePopupTest {
         }
         // The quick-note contract: a saved new note is pinned.
         assertTrue(notesNow().first { it.title == title }.isPinned)
+    }
+
+    @Test
+    fun newNotePopup_overflowOffersShareAndSnooze() {
+        val intent = QuickNoteActivity.newNoteIntent(context).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+        ActivityScenario.launch<QuickNoteActivity>(intent).use {
+            composeRule.onNodeWithContentDescription("More").performClick()
+
+            // A note that has never been saved can still be shared and scheduled.
+            composeRule.onNodeWithText("Share").assertIsDisplayed()
+            composeRule.onNodeWithText("Snooze for", substring = true).assertIsDisplayed()
+            composeRule.onNodeWithText("Snooze until", substring = true).assertIsDisplayed()
+
+            // The menu draws in its own window; close it so none is left over the activity at teardown.
+            pressSystemBack()
+        }
+    }
+
+    @Test
+    fun newNotePopup_snoozeThenSave_createsUnpinnedNoteWithScheduledPin() {
+        val title = "Later ${System.currentTimeMillis()}"
+        val intent = QuickNoteActivity.newNoteIntent(context).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+        ActivityScenario.launch<QuickNoteActivity>(intent).use {
+            composeRule.onNodeWithText("Title").performTextInput(title)
+            composeRule.onNodeWithContentDescription("More").performClick()
+            composeRule.onNodeWithText("Snooze for", substring = true).performClick()
+            composeRule.onNodeWithText("30 minutes").performClick()
+
+            // The card states the pending pin — a content check, not a claim that it is pixel-visible: it
+            // sits below the description, which the raised keyboard can push out of view.
+            composeRule.onNodeWithText("Pins", substring = true).assertExists()
+
+            composeRule.onNodeWithContentDescription("Save").performClick()
+            composeRule.waitUntil(timeoutMillis = 5_000) {
+                notesNow().any { it.title == title }
+            }
+        }
+
+        // The snooze defers the quick note's pin-on-save rather than pinning now.
+        val note = notesNow().first { it.title == title }
+        assertFalse(note.isPinned)
+        assertNotNull(note.pinAt)
+        // Leave no armed alarm behind to re-pin this note during a later test.
+        runBlocking { container.notePinner.delete(note) }
+    }
+
+    @Test
+    fun newNotePopup_afterSnoozing_snoozeStaysAvailableToRetime() {
+        val intent = QuickNoteActivity.newNoteIntent(context).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+        ActivityScenario.launch<QuickNoteActivity>(intent).use {
+            composeRule.onNodeWithContentDescription("More").performClick()
+            composeRule.onNodeWithText("Snooze for", substring = true).performClick()
+            composeRule.onNodeWithText("30 minutes").performClick()
+
+            // Snoozing leaves the note unpinned, but the pin it is waiting on is still there to retime.
+            composeRule.onNodeWithContentDescription("More").performClick()
+            composeRule.onNodeWithText("Snooze for", substring = true).assertIsEnabled()
+            composeRule.onNodeWithText("Snooze until", substring = true).assertIsEnabled()
+
+            // The menu draws in its own window; close it so none is left over the activity at teardown.
+            pressSystemBack()
+        }
     }
 
     @Test

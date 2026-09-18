@@ -11,6 +11,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.davidfdev.stela.MainActivity
+import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
@@ -21,6 +22,9 @@ class EditorDiscardTest {
 
     @get:Rule
     val composeRule = createAndroidComposeRule<MainActivity>()
+
+    @Before
+    fun awaitAppReady() = composeRule.awaitNoteList()
 
     @Test
     fun back_withUnsavedEdits_confirmsBeforeLeaving() {

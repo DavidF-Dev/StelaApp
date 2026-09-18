@@ -11,6 +11,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.davidfdev.stela.MainActivity
 import dev.davidfdev.stela.R
+import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
@@ -21,6 +22,9 @@ class AboutFlowTest {
 
     @get:Rule
     val composeRule = createAndroidComposeRule<MainActivity>()
+
+    @Before
+    fun awaitAppReady() = composeRule.awaitNoteList()
 
     companion object {
         // Granted before the Activity launches so first-run onboarding never raises the

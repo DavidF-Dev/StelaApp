@@ -9,6 +9,17 @@ All notable changes to Stela are documented here. This project adheres to
 - Settings now shows a hint (below the Quick-add toggle, when it is off) explaining how to hide
   the persistent "Stela is running" notification. Tapping the hint opens the system notification
   channel settings directly.
+- Quick notes can now be scheduled without saving first: "Snooze for..." and "Snooze until..." are
+  available in the overflow (⋮) menu of a brand-new note, and set when it will first pin instead of
+  pinning it straight away. The note's card shows a line stating the pending pin (for example
+  "Pins in 3 hours") with a button to clear it.
+- Share is now available for a brand-new note too, so a note can be shared before it is saved.
+
+### Changed
+- A note that is waiting to pin — whether snoozed or scheduled to pin later — can now be snoozed again to
+  move that time, and "Snooze until..." opens on the time it is already waiting for. Previously the snooze
+  options greyed out the moment a note was hidden, so changing the time meant going through the editor's
+  Advanced section.
 
 ## [1.7.0] - 2026-06-21
 
