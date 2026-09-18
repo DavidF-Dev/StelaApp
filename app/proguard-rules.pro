@@ -1,2 +1,2 @@
-# Default ProGuard rules. Minification is disabled for now (see build.gradle.kts);
-# this file exists so release builds have a place for keep rules when needed.
+# Keep rules for the release build's R8 pass (code and resource shrinking are on).
+# Empty so far: the libraries in use ship their own consumer rules, so nothing here needs keeping.

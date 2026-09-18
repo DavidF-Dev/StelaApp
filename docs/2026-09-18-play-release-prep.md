@@ -1,6 +1,6 @@
 # Google Play release preparation
 
-**Status:** in progress (2026-09-18) — app-side hygiene done; packaging and the Console track not started
+**Status:** in progress (2026-09-18) — app-side hygiene and packaging done; the Console track not started
 **Date:** 2026-09-18
 **Related:** [2026-06-09-v1-release.md](2026-06-09-v1-release.md), [2026-06-14-fdroid-submission.md](2026-06-14-fdroid-submission.md),
 [2026-06-11-support-purchase.md](2026-06-11-support-purchase.md)
@@ -15,8 +15,8 @@ Console paperwork, and two decisions. Checked on 2026-09-18:
 
 - **`bundleRelease` works out of the box.** A signed 11.3 MB AAB builds at
   `app/build/outputs/bundle/release/stela-release.aab`, with `lintVitalRelease` clean. (Bundle size is
-  every density, ABI and language; Play delivers ~2–3 MB per device.) Neither CI nor `scripts/release.ps1`
-  produces one today — that is a script change, not an app change.
+  every density, ABI and language; Play delivers ~2–3 MB per device.) Nothing in the tooling produced
+  one at the time — that was a script change, not an app change, and is now done.
 - **16 KB page size compliance** (required by Play for `targetSdk` 35+ since Nov 2025): the app does ship
   two native libraries via dependencies — `libandroidx.graphics.path.so` (Compose) and
   `libdatastore_shared_counter.so` (DataStore). The arm64 ELF program headers show `p_align 0x4000` on
@@ -91,16 +91,49 @@ warning this leaves behind (`DataExtractionRules`, severity Warning: `allowBacku
 Android 12 and may eventually be removed). Accepted knowingly, alongside the project's other intentional
 warnings.
 
-## Remaining app-side work (not started)
+## Packaging — done
 
-- Add `bundleRelease` to the release tooling — a `-Play` switch on `scripts/release.ps1` that builds the
-  AAB and reports its path and `versionCode`, uploading nothing. GitHub stays the APK channel; Play
-  starts as a manual Console upload, with service-account automation only once the flow is boring.
-- Fix `scripts/release.ps1`'s `APK SHA-256:` label — it publishes the *signing certificate* fingerprint,
-  so a user who runs `sha256sum` on the APK gets a mismatch and reasonably concludes tampering.
-- Fix the stale "Minification is disabled for now" comment in `app/proguard-rules.pro`.
-- Add `bundleRelease` to `.github/workflows/build.yml`. It debug-signs on CI, which is fine — the value
-  is running `lintVitalRelease` and R8 on every push so packaging breakage surfaces before release day.
+`scripts/` holds four scripts on two axes: **artifact** (APK for GitHub, AAB for Play) and
+**ceremony** (guarded release versus bare build). None of them uploads to Play; a Console submission
+stays a deliberate manual step, with service-account automation left until the flow is boring.
+
+| | APK | AAB |
+|---|---|---|
+| **Guarded release** | `release-apk.ps1` — builds, confirms, creates the GitHub Release | `release-aab.ps1` — builds, stages a version-stamped copy, prints "What's new"; uploads nothing |
+| **Bare build** | `build-apk.ps1` | `build-aab.ps1` |
+
+The `release-*` pair shares its guard rails — clean tree, present `keystore.properties`, a
+`stelaVersionName` it can parse, and a matching `## [x.y.z]` CHANGELOG section — and differs only in
+that the APK one additionally needs `gh` authenticated and refuses a tag or release that already
+exists. `release-aab.ps1` creates no tag and touches no remote, so it can run for the same version as
+its sibling, in either order. The `build-*` pair has no guard rails at all: they build, report the
+path, size and which key signed it, and stop. All four read `build.gradle.kts` and `CHANGELOG.md`;
+none of them writes to either, so bumping the version stays a manual, committed step.
+
+Also done:
+
+- **Both hashes in the release notes.** `release-apk.ps1` previously published the *signing
+  certificate* fingerprint under an `APK SHA-256:` label, so anyone running `sha256sum` on a download
+  got a mismatch and could reasonably conclude tampering. It now publishes the APK's own hash,
+  computed per build, and the certificate fingerprint, each correctly labelled. Releases published
+  before 2026-09-18 still carry the old label.
+- **The scripts are ASCII-only.** They have no BOM, so Windows PowerShell 5.1 reads them as the ANSI
+  codepage; the em-dashes previously in the guard-rail messages reached the console as mojibake. Each
+  script carries a header comment saying why it must stay that way.
+- **`bundleRelease` in `.github/workflows/build.yml`.** It debug-signs on CI, which is fine — the
+  value is running `lintVitalRelease` and R8 on every push, so packaging breakage surfaces before
+  release day rather than during one.
+- **`app/proguard-rules.pro`** no longer claims minification is disabled.
+
+### Known friction in the Play loop
+
+Every Play upload needs its own `versionCode`, and `versionCode` derives from `stelaVersionName`, so
+each upload to a track means a version bump — including throwaway test builds. The scripts cannot
+catch a duplicate, since they have no idea what has already been uploaded; Play rejects it at upload
+time instead. Two consequences worth expecting: internal-test iterations consume public version
+numbers, leaving harmless gaps in the GitHub release history; and pre-release suffixes are impossible,
+because `stelaVersionName.split(".").map(String::toInt)` would fail the build outright. If this gets
+tedious, the fix belongs at the version scheme rather than in the scripts.
 
 ## The Console track
 
@@ -111,8 +144,8 @@ open, plus the foreground-service declaration below. Store listing: ≤30-charac
 full, 512 icon, 1024×500 feature graphic, ≥2 phone screenshots — the same asset set the F-Droid plan
 needs, so one capture pass feeds both. That is the bulk of the manual effort.
 
-Suggested order: decide the signing key → create the app and complete App content → add `bundleRelease`
-to the tooling → capture screenshots and graphics → upload to internal testing and add testers.
+Suggested order: decide the signing key → create the app and complete App content → capture screenshots
+and graphics → `release-aab.ps1` → upload to internal testing and add testers.
 
 ## Risks
 

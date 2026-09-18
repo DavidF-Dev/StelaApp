@@ -1,24 +1,28 @@
 <#
 .SYNOPSIS
-    Build, sign, and publish a Stela release to GitHub Releases.
+    Build, sign, and publish a Stela release APK to GitHub Releases.
 
 .DESCRIPTION
-    Reads the version from app/build.gradle.kts (single source of truth), checks guard
-    rails, builds the signed release APK, then — after explicit confirmation — creates the
-    GitHub Release with the APK attached and the matching CHANGELOG.md section as the body.
-    The signing key stays local; nothing is published until you confirm.
+    Reads the version from app/build.gradle.kts (single source of truth), checks guard rails,
+    builds the signed release APK, then - after explicit confirmation - creates the GitHub
+    Release with the APK attached and the matching CHANGELOG.md section as the body. The
+    signing key stays local; nothing is published until you confirm.
 
-    Prerequisites: gh CLI installed and authenticated (gh auth login), and a real
-    keystore.properties present so the build is release-signed (not debug-signed).
+    The Play artifact is a separate step: see release-aab.ps1.
+
+    Prerequisites: the gh CLI installed and authenticated (gh auth login), and a real
+    keystore.properties so the build is release-signed (not debug-signed).
 
     Before running: bump stelaVersionName in app/build.gradle.kts and write the matching
-    CHANGELOG.md "## [x.y.z]" section, then commit.
+    CHANGELOG.md "## [x.y.z]" section, then commit. This script reads both; it changes neither.
 
 .PARAMETER Force
     Skip the confirmation prompt (for non-interactive use). Off by default.
 
 .EXAMPLE
-    powershell -File scripts/release.ps1
+    powershell -File scripts/release-apk.ps1
+.EXAMPLE
+    powershell -File scripts/release-apk.ps1 -Force
 #>
 [CmdletBinding()]
 param([switch]$Force)
@@ -27,17 +31,21 @@ param([switch]$Force)
 # native-command stderr (git/gh write status there even on success) into terminating
 # errors on Windows PowerShell. Guard rails check exit codes explicitly instead.
 
+# Keep this file ASCII-only: it has no BOM, so Windows PowerShell reads it as the ANSI
+# codepage and any non-ASCII character reaches the console as mojibake.
+
 $repoRoot = Split-Path -Parent $PSScriptRoot
 Push-Location $repoRoot
 try {
     function Fail([string]$message) {
-        Write-Host "release: $message" -ForegroundColor Red
+        Write-Host "release-apk: $message" -ForegroundColor Red
         exit 1
     }
 
-    # The signing certificate's SHA-256 — constant for the app's lifetime (it changes only
-    # if the signing key changes). Published so users can verify the downloaded APK.
-    $fingerprint = '34:24:47:8D:3E:3A:8A:FC:1A:6E:37:6A:ED:C3:8A:E7:59:B6:F0:FB:09:4A:B3:79:BA:07:AD:43:64:2F:D3:18'
+    # The signing certificate's SHA-256 - constant for the app's lifetime (it changes only if
+    # the signing key changes). Published next to the APK's own hash, which is what someone
+    # checking a download actually computes.
+    $certFingerprint = '34:24:47:8D:3E:3A:8A:FC:1A:6E:37:6A:ED:C3:8A:E7:59:B6:F0:FB:09:4A:B3:79:BA:07:AD:43:64:2F:D3:18'
 
     # --- Version: single source of truth is stelaVersionName in the build script ---
     $match = [regex]::Match((Get-Content 'app/build.gradle.kts' -Raw -Encoding UTF8), 'stelaVersionName\s*=\s*"(.+?)"')
@@ -47,15 +55,15 @@ try {
 
     # --- Guard rails: fail before building anything ---
     if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
-        Fail 'gh CLI not found — install it, then run: gh auth login'
+        Fail 'gh CLI not found - install it, then run: gh auth login'
     }
     gh auth status 2>$null | Out-Null
-    if ($LASTEXITCODE -ne 0) { Fail 'gh is not authenticated — run: gh auth login' }
+    if ($LASTEXITCODE -ne 0) { Fail 'gh is not authenticated - run: gh auth login' }
 
-    if (git status --porcelain) { Fail 'working tree is dirty — commit or stash changes first' }
+    if (git status --porcelain) { Fail 'working tree is dirty - commit or stash changes first' }
 
     if (-not (Test-Path 'keystore.properties')) {
-        Fail 'keystore.properties is missing — the build would be debug-signed'
+        Fail 'keystore.properties is missing - the build would be debug-signed'
     }
 
     if (git tag --list $tag) { Fail "tag $tag already exists" }
@@ -68,8 +76,8 @@ try {
         $inSection = $false
         foreach ($line in (Get-Content 'CHANGELOG.md' -Encoding UTF8)) {
             if ($line -match '^##\s+\[(.+?)\]') {
-                if ($inSection) { break }                                    # next version → stop
-                if ($Matches[1] -eq $version) { $inSection = $true; continue } # our heading → start
+                if ($inSection) { break }                                      # next version, stop
+                if ($Matches[1] -eq $version) { $inSection = $true; continue } # our heading, start
             } elseif ($inSection) {
                 $body += $line
             }
@@ -77,7 +85,6 @@ try {
         ($body -join "`n").Trim()
     }
     if ([string]::IsNullOrWhiteSpace($notes)) { Fail "no CHANGELOG.md section found for [$version]" }
-    $releaseBody = "$notes`n`n---`nAPK SHA-256: ``$fingerprint``"
 
     # --- Build the signed release APK ---
     $env:JAVA_HOME = 'C:\Program Files\Android\Android Studio\jbr'
@@ -87,6 +94,8 @@ try {
     $apk = 'app/build/outputs/apk/release/stela-release.apk'
     if (-not (Test-Path $apk)) { Fail "expected APK not found at $apk" }
     $apkSizeMb = [math]::Round((Get-Item $apk).Length / 1MB, 2)
+    $apkHash = (Get-FileHash $apk -Algorithm SHA256).Hash.ToLower()
+    $releaseBody = "$notes`n`n---`nAPK SHA-256: ``$apkHash```nSigning certificate SHA-256: ``$certFingerprint``"
 
     # --- Confirm before the outward, irreversible step (tag + publish) ---
     Write-Host ''
@@ -99,7 +108,7 @@ try {
     Write-Host ''
     if (-not $Force) {
         if ((Read-Host "Type 'yes' to create and publish this release") -ne 'yes') {
-            Write-Host 'Aborted — nothing was published.' -ForegroundColor Yellow
+            Write-Host 'Aborted - nothing was published.' -ForegroundColor Yellow
             exit 0
         }
     }

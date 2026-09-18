@@ -31,3 +31,9 @@ jobs:
 
       - name: Run unit tests
         run: ./gradlew testDebugUnitTest
+
+      # Debug-signed here (the release keystore never leaves the author's machine); the point is to
+      # run R8 and lintVitalRelease on every push, so packaging breakage surfaces before release day
+      # rather than during one. The bundle itself is discarded.
+      - name: Build release bundle
+        run: ./gradlew bundleRelease
