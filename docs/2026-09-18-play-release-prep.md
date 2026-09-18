@@ -137,8 +137,8 @@ tedious, the fix belongs at the version scheme rather than in the scripts.
 
 ## The Console track
 
-Before any track can publish: privacy policy URL (publicly hosted — **the repo is still private**, so
-this needs GitHub Pages, a personal site, or a public gist), Data safety ("no data collected, no data
+Before any track can publish: privacy policy URL (publicly hosted; the repo is public, so GitHub Pages
+or a file served from it is the path of least resistance), Data safety ("no data collected, no data
 shared" — genuinely true), content rating questionnaire, target audience, ads = none, app access = fully
 open, plus the foreground-service declaration below. Store listing: ≤30-character title, ≤80 short, ≤4000
 full, 512 icon, 1024×500 feature graphic, ≥2 phone screenshots — the same asset set the F-Droid plan

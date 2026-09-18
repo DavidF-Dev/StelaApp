@@ -3,7 +3,7 @@
 All notable changes to Stela are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.8.0] - 2026-09-18
 
 ### Added
 - Settings now shows a hint (below the Quick-add toggle, when it is off) explaining how to hide
