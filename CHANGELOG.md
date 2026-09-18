@@ -15,6 +15,12 @@ All notable changes to Stela are documented here. This project adheres to
   "Pins in 3 hours") with a button to clear it.
 - Share is now available for a brand-new note too, so a note can be shared before it is saved.
 
+### Fixed
+- Opening a note from the quick-note popup's "Open in full editor", the home-screen widget or a
+  notification now always lands on that note, instead of occasionally showing whichever screen the app
+  was left on. This only happened when Stela hadn't been opened for a while, so the app had to start
+  itself up again before it could act on where you asked to go.
+
 ### Changed
 - A note that is waiting to pin — whether snoozed or scheduled to pin later — can now be snoozed again to
   move that time, and "Snooze until..." opens on the time it is already waiting for. Previously the snooze

@@ -10,6 +10,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
@@ -50,6 +51,11 @@ class MainActivity : AppCompatActivity() {
 
     // A cold plain-text share: navigate to a new-note editor once the nav host is composed.
     private val pendingShareNavigation = mutableStateOf(false)
+
+    // A deep link delivered before the nav host exists, replayed once it does. Re-entering this activity
+    // recreates it, and the persisted settings it waits on arrive asynchronously, so onNewIntent can run
+    // seconds ahead of the first composition — handing the intent straight to the controller would drop it.
+    private val pendingDeepLink = mutableStateOf<Intent?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Must precede super.onCreate so the splash theme is swapped for the app theme before the first frame.
@@ -119,12 +125,29 @@ class MainActivity : AppCompatActivity() {
                         )
                     } else {
                         val controller = rememberNavController()
-                        SideEffect { navController = controller }
+                        // Cleared on disposal so the controller is only ever offered while the host that
+                        // owns it is composed — anything arriving outside that window waits instead.
+                        DisposableEffect(controller) {
+                            navController = controller
+                            onDispose { navController = null }
+                        }
                         // A cold share seeded the draft in onCreate; open the editor once the host is ready.
                         LaunchedEffect(Unit) {
                             if (pendingShareNavigation.value) {
                                 pendingShareNavigation.value = false
                                 controller.navigate(Routes.EDITOR_NEW)
+                            }
+                        }
+                        // Replays a deep link that arrived before this host existed. The restored back stack
+                        // may already be showing the note it targets, so re-check rather than stack a
+                        // duplicate editor on top of it.
+                        val queuedDeepLink = pendingDeepLink.value
+                        LaunchedEffect(queuedDeepLink) {
+                            if (queuedDeepLink != null) {
+                                pendingDeepLink.value = null
+                                if (!isEditorAlreadyOpenFor(queuedDeepLink)) {
+                                    controller.handleDeepLink(queuedDeepLink)
+                                }
                             }
                         }
                         StelaNavHost(
@@ -184,7 +207,8 @@ class MainActivity : AppCompatActivity() {
             )
             finishOnEditorDone.value = false
             goToListOnEditorDone.value = false
-            navController?.navigate(Routes.EDITOR_NEW)
+            val host = navController
+            if (host != null) host.navigate(Routes.EDITOR_NEW) else pendingShareNavigation.value = true
             return
         }
         // Warm re-delivery: the app was already open, so finishing the editor pops rather than ends the
@@ -194,7 +218,9 @@ class MainActivity : AppCompatActivity() {
         clearFocusOnWindowFocusGain = isExpandOfExistingNote(intent)
         // Skip re-navigating when the editor for this exact note is already on top (a warm re-entry from
         // its own notification while open); handleDeepLink would otherwise stack a duplicate editor.
-        if (!isEditorAlreadyOpenFor(intent)) navController?.handleDeepLink(intent)
+        if (isEditorAlreadyOpenFor(intent)) return
+        val host = navController
+        if (host != null) host.handleDeepLink(intent) else pendingDeepLink.value = intent
     }
 
     private fun isEditorAlreadyOpenFor(intent: Intent): Boolean {
