@@ -26,6 +26,9 @@ All notable changes to Stela are documented here. This project adheres to
   move that time, and "Snooze until..." opens on the time it is already waiting for. Previously the snooze
   options greyed out the moment a note was hidden, so changing the time meant going through the editor's
   Advanced section.
+- Stela no longer asks for the "view network connections" permission. The app never used it — it came in
+  with a library behind the home-screen widget — so it has been stripped from the build. As ever, Stela
+  has no internet permission and does no networking whatsoever.
 
 ## [1.7.0] - 2026-06-21
 

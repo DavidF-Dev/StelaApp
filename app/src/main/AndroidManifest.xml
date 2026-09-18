@@ -1,11 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- INTERNET is never declared: the app is offline by design. -->
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <!--
+      WorkManager, which the widget's Glance dependency brings in, declares ACCESS_NETWORK_STATE and
+      WAKE_LOCK. The former exists only to watch network constraints on scheduled work; nothing here
+      enqueues any, and the app does no networking, so it is dropped rather than shown to users as
+      "view network connections". WAKE_LOCK stays: WorkManager takes one during its own start-up and
+      rescheduling, which run on boot — where a missing permission would break re-pinning.
+    -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove" />
 
     <application
         android:name=".StelaApp"
