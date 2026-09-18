@@ -56,8 +56,10 @@ credentials in history; author identity is a project email).
    `changelogs/<versionCode>.txt` (the short user-facing note, which `scripts/release-aab.ps1` also reads),
    and five `images/phoneScreenshots/`. Still missing and optional here: `images/icon.png` (512×512) and
    `images/featureGraphic.png` (1024×500) — Play wants the latter regardless.
-3. **Public-repo polish (optional but recommended):** a short `CONTRIBUTING` note and confirm the GitHub
-   issue tracker is enabled (the metadata points users there).
+3. **Public-repo polish** — **settled**. The GitHub issue tracker is enabled, which the recipe's
+   `IssueTracker` field depends on. A `CONTRIBUTING` note was considered and deliberately skipped: F-Droid
+   recommends but does not require one, and the README already states the refusals that matter to a
+   would-be contributor (no internet permission, no ads, no analytics).
 
 ## Phase 2 — Signing
 
