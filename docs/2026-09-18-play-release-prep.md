@@ -1,7 +1,8 @@
 # Google Play release preparation
 
-**Status:** in progress (2026-09-18) — app-side hygiene and packaging done; the Console track not started
-**Date:** 2026-09-18
+**Status:** **live on Internal Testing** (2026-09-19) with **1.8.1 / versionCode 10801**; testers have
+installed it. Remaining: the foreground-service declaration, then the decision about a wider track.
+**Date:** 2026-09-18, updated 2026-09-19
 **Related:** [2026-06-09-v1-release.md](2026-06-09-v1-release.md), [2026-06-14-fdroid-submission.md](2026-06-14-fdroid-submission.md),
 [2026-06-11-support-purchase.md](2026-06-11-support-purchase.md)
 
@@ -135,14 +136,36 @@ numbers, leaving harmless gaps in the GitHub release history; and pre-release su
 because `stelaVersionName.split(".").map(String::toInt)` would fail the build outright. If this gets
 tedious, the fix belongs at the version scheme rather than in the scripts.
 
-## The Console track
+## The Console track — internal testing is live
 
-Before any track can publish: privacy policy URL, Data safety ("no data collected, no data shared" —
-genuinely true), content rating questionnaire, target audience, ads = none, app access = fully open,
-plus the foreground-service declaration below.
+Done on 2026-09-19: app created, signing key uploaded, App content completed (privacy policy URL, Data
+safety "no data collected, no data shared", content rating, target audience, ads = none, app access =
+fully open), listing filled from the fastlane tree, **1.8.1 / 10801** uploaded to Internal Testing, and
+testers opted in and installed successfully.
 
-Suggested order: decide the signing key → create the app and complete App content → produce the feature
-graphic → `release-aab.ps1` → upload to internal testing and add testers.
+**What that install proves:** Play delivered the app to a device that already had the sideloaded GitHub
+build, which means the PEPK key upload worked and the two channels share a signature. Testers can move
+between them without uninstalling or losing notes.
+
+### Still outstanding
+
+1. **The foreground-service declaration.** Text is below, ready to paste; it needs a demo video link,
+   which has to be recorded. This is the one remaining item that can still go wrong (see Risks).
+2. **A decision about a wider track.** Internal testing is capped at 100 testers and is not a path to
+   production on its own. Closed testing, then production, is the next step whenever the app is wanted
+   beyond the current group — no longer gated on the 12-testers/14-days rule, since this is an
+   established developer account with a published app.
+
+### The version line is shared across all three channels
+
+`versionCode` derives from `stelaVersionName`, and GitHub, Play and F-Droid all read the same line. So:
+
+- Every Play upload burns a versionCode permanently; a second upload means a version bump, not a re-run.
+- A GitHub release and a Play upload of the same version **must be built from the same commit**, or two
+  different artefacts end up carrying one version number. This nearly happened with 1.8.0: a fix landed
+  after the tag, so 1.8.1 was cut rather than shipping a second, different 1.8.0.
+- Pre-release suffixes are impossible — `stelaVersionName.split(".").map(String::toInt)` fails the build
+  on `1.8.0-rc1`. Test iterations therefore consume public version numbers, leaving harmless gaps.
 
 ### Listing assets — where they live
 
@@ -161,8 +184,20 @@ Two places where Play deliberately differs from what is in the repo:
   user-facing version — 1.8.0's is 472 characters — and is what both F-Droid and the Play release note
   should use. `CHANGELOG.md` stays the developer record and the GitHub release body.
 
-Still to produce: the **1024×500 feature graphic** (Play only; F-Droid's is optional) and the 512×512
-icon, which can be exported from the existing launcher icon.
+**The images are rendered, not drawn.** `images/icon.png` (512×512) and `images/featureGraphic.png`
+(1024×500) were both produced on-device from the app's own drawables by a throwaway instrumented test, so
+they stay in step with the brand colour and glyph if either ever changes — regenerate rather than edit.
+Two details that make the output correct and are easy to get wrong on a redo: the adaptive icon's layers
+are drawn at **108/72** so the visible artwork fills the frame rather than floating in a field of indigo,
+and they are drawn **separately** rather than through the drawable's own `draw()`, which would apply the
+system squircle mask and leave Play rounding an already-rounded icon. The feature graphic draws the
+foreground layer only — the background would paint indigo on indigo and leave a seam — and centres its
+group with wide margins, because Play crops the edges of that image on some surfaces.
+
+The five phone screenshots were captured on the Pixel_8 AVD with SysUI demo mode on (fixed clock, full
+battery, no stray notification icons), so the set shares one status bar. The shade screenshot needed the
+Stela group expanded by hand: Android auto-bundles the pinned notes, and collapsed they read as one
+notification rather than three.
 
 ### Foreground-service declaration — text to submit
 

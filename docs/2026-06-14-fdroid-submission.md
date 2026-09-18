@@ -94,6 +94,18 @@ listing is written from, so there is one source for both. No `WebSite`/`AuthorWe
 - Respond to review feedback on the MR until merged.
 - Once merged, `UpdateCheckMode: Tags` + `AutoUpdateMode` means F-Droid auto-detects each new `vX.Y.Z` tag
   and rebuilds — the existing tag-based release flow drives F-Droid with no extra per-release work.
+  Concretely: **`release-apk.ps1` is the F-Droid release**, because the tag it creates is the trigger.
+  Nothing pushes to F-Droid and nothing should; the lag is on their build schedule, not on anything here.
+- The one per-release artefact F-Droid reads from this repo is
+  `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt`. Nothing enforces it, so `release-apk.ps1`
+  warns (without failing) when the file for the version being tagged is absent — otherwise a
+  GitHub-only release could quietly become an F-Droid release with no note attached.
+- **Decide what happens to the local recipe once the MR merges.** After that the canonical copy lives in
+  `fdroiddata`, where F-Droid's bot maintains its `Builds:` and `CurrentVersion` fields, and
+  `fdroid/dev.davidfdev.stela.yml` here becomes a stale snapshot that nothing reads — while still looking
+  exactly like a live config file. Either delete it or give it a header saying the live copy is upstream.
+  Leaning toward deleting: this document already explains the submission, and a file that does nothing is
+  worse than a paragraph that explains something. **Open.**
 
 ## Risks / open items
 
