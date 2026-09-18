@@ -59,4 +59,16 @@ class TimeFormatterTest {
         // A late (inexact) alarm leaves the time in the past; still read it as imminent, not past.
         assertEquals(now + 60_000L, TimeFormatter.upcomingInstant(now - 120_000L, now))
     }
+
+    @Test
+    fun lowercaseFirst_dropsTheStandaloneCapital() = with(TimeFormatter) {
+        assertEquals("in 2 hours", "In 2 hours".lowercaseFirst().toString())
+    }
+
+    @Test
+    fun lowercaseFirst_leavesAnythingElseAlone() = with(TimeFormatter) {
+        assertEquals("in 5 minutes", "in 5 minutes".lowercaseFirst().toString())
+        assertEquals("", "".lowercaseFirst().toString())
+        assertEquals("3 hours ago", "3 hours ago".lowercaseFirst().toString())
+    }
 }

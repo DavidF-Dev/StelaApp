@@ -57,6 +57,14 @@ class ScheduledIndicatorTest {
     }
 
     @Test
+    fun scheduleLabel_readsAsOneSentence() {
+        setContent(note(id = 1, title = "Scheduled", pinAt = future))
+        // The platform capitalises a standalone relative span ("In 3 hours"); embedded after "Pins" it
+        // has to be lower case. Matching is case-sensitive, so this fails on the capitalised form.
+        composeRule.onNodeWithText("Pins in", substring = true).assertIsDisplayed()
+    }
+
+    @Test
     fun unscheduledNote_showsNoScheduleLabel() {
         setContent(note(id = 1, title = "Plain"))
         composeRule.onAllNodesWithText("Pins", substring = true).assertCountEquals(0)

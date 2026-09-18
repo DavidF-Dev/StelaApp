@@ -35,7 +35,12 @@ object TimeFormatter {
 
     /// Relative span for an upcoming event, never reading less than "in 1 minute": a sub-minute time —
     /// or a slightly overdue one, since inexact alarms can fire late — still reads as imminent rather than
-    /// "in 0 minutes" or in the past.
+    /// "in 0 minutes" or in the past. Lower-cased to sit inside a sentence; see [lowercaseFirst].
     fun relativeUpcoming(epochMillis: Long, now: Long = System.currentTimeMillis()): CharSequence =
-        relative(upcomingInstant(epochMillis, now), now)
+        relative(upcomingInstant(epochMillis, now), now).lowercaseFirst()
+
+    /// Drops the leading capital the platform adds so a relative span can stand alone ("In 2 hours"),
+    /// which reads as a mistake once the span is embedded mid-sentence ("Pins In 2 hours").
+    internal fun CharSequence.lowercaseFirst(): CharSequence =
+        if (isEmpty() || !first().isUpperCase()) this else first().lowercaseChar() + substring(1)
 }

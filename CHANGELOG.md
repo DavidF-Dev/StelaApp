@@ -15,6 +15,8 @@ All notable changes to Stela are documented here. This project adheres to
 - Share is now available for a brand-new note too, so a note can be shared before it is saved.
 
 ### Fixed
+- The scheduled-note label in the list no longer reads "Pins In 2 hours" with a stray capital; it now
+  reads "Pins in 2 hours", as does the matching line in the quick-note popup.
 - Opening a note from the quick-note popup's "Open in full editor", the home-screen widget or a
   notification now always lands on that note, instead of occasionally showing whichever screen the app
   was left on. This only happened when Stela hadn't been opened for a while, so the app had to start
