@@ -115,3 +115,32 @@ keeps the app's identity perfectly intact.
 Bounded but real. The billing code for a single non-consumable is small; the weight is in **adopting
 Play** (merchant account, review, Data Safety, privacy policy), the **flavor split**, the **testing
 setup**, and keeping the `foss` build clean. Not a quick slice — gated on the Play decision.
+
+---
+
+## Update — 2026-09-18
+
+Still deferred, but open item 1 has moved: **Play is being adopted**, starting with an Internal Testing
+release (see [2026-09-18-play-release-prep.md](2026-09-18-play-release-prep.md)). The channel-split
+conclusion above stands. Four additions from revisiting it:
+
+- **Cache the entitlement locally.** The plan above queries `queryPurchasesAsync` on launch to detect
+  Supporter state. That is not enough for an offline-first app: a supporter with no connection would
+  watch their badge vanish. Persist the flag in DataStore and treat Play as a *refresh*, not a gate.
+  Trivially spoofable, which is fine for something cosmetic.
+- **Anti-steering.** A badge is a digital good, so on the Play build it must go through Play Billing —
+  and that build should **not** also carry the external donation link. The US rules have been in flux
+  post-*Epic*, so re-read the current policy before shipping rather than trusting either this note or the
+  original text above.
+- **Flavor consequences worth writing down:** `play` and `foss` share one `applicationId`, so only one can
+  be installed at a time; the release script and the F-Droid recipe must each name a flavor; and
+  sideloading a GitHub (`foss`) build over a Play (`play`) build silently drops the badge UI.
+- **The `INTERNET` check has a new wrinkle.** Verify the Billing library's contribution to the *merged*
+  manifest as planned — but note the merged manifest already carried `WAKE_LOCK` and (until 2026-09-18)
+  `ACCESS_NETWORK_STATE` from a transitive WorkManager dependency, so "no network permission" was already
+  less absolute than the copy implied. The `INTERNET`-free promise itself is intact.
+
+**Sequencing:** ship the Play internal test with no billing at all — it needs no merchant account and
+keeps the first submission as boring as possible. If the gesture is wanted sooner, add the **foss
+donation link first**: an `ACTION_VIEW` intent and a Settings/About row, an afternoon's work, no new
+permissions, no fees, satisfying most of the intent.

@@ -15,7 +15,7 @@ Read it before making architectural decisions; this file is only a quick orienta
 | UI           | Jetpack Compose (Material 3; Light/Dark/System theme) |
 | Storage      | Room (SQLite, schema v5), offline                   |
 | Preferences  | Jetpack DataStore (theme, quick-add, lock-screen, swipe-to-remove + removal preference, list sort/filter) |
-| Backup       | JSON export/import via Storage Access Framework (kotlinx.serialization), offline |
+| Backup       | JSON export/import via Storage Access Framework (kotlinx.serialization), offline; Android's automatic **cloud** backup is off (`allowBackup=false`), device-to-device transfer deliberately left on |
 | Background   | Foreground Service (`specialUse` type, API 34+)     |
 | Boot restore | `BroadcastReceiver` on `BOOT_COMPLETED`             |
 | Min SDK      | 26 (Android 8) · Target SDK: latest stable          |
@@ -92,6 +92,13 @@ repo root (set `$ProgressPreference = 'SilentlyContinue'` first to avoid slow do
   `NavBackStackEntry` is `RESUMED` — using the destination entry's lifecycle, never `LocalLifecycleOwner`
   (which is the always-`RESUMED` Activity). A `LaunchedEffect` safety net re-asserts the list if the host
   is ever left with no destination. The app opts into predictive back (`enableOnBackInvokedCallback`).
+- Deep links are never handed straight to the nav controller. Re-entering `MainActivity` recreates it, and
+  it holds a placeholder until the persisted settings arrive, so `onNewIntent` can run seconds before the
+  first composition — a direct `navController?.handleDeepLink(intent)` silently drops the intent and the
+  restored back stack shows the last screen instead. An intent arriving with no host waits in
+  `pendingDeepLink` and is replayed once the `NavHost` is composed; the same applies to a warm share.
+  Instrumented tests can't reach this window (see `docs/2026-09-18-popup-scheduling-and-deep-link.md` for
+  the on-device repro).
 
 ## Git
 
