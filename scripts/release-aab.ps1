@@ -52,22 +52,39 @@ try {
         Fail 'keystore.properties is missing - the bundle would be debug-signed and Play would reject it'
     }
 
-    # --- Extract this version's CHANGELOG section (everything under "## [x.y.z]") ---
-    # Doubles as the track's "What's new" text, so it is required rather than optional here.
-    $notes = & {
-        $body = @()
-        $inSection = $false
-        foreach ($line in (Get-Content 'CHANGELOG.md' -Encoding UTF8)) {
-            if ($line -match '^##\s+\[(.+?)\]') {
-                if ($inSection) { break }                                      # next version, stop
-                if ($Matches[1] -eq $version) { $inSection = $true; continue } # our heading, start
-            } elseif ($inSection) {
-                $body += $line
-            }
-        }
-        ($body -join "`n").Trim()
+    # --- The track's "What's new" text ---
+    # Prefer the short user-facing note, which is what F-Droid publishes and what fits the Play field;
+    # CHANGELOG.md is the developer record and routinely several times too long for it. Release notes
+    # are named by versionCode, derived the same way the build script does (major*10000 + minor*100 +
+    # patch) - a formula that drifted would show up as a missing file and a fallback, not a wrong note.
+    $versionCode = 0
+    if ($version -match '^(\d+)\.(\d+)\.(\d+)$') {
+        $versionCode = [int]$Matches[1] * 10000 + [int]$Matches[2] * 100 + [int]$Matches[3]
     }
-    if ([string]::IsNullOrWhiteSpace($notes)) { Fail "no CHANGELOG.md section found for [$version]" }
+    $notePath = if ($versionCode -gt 0) { "fastlane/metadata/android/en-US/changelogs/$versionCode.txt" } else { $null }
+
+    if ($notePath -and (Test-Path $notePath)) {
+        $notes = (Get-Content $notePath -Raw -Encoding UTF8).Trim()
+        $notesFrom = $notePath
+    } else {
+        $notes = & {
+            $body = @()
+            $inSection = $false
+            foreach ($line in (Get-Content 'CHANGELOG.md' -Encoding UTF8)) {
+                if ($line -match '^##\s+\[(.+?)\]') {
+                    if ($inSection) { break }                                      # next version, stop
+                    if ($Matches[1] -eq $version) { $inSection = $true; continue } # our heading, start
+                } elseif ($inSection) {
+                    $body += $line
+                }
+            }
+            ($body -join "`n").Trim()
+        }
+        $notesFrom = 'CHANGELOG.md'
+    }
+    if ([string]::IsNullOrWhiteSpace($notes)) {
+        Fail "no release note found - expected $notePath or a CHANGELOG.md section for [$version]"
+    }
 
     # --- Build the signed release bundle ---
     $env:JAVA_HOME = 'C:\Program Files\Android\Android Studio\jbr'
@@ -86,7 +103,10 @@ try {
     Write-Host 'Bundle ready for the Play Console. Nothing was uploaded.' -ForegroundColor Green
     Write-Host "  Version : $version"
     Write-Host "  AAB     : $bundle  ($bundleSizeMb MB)"
-    Write-Host "  What's new (from CHANGELOG.md):"
+    # Play truncates past 500 characters, so say up front whether this will fit.
+    $overLimit = $notes.Length -gt 500
+    $fit = if ($overLimit) { 'OVER the 500-character limit - shorten before pasting' } else { 'fits' }
+    Write-Host "  What's new (from $notesFrom, $($notes.Length) chars, $fit):" -ForegroundColor $(if ($overLimit) { 'Yellow' } else { 'Gray' })
     $notes -split "`n" | ForEach-Object { Write-Host "      $_" }
 }
 finally {

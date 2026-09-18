@@ -1,0 +1,5 @@
+Quick notes can now be scheduled before you save them: set when a note will pin straight from the popup's menu, and change that time later. The menu says what it does - Snooze when a pin is being put off, Pin in / Pin at when you are only setting the time.
+
+Opening a note from the widget, a notification, or the popup's full editor now always lands on that note.
+
+Stela no longer asks for the "view network connections" permission, and opts out of Android's cloud backup.

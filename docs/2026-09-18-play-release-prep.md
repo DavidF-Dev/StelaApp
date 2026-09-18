@@ -137,15 +137,61 @@ tedious, the fix belongs at the version scheme rather than in the scripts.
 
 ## The Console track
 
-Before any track can publish: privacy policy URL (publicly hosted; the repo is public, so GitHub Pages
-or a file served from it is the path of least resistance), Data safety ("no data collected, no data
-shared" — genuinely true), content rating questionnaire, target audience, ads = none, app access = fully
-open, plus the foreground-service declaration below. Store listing: ≤30-character title, ≤80 short, ≤4000
-full, 512 icon, 1024×500 feature graphic, ≥2 phone screenshots — the same asset set the F-Droid plan
-needs, so one capture pass feeds both. That is the bulk of the manual effort.
+Before any track can publish: privacy policy URL, Data safety ("no data collected, no data shared" —
+genuinely true), content rating questionnaire, target audience, ads = none, app access = fully open,
+plus the foreground-service declaration below.
 
-Suggested order: decide the signing key → create the app and complete App content → capture screenshots
-and graphics → `release-aab.ps1` → upload to internal testing and add testers.
+Suggested order: decide the signing key → create the app and complete App content → produce the feature
+graphic → `release-aab.ps1` → upload to internal testing and add testers.
+
+### Listing assets — where they live
+
+The copy and screenshots live in `fastlane/metadata/android/en-US/`, which is the tree **F-Droid reads
+directly**, so one set of files feeds both channels and there is no second copy to drift. Play is
+copy-paste from the same files. `PRIVACY.md` in the repo root is the privacy policy; its rendered
+github.com URL is the policy URL, which needs no Pages setup now the repo is public.
+
+Two places where Play deliberately differs from what is in the repo:
+
+- **Title.** `title.txt` is `Stela` — the app's name, and what F-Droid shows. The Play Console title is
+  the descriptive **"Stela: Notes as Notifications"** (29 of 30 characters), because an unknown app in a
+  search-driven store needs the words. Only Play gets the longer form.
+- **"What's new".** Play caps it at 500 characters; the `CHANGELOG.md` section for a release runs several
+  times that (1.8.0 is 2266). `changelogs/<versionCode>.txt` in the fastlane tree is the short
+  user-facing version — 1.8.0's is 472 characters — and is what both F-Droid and the Play release note
+  should use. `CHANGELOG.md` stays the developer record and the GitHub release body.
+
+Still to produce: the **1024×500 feature graphic** (Play only; F-Droid's is optional) and the 512×512
+icon, which can be exported from the existing launcher icon.
+
+### Foreground-service declaration — text to submit
+
+The Console asks what the service does, why it needs to be a foreground service, and why no existing
+type fits, plus a link to a video demonstrating the feature. Recorded here so a resubmission does not
+start from a blank box:
+
+> **Functionality:** Stela lets a user pin notes to the status bar as ongoing notifications. The pinned
+> notification *is* the product — it is the note, displayed persistently at the user's explicit request,
+> and it remains until the user unpins or removes it.
+>
+> **Why a foreground service:** the service keeps the app's process alive so that pinned notes stay
+> posted for as long as the user wants them, are re-posted if the system or the user clears them, and so
+> the quick-add entry in the notification shade remains available. Pinning, unpinning and removing are
+> all driven from the notification itself, which requires the app to be running to respond.
+>
+> **Why no existing type fits:** the service performs no media playback, location tracking, data sync,
+> camera or microphone capture, phone call, health tracking, remote messaging, or connected-device work.
+> It is not short-lived, so `shortService` does not apply — the user's intent is that a pinned note
+> persists indefinitely. `specialUse` is the only type describing a persistent, user-initiated,
+> user-visible utility of this kind.
+>
+> **Visibility and control:** the service is started only when the user pins a note or enables the
+> quick-add entry, and stops automatically when neither is true. It is always represented by a visible
+> notification, and the user can remove every pin at any time.
+
+The last paragraph is the one that matters most: "user-initiated, user-visible, user-dismissible" is the
+crux of whether `specialUse` is granted. If the submitted text ends up differing from this, update it
+here rather than leaving the record stale.
 
 ## Risks
 

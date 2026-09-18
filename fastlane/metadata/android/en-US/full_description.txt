@@ -1,0 +1,28 @@
+Stela keeps the things you need to remember where you will actually see them: pinned to your status bar as ongoing notifications.
+
+Write a plain note, pin it, and it stays in your notification shade until you unpin it. No folders, no sync, no account - just the notes that matter, in front of you.
+
+FULLY OFFLINE
+
+Stela does not request Android's internet permission, so it cannot send your notes anywhere, even by accident. No ads, no analytics, no tracking, no sign-in.
+
+WHAT IT DOES
+
+- Notes as notifications - pin any note as an ongoing status-bar notification.
+- Persistent by design - pinned notes re-post themselves if you swipe them away, survive a reboot, and resist being killed in the background.
+- Capture from anywhere - a quick-add notification, a home-screen widget, launcher shortcuts and a Quick Settings tile each open a small popup that floats over whatever you are doing.
+- Pin later, unpin later - schedule a note to pin at a chosen time, have it unpin itself afterwards, or snooze a pinned note to bring it back when you need it.
+- Archive - set notes aside without deleting them, then restore or remove them later.
+- Organise - search, sort and filter your notes, and give each one its own emoji.
+- Share into Stela - send text from another app straight into a new note.
+- Backup - export and import your notes as a JSON file, entirely on your own device.
+- Themes - light, dark or follow the system, with Material You colours.
+
+HONEST ABOUT ANDROID
+
+Modern Android cannot guarantee a notification that can never be dismissed, or an app that can never be stopped. Stela promises what it can actually deliver: pinned notes re-post themselves if cleared, come back after a reboot, and resist background kill. A short setup flow points you at the battery settings that make this reliable on phones that are aggressive about stopping apps.
+
+OPEN SOURCE
+
+Stela is free software under the GPLv3, and the full source is public:
+https://github.com/DavidF-Dev/StelaApp

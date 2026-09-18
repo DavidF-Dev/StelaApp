@@ -10,6 +10,12 @@ remember stay in front of you.
 
 No ads. No analytics. **No internet permission** — your notes never leave your device.
 
+<p align="center">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" width="32%" alt="Three pinned notes in the notification shade" />
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" width="32%" alt="The note list, with one note scheduled to pin later" />
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" width="32%" alt="The quick-note popup floating over the home screen" />
+</p>
+
 ## Features
 
 - **Notes as notifications** — pin any note as an ongoing status-bar notification, so what
