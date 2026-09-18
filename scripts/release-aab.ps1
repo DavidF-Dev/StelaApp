@@ -5,7 +5,7 @@
 .DESCRIPTION
     Reads the version from app/build.gradle.kts (single source of truth), checks the same guard
     rails as release-apk.ps1 minus the GitHub ones, builds the signed .aab, stages a
-    version-stamped copy, and prints the CHANGELOG section ready to paste into the track's
+    version-stamped copy, and prints the release note ready to paste into the track's
     "What's new" field.
 
     It uploads nothing. Play submissions stay a deliberate manual step in the Console, so this
@@ -32,18 +32,13 @@ param()
 # Keep this file ASCII-only: it has no BOM, so Windows PowerShell reads it as the ANSI
 # codepage and any non-ASCII character reaches the console as mojibake.
 
+$ToolName = 'release-aab'
+. (Join-Path $PSScriptRoot '_common.ps1')
+
 $repoRoot = Split-Path -Parent $PSScriptRoot
 Push-Location $repoRoot
 try {
-    function Fail([string]$message) {
-        Write-Host "release-aab: $message" -ForegroundColor Red
-        exit 1
-    }
-
-    # --- Version: single source of truth is stelaVersionName in the build script ---
-    $match = [regex]::Match((Get-Content 'app/build.gradle.kts' -Raw -Encoding UTF8), 'stelaVersionName\s*=\s*"(.+?)"')
-    if (-not $match.Success) { Fail 'could not find stelaVersionName in app/build.gradle.kts' }
-    $version = $match.Groups[1].Value
+    $version = Get-StelaVersion
 
     # --- Guard rails: fail before building anything ---
     if (git status --porcelain) { Fail 'working tree is dirty - commit or stash changes first' }
@@ -54,32 +49,13 @@ try {
 
     # --- The track's "What's new" text ---
     # Prefer the short user-facing note, which is what F-Droid publishes and what fits the Play field;
-    # CHANGELOG.md is the developer record and routinely several times too long for it. Release notes
-    # are named by versionCode, derived the same way the build script does (major*10000 + minor*100 +
-    # patch) - a formula that drifted would show up as a missing file and a fallback, not a wrong note.
-    $versionCode = 0
-    if ($version -match '^(\d+)\.(\d+)\.(\d+)$') {
-        $versionCode = [int]$Matches[1] * 10000 + [int]$Matches[2] * 100 + [int]$Matches[3]
-    }
-    $notePath = if ($versionCode -gt 0) { "fastlane/metadata/android/en-US/changelogs/$versionCode.txt" } else { $null }
-
+    # CHANGELOG.md is the developer record and routinely several times too long for it.
+    $notePath = Get-ReleaseNotePath (Get-StelaVersionCode $version)
     if ($notePath -and (Test-Path $notePath)) {
         $notes = (Get-Content $notePath -Raw -Encoding UTF8).Trim()
         $notesFrom = $notePath
     } else {
-        $notes = & {
-            $body = @()
-            $inSection = $false
-            foreach ($line in (Get-Content 'CHANGELOG.md' -Encoding UTF8)) {
-                if ($line -match '^##\s+\[(.+?)\]') {
-                    if ($inSection) { break }                                      # next version, stop
-                    if ($Matches[1] -eq $version) { $inSection = $true; continue } # our heading, start
-                } elseif ($inSection) {
-                    $body += $line
-                }
-            }
-            ($body -join "`n").Trim()
-        }
+        $notes = Get-ChangelogSection $version
         $notesFrom = 'CHANGELOG.md'
     }
     if ([string]::IsNullOrWhiteSpace($notes)) {
