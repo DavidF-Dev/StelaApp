@@ -10,8 +10,12 @@
     <string name="action_unpin">Unpin</string>
     <string name="action_archive">Archive</string>
     <string name="action_restore">Restore</string>
+    <!-- Both pairs set a note's auto-pin time; the snooze wording is used when there is a live pin
+         being put off, the pin wording when there is only a pin time to set. -->
     <string name="action_snooze_for">Snooze for…</string>
     <string name="action_snooze_until">Snooze until…</string>
+    <string name="action_pin_in">Pin in…</string>
+    <string name="action_pin_at">Pin at…</string>
     <string name="action_delete">Delete</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_share">Share</string>
@@ -121,6 +125,7 @@
 
     <!-- Editor — snooze -->
     <string name="snooze_title">Snooze for</string>
+    <string name="pin_in_title">Pin in</string>
     <string name="snooze_30_minutes">30 minutes</string>
     <string name="snooze_1_hour">1 hour</string>
     <string name="snooze_3_hours">3 hours</string>

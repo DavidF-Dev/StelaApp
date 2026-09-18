@@ -9,10 +9,9 @@ All notable changes to Stela are documented here. This project adheres to
 - Settings now shows a hint (below the Quick-add toggle, when it is off) explaining how to hide
   the persistent "Stela is running" notification. Tapping the hint opens the system notification
   channel settings directly.
-- Quick notes can now be scheduled without saving first: "Snooze for..." and "Snooze until..." are
-  available in the overflow (⋮) menu of a brand-new note, and set when it will first pin instead of
-  pinning it straight away. The note's card shows a line stating the pending pin (for example
-  "Pins in 3 hours") with a button to clear it.
+- Quick notes can now be scheduled without saving first: the overflow (⋮) menu of a brand-new note can
+  set when it will first pin, instead of pinning it straight away. The note's card shows a line stating
+  the pending pin (for example "Pins in 3 hours") with a button to clear it.
 - Share is now available for a brand-new note too, so a note can be shared before it is saved.
 
 ### Fixed
@@ -22,10 +21,13 @@ All notable changes to Stela are documented here. This project adheres to
   itself up again before it could act on where you asked to go.
 
 ### Changed
-- A note that is waiting to pin — whether snoozed or scheduled to pin later — can now be snoozed again to
-  move that time, and "Snooze until..." opens on the time it is already waiting for. Previously the snooze
-  options greyed out the moment a note was hidden, so changing the time meant going through the editor's
-  Advanced section.
+- Setting when a note pins is now always available from the overflow (⋮) menu, and says what it does.
+  When the note is pinned the options read "Snooze for..." and "Snooze until...", because that is what
+  they do — put off a pin you already have. When it isn't, they read "Pin in..." and "Pin at...", and
+  simply set the time it will pin. Previously they greyed out for any note that wasn't pinned, so turning
+  the pin off — the obvious way to say "not now" — also took away the ability to say "later", and the
+  only way back was the editor's Advanced section. A note already waiting to pin can be retimed the same
+  way, with the picker opening on the time it is currently waiting for.
 - Stela no longer asks for the "view network connections" permission. The app never used it — it came in
   with a library behind the home-screen widget — so it has been stripped from the build. As ever, Stela
   has no internet permission and does no networking whatsoever.

@@ -1,5 +1,6 @@
 package dev.davidfdev.stela.ui.editor
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,18 +33,32 @@ private val PRESETS = listOf(
     R.string.snooze_1_day to DAY_MILLIS,
 )
 
-/// The snooze chooser: a dialog of duration presets that, via "Custom…", switches to Days / Hours /
-/// Minutes fields. [onPick] receives the absolute re-pin time (`now + duration`); [now] is injectable for
+/// The delay chooser: a dialog of duration presets that, via "Custom…", switches to Days / Hours /
+/// Minutes fields. [onPick] receives the absolute pin time (`now + duration`); [now] is injectable for
 /// tests. Hosted by the shared overflow menu, so the editor and popup share it.
+///
+/// [deferringLivePin] picks the wording: putting off a pin the note already has reads as a snooze, while
+/// giving an unpinned note its first pin time reads as scheduling. Both set the same `pinAt`.
 @Composable
-internal fun SnoozeChooser(onPick: (Long) -> Unit, onDismiss: () -> Unit, now: () -> Long = System::currentTimeMillis) {
+internal fun SnoozeChooser(
+    onPick: (Long) -> Unit,
+    onDismiss: () -> Unit,
+    deferringLivePin: Boolean,
+    now: () -> Long = System::currentTimeMillis,
+) {
     var customMode by remember { mutableStateOf(false) }
+    val titleRes = if (deferringLivePin) R.string.snooze_title else R.string.pin_in_title
     if (customMode) {
-        CustomDurationDialog(onPick = { onPick(now() + it) }, onDismiss = onDismiss)
+        CustomDurationDialog(
+            onPick = { onPick(now() + it) },
+            onDismiss = onDismiss,
+            titleRes = titleRes,
+            confirmRes = if (deferringLivePin) R.string.snooze_confirm else R.string.schedule_set,
+        )
     } else {
         AlertDialog(
             onDismissRequest = onDismiss,
-            title = { Text(stringResource(R.string.snooze_title)) },
+            title = { Text(stringResource(titleRes)) },
             text = {
                 Column {
                     PRESETS.forEach { (labelRes, duration) ->
@@ -67,7 +82,12 @@ private fun PresetRow(label: String, onClick: () -> Unit) {
 }
 
 @Composable
-private fun CustomDurationDialog(onPick: (Long) -> Unit, onDismiss: () -> Unit) {
+private fun CustomDurationDialog(
+    onPick: (Long) -> Unit,
+    onDismiss: () -> Unit,
+    @StringRes titleRes: Int,
+    @StringRes confirmRes: Int,
+) {
     var days by remember { mutableStateOf("") }
     var hours by remember { mutableStateOf("") }
     var minutes by remember { mutableStateOf("") }
@@ -75,7 +95,7 @@ private fun CustomDurationDialog(onPick: (Long) -> Unit, onDismiss: () -> Unit) 
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.snooze_title)) },
+        title = { Text(stringResource(titleRes)) },
         text = {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 DurationField(days, { days = it.toDigits(3) }, stringResource(R.string.snooze_days), Modifier.weight(1f))
@@ -85,7 +105,7 @@ private fun CustomDurationDialog(onPick: (Long) -> Unit, onDismiss: () -> Unit) 
         },
         confirmButton = {
             TextButton(onClick = { onPick(total) }, enabled = total > 0) {
-                Text(stringResource(R.string.snooze_confirm))
+                Text(stringResource(confirmRes))
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },

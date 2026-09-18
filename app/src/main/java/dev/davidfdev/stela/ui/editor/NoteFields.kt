@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.OpenInFull
 import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Snooze
 import androidx.compose.material.icons.filled.Unarchive
@@ -349,20 +350,26 @@ private fun NoteOverflowMenu(
                     )
                 }
             }
-            // Snoozing needs a pin to act on, live or pending: it hides a live one and re-pins later, defers
-            // an unsaved note's pin-on-save, or retimes a pin that is already waiting (including one an
-            // earlier snooze set, which would otherwise be unreachable from here).
-            val canSnooze = state.isPinned || state.pinAt != null
+            // Both items set the note's auto-pin time, which means one of two things depending on whether
+            // a pin is already in hand: putting off a live one, or giving an unpinned note its first. The
+            // wording and icon follow that, so the same pair also retimes a pin that is already waiting.
+            val deferringLivePin = state.isPinned
             DropdownMenuItem(
-                text = { Text(stringResource(R.string.action_snooze_for)) },
-                leadingIcon = { Icon(Icons.Filled.Snooze, contentDescription = null) },
-                enabled = canSnooze,
+                text = {
+                    Text(stringResource(if (deferringLivePin) R.string.action_snooze_for else R.string.action_pin_in))
+                },
+                leadingIcon = {
+                    Icon(if (deferringLivePin) Icons.Filled.Snooze else Icons.Filled.Schedule, contentDescription = null)
+                },
                 onClick = { expanded = false; showSnooze = true },
             )
             DropdownMenuItem(
-                text = { Text(stringResource(R.string.action_snooze_until)) },
-                leadingIcon = { Icon(Icons.Filled.Snooze, contentDescription = null) },
-                enabled = canSnooze,
+                text = {
+                    Text(stringResource(if (deferringLivePin) R.string.action_snooze_until else R.string.action_pin_at))
+                },
+                leadingIcon = {
+                    Icon(if (deferringLivePin) Icons.Filled.Snooze else Icons.Filled.Schedule, contentDescription = null)
+                },
                 onClick = { expanded = false; showSnoozeUntil = true },
             )
             if (state.isEditing) {
@@ -386,6 +393,7 @@ private fun NoteOverflowMenu(
         SnoozeChooser(
             onPick = { until -> showSnooze = false; onSnooze(until) },
             onDismiss = { showSnooze = false },
+            deferringLivePin = state.isPinned,
         )
     }
 

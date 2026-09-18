@@ -45,9 +45,8 @@ only missing link was a way to put a `pinAt` into `EditorUiState` from the popup
   clear ✕. Without it the sole visible effect of picking a snooze would be the pin icon turning hollow,
   indistinguishable from an unpin. It also fixes a pre-existing blind spot: a note carrying a pending
   auto-pin previously showed no sign of it in the popup at all.
-- **Snooze stays enabled whenever there is a pin to act on** — `isPinned || pinAt != null`. Previously
-  the options greyed out the instant a note was hidden, so a snoozed note could not be retimed without
-  going through the editor's Advanced section. "Snooze until…" now opens on the time already set.
+- **The pair is always available, and says what it does** — see "Setting a pin time" below. "Snooze
+  until… / Pin at…" opens on the time already set, so a pin that is waiting can be retimed in place.
 
 ### Invariant protected
 
@@ -59,16 +58,36 @@ only `unpinAt` for a pinned note), and which later fires a redundant, possibly a
 
 ### Decisions
 
-- **Wording unchanged.** "Snooze for… / Snooze until…" on a note that has never been pinned is a slight
-  fib, but it keeps one vocabulary for one mechanism and costs no new strings; the popup's "New note"
-  heading supplies the context. Relabelling to "Pin in… / Pin at…" for a new note remains a two-string
-  change if it reads badly.
 - **The ✕ is an unsaved edit applied on Save**, like the other fields — deliberately unlike snooze
   itself, which acts immediately. That asymmetry already exists in the editor (snooze acts, Advanced rows
   save) and was kept rather than invented here.
-- **`unpinAt` and "Alert when pinned" stay Expand-only.** "Snooze until…" is already a date-and-time
-  picker writing `pinAt`, so the popup gains both relative and absolute first-pin scheduling without the
+- **`unpinAt` and "Alert when pinned" stay Expand-only.** The absolute picker is already a date-and-time
+  dialog writing `pinAt`, so the popup gains both relative and absolute first-pin scheduling without the
   Advanced section following it into a bottom sheet.
+
+### Setting a pin time — corrected after device testing
+
+The pair shipped gated on `isPinned || pinAt != null`, and device testing found the hole immediately: an
+unpinned note offered no way to schedule one. The most natural way to say "not now" — turning the pin
+toggle off — was the exact gesture that removed the ability to say "later".
+
+The gate was **the "Unpin at" row's rule applied to a `pinAt` control**. The editor has both rules a few
+lines apart, and the wrong one got copied:
+
+| control | writes | enabled when |
+|---|---|---|
+| Advanced → Pin at | `pinAt` | `!isPinned` |
+| Advanced → Unpin at | `unpinAt` | `isPinned \|\| pinAt != null` |
+
+Neither rule is right for the menu pair, because they do both jobs: with a live pin they put it off, and
+without one they set the first. The union is "always", so the gate is gone. `NotePinner.snooze` already
+skipped the unpin step for an unpinned note, so nothing but the `enabled` expression stood in the way.
+
+Removing it is what made the wording stretch — "Snooze for…" on a note that has never been pinned means
+nothing — so the labels and icons now follow `isPinned`: **Snooze for… / Snooze until…** with the snooze
+icon when a live pin is being put off, **Pin in… / Pin at…** with the schedule icon when a pin time is
+merely being set. The duration dialog's title and confirm button follow the same flag, so the wording
+stays consistent from menu item to dialog.
 
 ### Shape of the change
 

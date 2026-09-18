@@ -103,7 +103,7 @@ class QuickNotePopupTest {
     }
 
     @Test
-    fun newNotePopup_afterSnoozing_snoozeStaysAvailableToRetime() {
+    fun newNotePopup_afterSnoozing_offersTheSameActionsAsPinWording() {
         val intent = QuickNoteActivity.newNoteIntent(context).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
         ActivityScenario.launch<QuickNoteActivity>(intent).use {
@@ -111,12 +111,30 @@ class QuickNotePopupTest {
             composeRule.onNodeWithText("Snooze for", substring = true).performClick()
             composeRule.onNodeWithText("30 minutes").performClick()
 
-            // Snoozing leaves the note unpinned, but the pin it is waiting on is still there to retime.
+            // Snoozing leaves no live pin, so the pair reads as scheduling from here on - and stays usable,
+            // which is how the waiting pin gets retimed.
             composeRule.onNodeWithContentDescription("More").performClick()
-            composeRule.onNodeWithText("Snooze for", substring = true).assertIsEnabled()
-            composeRule.onNodeWithText("Snooze until", substring = true).assertIsEnabled()
+            composeRule.onNodeWithText("Pin in", substring = true).assertIsEnabled()
+            composeRule.onNodeWithText("Pin at", substring = true).assertIsEnabled()
 
             // The menu draws in its own window; close it so none is left over the activity at teardown.
+            pressSystemBack()
+        }
+    }
+
+    @Test
+    fun newNotePopup_whenUnpinned_stillOffersAPinTime() {
+        val intent = QuickNoteActivity.newNoteIntent(context).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+        ActivityScenario.launch<QuickNoteActivity>(intent).use {
+            // Turning the pin off is the natural way to say "not now" - it must not also take away the
+            // ability to say "later".
+            composeRule.onNodeWithContentDescription("Unpin").performClick()
+            composeRule.onNodeWithContentDescription("More").performClick()
+
+            composeRule.onNodeWithText("Pin in", substring = true).assertIsEnabled()
+            composeRule.onNodeWithText("Pin at", substring = true).assertIsEnabled()
+
             pressSystemBack()
         }
     }
