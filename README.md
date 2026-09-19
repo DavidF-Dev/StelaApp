@@ -1,7 +1,7 @@
 # Stela — Notes as Notifications
 
 [![Release](https://img.shields.io/github/v/release/DavidF-Dev/StelaApp?style=flat-square)](https://github.com/DavidF-Dev/StelaApp/releases/latest)
-[![License](https://img.shields.io/github/license/DavidF-Dev/StelaApp?style=flat-square)](LICENSE)
+[![License](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](LICENSE)
 [![CI](https://github.com/DavidF-Dev/StelaApp/actions/workflows/build.yml/badge.svg)](https://github.com/DavidF-Dev/StelaApp/actions/workflows/build.yml)
 
 Stela is a simple, **fully offline** Android note-taking app. Write plain notes and
