@@ -1,8 +1,11 @@
 # Stela — Notes as Notifications
 
 [![Release](https://img.shields.io/github/v/release/DavidF-Dev/StelaApp?style=flat-square)](https://github.com/DavidF-Dev/StelaApp/releases/latest)
-[![License](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](LICENSE)
-[![CI](https://github.com/DavidF-Dev/StelaApp/actions/workflows/build.yml/badge.svg)](https://github.com/DavidF-Dev/StelaApp/actions/workflows/build.yml)
+[![License](https://img.shields.io/badge/License-GPL%20v3-blue.svg?style=flat-square)](LICENSE)
+[![CI](https://img.shields.io/github/actions/workflow/status/DavidF-Dev/StelaApp/build.yml?branch=main&style=flat-square&label=CI)](https://github.com/DavidF-Dev/StelaApp/actions/workflows/build.yml)
+<br />
+[![Google Play](https://img.shields.io/badge/Google_Play-coming_soon-9e9e9e?style=flat-square&logo=googleplay&logoColor=white)](#install)
+[![F-Droid](https://img.shields.io/badge/F--Droid-planned-9e9e9e?style=flat-square&logo=fdroid&logoColor=white)](#install)
 
 Stela is a simple, **fully offline** Android note-taking app. Write plain notes and
 **pin** them as persistent notifications in your status bar, so the things you need to
@@ -31,6 +34,28 @@ No ads. No analytics. **No internet permission** — your notes never leave your
 - **Backup** — export and import your notes as a JSON file, fully offline.
 - **Theming** — Light, Dark, or Follow System.
 
+## Install
+
+Stela runs on **Android 8.0 (API 26) or newer**.
+
+| Channel | Status |
+| --- | --- |
+| [GitHub Releases](https://github.com/DavidF-Dev/StelaApp/releases/latest) | **Available now** — signed APK |
+| Google Play | Coming soon |
+| F-Droid | Planned |
+
+### From GitHub Releases
+
+1. Download `stela-<version>.apk` (for example `stela-1.8.1.apk`) from the
+   [latest release](https://github.com/DavidF-Dev/StelaApp/releases/latest).
+2. Open it on your device. Android will ask you to allow installs from whichever app you
+   downloaded it with — grant it under *Settings → Apps → Special app access → Install unknown apps*.
+3. Allow notifications when Stela asks. Pinned notes **are** notifications, so the app does
+   nothing useful without that permission.
+
+Releases are signed with the project key, so a newer APK installs straight over an older one
+without losing your notes.
+
 ## Honest persistence
 
 Modern Android cannot guarantee truly undismissable notifications or unkillable
@@ -38,10 +63,6 @@ processes. Stela's honest promise: pinned notes **self-heal** (re-post if cleare
 **survive reboot**, and **resist background kill**. The onboarding flow helps you grant
 the battery-optimisation and autostart exemptions that make this reliable on aggressive
 OEM builds.
-
-## Requirements
-
-- Android 8.0 (API 26) or newer.
 
 ## Building
 
